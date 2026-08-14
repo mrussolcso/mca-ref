@@ -1,14 +1,33 @@
 [
   {
     "id": "45-5-206",
-    "title": "45-5-206. Partner or family member assault.",
-    "bond": {
-      "degree": "Misdemeanor (1st/2nd)",
-      "amount": "$1,000 / Court-Set",
-      "must_appear": "REQUIRED",
-      "statutory_fine": "Up to $1,000",
-      "jail_time": "24 hrs to 1 year"
-    },
+    "title": "Partner or family member assault.",
+    "offenses": [
+      {
+        "charge_name": "Partner/Family Member Assault - 1st Offense",
+        "degree": "Misdemeanor",
+        "bail_amount": "$1,000",
+        "must_appear": "REQUIRED",
+        "fine": "$100 - $1,000",
+        "jail": "24 hrs - 1 yr"
+      },
+      {
+        "charge_name": "Partner/Family Member Assault - 2nd Offense",
+        "degree": "Misdemeanor",
+        "bail_amount": "$2,500",
+        "must_appear": "REQUIRED",
+        "fine": "$300 - $1,000",
+        "jail": "72 hrs - 1 yr"
+      },
+      {
+        "charge_name": "Partner/Family Member Assault - 3rd or Subsequent",
+        "degree": "Felony",
+        "bail_amount": "Court-Set",
+        "must_appear": "REQUIRED",
+        "fine": "$500 - $50,000",
+        "jail": "30 days - 5 yrs"
+      }
+    ],
     "paragraphs": [
       { "counter": "(1)", "text": "A person commits the offense of partner or family member assault if the person:" },
       { "counter": "(a)", "text": "purposely or knowingly causes bodily injury to a partner or family member;" },
@@ -20,14 +39,25 @@
   },
   {
     "id": "45-5-502",
-    "title": "45-5-502. Sexual assault.",
-    "bond": {
-      "degree": "Misdemeanor / Felony",
-      "amount": "$1,000 / Court-Set",
-      "must_appear": "REQUIRED",
-      "statutory_fine": "Up to $50,000",
-      "jail_time": "1 yr / Up to Life"
-    },
+    "title": "Sexual assault.",
+    "offenses": [
+      {
+        "charge_name": "Sexual Assault - 1st Offense",
+        "degree": "Misdemeanor",
+        "bail_amount": "$1,000",
+        "must_appear": "REQUIRED",
+        "fine": "Up to $1,000",
+        "jail": "Up to 1 yr"
+      },
+      {
+        "charge_name": "Sexual Assault - 2nd Offense",
+        "degree": "Felony",
+        "bail_amount": "Court-Set",
+        "must_appear": "REQUIRED",
+        "fine": "Up to $5,000",
+        "jail": "Up to 5 yrs"
+      }
+    ],
     "paragraphs": [
       { "counter": "(1)", "text": "A person who knowingly subjects another person to any sexual contact without consent commits the offense of sexual assault." },
       { "counter": "(2)", "text": "Except as provided in subsections (3) and (4):" },

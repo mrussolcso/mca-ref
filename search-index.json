@@ -1,0 +1,23 @@
+[
+  {
+    "id": "45-5-206",
+    "title": "Partner or family member assault",
+    "title_num": 45,
+    "degree": "Misdemeanor (1st/2nd)",
+    "keywords": "pfma domestic abuse assault violence partner family"
+  },
+  {
+    "id": "45-5-502",
+    "title": "Sexual assault",
+    "title_num": 45,
+    "degree": "Misdemeanor / Felony",
+    "keywords": "sexual assault abuse contact nonconsensual"
+  },
+  {
+    "id": "61-8-1002",
+    "title": "Driving under the influence",
+    "title_num": 61,
+    "degree": "Misdemeanor (1st)",
+    "keywords": "dui driving under influence alcohol drugs drunk impaired"
+  }
+]

@@ -20,11 +20,11 @@
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 20px; color: var(--text); }
 
-  header { max-width: 1000px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+  header { max-width: 1100px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
   header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
   header a { color: var(--primary-light); text-decoration: none; font-weight: 600; }
 
-  .admin-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .admin-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
   .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
@@ -46,18 +46,22 @@
   .btn-success:hover { background: #22543d; }
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-  textarea.raw-input { width: 100%; height: 240px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
+  textarea.raw-input { width: 100%; height: 220px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
   .status-log { font-size: 0.9rem; font-weight: 600; margin-top: 10px; padding: 10px; border-radius: 4px; display: none; }
   .status-log.info { display: block; background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
   .status-log.success { display: block; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
   .status-log.error { display: block; background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; }
 
-  /* Modal Overlay Styling */
-  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
-  .modal-card { background: white; border-radius: 8px; max-width: 700px; width: 90%; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.3); overflow: hidden; }
+  /* Side-by-Side Modal Overlay Styling */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-card { background: white; border-radius: 8px; max-width: 1100px; width: 95%; height: 88vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow: hidden; }
   .modal-header { padding: 16px 20px; background: var(--primary); color: white; font-weight: bold; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
-  .modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; font-size: 0.9rem; line-height: 1.5; }
-  .modal-footer { padding: 12px 20px; background: #edf2f7; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; overflow-hidden; flex-grow: 1; height: calc(100% - 130px); }
+  .modal-pane { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+  .modal-pane h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+  .pane-content { border: 1px solid var(--border); border-radius: 6px; padding: 14px; background: #f8fafc; overflow-y: auto; flex-grow: 1; font-size: 0.85rem; line-height: 1.5; }
+  textarea.json-editor { width: 100%; height: 100%; font-family: 'Courier New', Courier, monospace; font-size: 0.82rem; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: #1e1e1e; color: #d4d4d4; resize: none; white-space: pre; word-wrap: normal; overflow-x: auto; }
+  .modal-footer { padding: 12px 20px; background: #edf2f7; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
 </style>
 </head>
 <body>
@@ -99,7 +103,7 @@
     <div class="form-group">
       <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;45-5-207. Criminal endangerment. (1) A person commits the offense of criminal endangerment if...&#10;History: En. Sec. 2, Ch. 196, L. 1987..."></textarea>
     </div>
-    <button type="button" class="btn btn-success" onclick="parseTextOnly()" style="width: 100%;">⚡ Step 1: Parse Raw Text</button>
+    <button type="button" class="btn btn-success" onclick="parseTextOnly()" style="width: 100%;">⚡ Step 1: Parse Raw Text & Open Side-by-Side Preview</button>
   </div>
 
   <!-- 3. Edit Metadata & Offense Tiers -->
@@ -137,19 +141,35 @@
 
 </div>
 
-<!-- Parsed Preview Modal Overlay -->
+<!-- Side-by-Side Parsed Preview Modal -->
 <div id="previewModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-header">
-      <span>Parsed Statute Preview</span>
+      <span>Parsed Statute Verification</span>
       <button onclick="closePreviewModal()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
     </div>
-    <div id="previewContent" class="modal-body">
-      <!-- Dynamically populated -->
+    
+    <div class="modal-body-split">
+      <!-- Left Panel: Formatted Rendered Preview -->
+      <div class="modal-pane">
+        <h3>📄 Text Render Preview</h3>
+        <div id="renderedTextPreview" class="pane-content"></div>
+      </div>
+
+      <!-- Right Panel: Editable Raw JSON -->
+      <div class="modal-pane">
+        <h3>
+          <span>💻 Editable Statute JSON</span>
+          <span style="font-size:0.75rem; font-weight:normal; color:#718096;">Edits sync to form</span>
+        </h3>
+        <textarea id="jsonEditor" class="json-editor" spellcheck="false"></textarea>
+      </div>
     </div>
+
     <div class="modal-footer">
+      <span id="jsonParseError" style="color:var(--danger); font-size:0.85rem; font-weight:bold; margin-right:auto; display:none;">⚠️ Invalid JSON syntax</span>
       <button class="btn btn-danger" onclick="closePreviewModal()">Cancel</button>
-      <button class="btn btn-success" onclick="confirmParsedData()">Apply & Edit Details</button>
+      <button class="btn btn-success" onclick="confirmParsedData()">Apply & Sync to Form</button>
     </div>
   </div>
 </div>
@@ -184,7 +204,7 @@ function showStatus(message, type = "info") {
   log.textContent = message;
 }
 
-// Parse Raw Text & Display Confirmation Modal
+// Parse Raw Text & Display Side-by-Side Modal
 function parseTextOnly() {
   const raw = document.getElementById('rawMcaText').value.trim();
   if (!raw) {
@@ -208,7 +228,7 @@ function parseTextOnly() {
   if (headerMatch) {
     statuteId = headerMatch[1];
     statuteTitle = headerMatch[2].trim();
-    titleNum = statuteId.split('-')[0]; // Auto-extract title number
+    titleNum = statuteId.split('-')[0];
     mainText = mainText.substring(headerMatch[0].length).trim();
   }
 
@@ -228,7 +248,15 @@ function parseTextOnly() {
 
   const keywords = statuteTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
 
-  // Hold data until confirmed
+  // 1. Construct JSON Object
+  const statuteJson = {
+    id: statuteId,
+    title: `${statuteId}. ${statuteTitle}.`,
+    offenses: [],
+    paragraphs: paragraphs,
+    history: historyStr
+  };
+
   pendingParseData = {
     statuteId,
     statuteTitle,
@@ -238,31 +266,30 @@ function parseTextOnly() {
     paragraphs
   };
 
-  // Build Preview Modal Content
-  let previewHtml = `
-    <p><strong>Statute ID:</strong> ${statuteId || '<em>Not detected</em>'} <span style="color:#718096;">(Auto Title ${titleNum || 'N/A'})</span></p>
-    <p><strong>Title:</strong> ${statuteTitle || '<em>Not detected</em>'}</p>
-    <p><strong>Keywords:</strong> <code>${keywords}</code></p>
-    <hr style="border:0; border-top:1px solid #e2e8f0; margin:12px 0;">
-    <p><strong>Subsections Found (${paragraphs.length}):</strong></p>
-    <div style="background:#f7fafc; padding:10px; border-radius:4px; border:1px solid #cbd5e0; max-height:200px; overflow-y:auto; font-size:0.85rem;">
+  // 2. Build Left-Panel Rendered Preview HTML
+  let renderHtml = `
+    <h2 style="font-size:1.1rem; color:var(--primary); margin-top:0;">${statuteId || 'ID Missing'}. ${statuteTitle || 'Title Missing'}</h2>
+    <p><strong>Auto Title:</strong> Title ${titleNum || 'N/A'} | <strong>Keywords:</strong> <code>${keywords}</code></p>
+    <hr style="border:0; border-top:1px solid #cbd5e0; margin:10px 0;">
   `;
 
   paragraphs.forEach(p => {
-    previewHtml += `<div style="margin-bottom:6px;"><strong>${p.counter}</strong> ${p.text}</div>`;
+    renderHtml += `<p style="margin-bottom:8px;"><strong>${p.counter}</strong> ${p.text}</p>`;
   });
 
-  previewHtml += `</div>`;
-
   if (historyStr) {
-    previewHtml += `
-      <hr style="border:0; border-top:1px solid #e2e8f0; margin:12px 0;">
-      <p><strong>History:</strong></p>
+    renderHtml += `
+      <hr style="border:0; border-top:1px solid #cbd5e0; margin:10px 0;">
       <p style="font-size:0.8rem; color:#4a5568;">${historyStr}</p>
     `;
   }
 
-  document.getElementById('previewContent').innerHTML = previewHtml;
+  document.getElementById('renderedTextPreview').innerHTML = renderHtml;
+
+  // 3. Populate Right-Panel Editable JSON
+  document.getElementById('jsonEditor').value = JSON.stringify(statuteJson, null, 2);
+  document.getElementById('jsonParseError').style.display = 'none';
+
   document.getElementById('previewModal').style.display = 'flex';
 }
 
@@ -271,17 +298,35 @@ function closePreviewModal() {
   pendingParseData = null;
 }
 
+// Confirm Modal Data & Sync Changes to Form
 function confirmParsedData() {
-  if (!pendingParseData) return;
+  const jsonText = document.getElementById('jsonEditor').value;
+  const errorSpan = document.getElementById('jsonParseError');
 
-  document.getElementById('statuteId').value = pendingParseData.statuteId;
-  document.getElementById('statuteTitle').value = pendingParseData.statuteTitle;
-  document.getElementById('keywords').value = pendingParseData.keywords;
-  document.getElementById('historyText').value = pendingParseData.historyStr;
-  parsedParagraphs = pendingParseData.paragraphs;
+  try {
+    const updatedJson = JSON.parse(jsonText);
+    errorSpan.style.display = 'none';
 
-  closePreviewModal();
-  showStatus("Parsed details loaded into form. Review details and click 'Commit & Push to GitHub'.", "info");
+    // Apply JSON values back to the form
+    document.getElementById('statuteId').value = updatedJson.id || pendingParseData.statuteId;
+    
+    // Clean title string if formatted as "45-5-207. Title."
+    let cleanTitle = updatedJson.title || pendingParseData.statuteTitle;
+    cleanTitle = cleanTitle.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '');
+    
+    document.getElementById('statuteTitle').value = cleanTitle;
+    document.getElementById('keywords').value = cleanTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+    document.getElementById('historyText').value = updatedJson.history || '';
+    
+    parsedParagraphs = updatedJson.paragraphs || [];
+
+    closePreviewModal();
+    showStatus("Parsed details applied from modal to form. Set offenses below and commit to GitHub.", "info");
+
+  } catch (e) {
+    errorSpan.style.display = 'inline';
+    errorSpan.textContent = `⚠️ JSON Error: ${e.message}`;
+  }
 }
 
 // Automatically derive title_num from Statute ID

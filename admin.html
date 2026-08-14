@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCA Catalog Entry Builder (Admin)</title>
+<style>
+  :root {
+    --primary: #1a365d;
+    --primary-light: #2b6cb0;
+    --border: #cbd5e0;
+    --bg-main: #f7fafc;
+    --bg-card: #ffffff;
+    --text: #2d3748;
+    --success: #2f855a;
+  }
+
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 20px; color: var(--text); }
+
+  .admin-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 900px) { .admin-container { grid-template-columns: 1fr; } }
+
+  header { max-width: 1200px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+  header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
+  header a { color: var(--primary-light); text-decoration: none; font-weight: 600; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #4a5568; }
+  .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .dynamic-section { background: #edf2f7; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+  .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+
+  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 14px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+  .btn:hover { background: var(--primary); }
+  .btn-danger { background: #e53e3e; }
+  .btn-danger:hover { background: #9b2c2c; }
+  .btn-success { background: var(--success); }
+  .btn-success:hover { background: #22543d; }
+  .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
+
+  pre { background: #1a202c; color: #f7fafc; padding: 14px; border-radius: 6px; overflow-x: auto; font-size: 0.82rem; height: 320px; }
+  .output-actions { display: flex; gap: 10px; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>MCA Statute & Bond Book Builder</h1>
+  <a href="index.html">← Back to Main App</a>
+</header>
+
+<div class="admin-container">
+  
+  <!-- Left Side: Form Controls -->
+  <div class="card">
+    <h2>1. Statute Core Details</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="statuteId">Statute ID (e.g. 45-5-207)</label>
+        <input type="text" id="statuteId" class="form-control" placeholder="45-5-207">
+      </div>
+      <div class="form-group">
+        <label for="titleNum">Title Number</label>
+        <input type="number" id="titleNum" class="form-control" placeholder="45">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="statuteTitle">Statute Title</label>
+      <input type="text" id="statuteTitle" class="form-control" placeholder="Criminal endangerment">
+    </div>
+
+    <div class="form-group">
+      <label for="keywords">Search Keywords (Space separated)</label>
+      <input type="text" id="keywords" class="form-control" placeholder="endangerment high risk recklessly bodily injury">
+    </div>
+
+    <h2>2. Bond Book Offense Tiers</h2>
+    <div id="offenseList"></div>
+    <button type="button" class="btn btn-sm" onclick="addOffenseRow()">+ Add Offense Tier</button>
+
+    <h2 style="margin-top: 20px;">3. Statute Subsections / Paragraphs</h2>
+    <div id="paragraphList"></div>
+    <button type="button" class="btn btn-sm" onclick="addParagraphRow()">+ Add Paragraph Subsection</button>
+
+    <div class="form-group" style="margin-top: 20px;">
+      <label for="historyText">History Text (Optional)</label>
+      <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2, Ch. 196, L. 1987...">
+    </div>
+  </div>
+
+  <!-- Right Side: Generated JSON Output -->
+  <div>
+    <div class="card" style="margin-bottom: 20px;">
+      <h2>Search Index Output (`search-index.json`)</h2>
+      <p style="font-size: 0.8rem; color: #718096; margin-top: -6px;">Append this object into your root <code>search-index.json</code> array.</p>
+      <pre id="searchIndexJson">// Fill form to view output</pre>
+      <div class="output-actions">
+        <button class="btn btn-success" onclick="copyToClipboard('searchIndexJson')">Copy Search Index JSON</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Title File Detail Output (`data/titles/title_XX.json`)</h2>
+      <p style="font-size: 0.8rem; color: #718096; margin-top: -6px;">Append this object into your <code>data/titles/title_<span id="titleNumLabel">XX</span>.json</code> file.</p>
+      <pre id="titleFileJson">// Fill form to view output</pre>
+      <div class="output-actions">
+        <button class="btn btn-success" onclick="copyToClipboard('titleFileJson')">Copy Title Data JSON</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Initial setup
+document.addEventListener('DOMContentLoaded', () => {
+  addOffenseRow();
+  addParagraphRow();
+  
+  // Input change listeners
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', generateJSON);
+  });
+});
+
+// Add dynamic Offense Tier input row
+function addOffenseRow() {
+  const container = document.getElementById('offenseList');
+  const div = document.createElement('div');
+  div.className = 'dynamic-section offense-item';
+  div.innerHTML = `
+    <div class="form-row" style="margin-bottom: 8px;">
+      <input type="text" class="form-control off-charge" placeholder="Charge Name (e.g. Criminal Endangerment)" oninput="generateJSON()">
+      <select class="form-control off-degree" onchange="generateJSON()">
+        <option value="Misdemeanor">Misdemeanor</option>
+        <option value="Felony">Felony</option>
+      </select>
+    </div>
+    <div class="form-row-3" style="margin-bottom: 8px;">
+      <input type="text" class="form-control off-bail" placeholder="Bail Amount ($1,000 / Court-Set)" oninput="generateJSON()">
+      <select class="form-control off-appear" onchange="generateJSON()">
+        <option value="REQUIRED">MUST APPEAR: Required</option>
+        <option value="OPTIONAL">MUST APPEAR: Optional</option>
+      </select>
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove(); generateJSON();">Remove Tier</button>
+    </div>
+    <div class="form-row">
+      <input type="text" class="form-control off-jail" placeholder="Jail (e.g. up to 10 yrs)" oninput="generateJSON()">
+      <input type="text" class="form-control off-fine" placeholder="Fine (e.g. up to $50,000)" oninput="generateJSON()">
+    </div>
+  `;
+  container.appendChild(div);
+  generateJSON();
+}
+
+// Add dynamic Subsection Paragraph row
+function addParagraphRow() {
+  const container = document.getElementById('paragraphList');
+  const div = document.createElement('div');
+  div.className = 'dynamic-row para-item';
+  div.innerHTML = `
+    <input type="text" class="form-control para-counter" style="width: 80px;" placeholder="(1)" oninput="generateJSON()">
+    <input type="text" class="form-control para-text" placeholder="Subsection text..." oninput="generateJSON()">
+    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove(); generateJSON();">X</button>
+  `;
+  container.appendChild(div);
+  generateJSON();
+}
+
+// Generate JSON Realtime
+function generateJSON() {
+  const id = document.getElementById('statuteId').value.trim() || "45-5-207";
+  const title = document.getElementById('statuteTitle').value.trim() || "Criminal endangerment";
+  const titleNum = parseInt(document.getElementById('titleNum').value.trim()) || 45;
+  const keywords = document.getElementById('keywords').value.trim();
+  const history = document.getElementById('historyText').value.trim();
+
+  document.getElementById('titleNumLabel').textContent = titleNum;
+
+  // Gather Offenses
+  const offenses = [];
+  const degreesSet = new Set();
+  document.querySelectorAll('.offense-item').forEach(item => {
+    const charge = item.querySelector('.off-charge').value.trim();
+    const degree = item.querySelector('.off-degree').value;
+    const bail = item.querySelector('.off-bail').value.trim();
+    const appear = item.querySelector('.off-appear').value;
+    const jail = item.querySelector('.off-jail').value.trim();
+    const fine = item.querySelector('.off-fine').value.trim();
+
+    if (degree) degreesSet.add(degree);
+
+    if (charge || bail) {
+      offenses.push({
+        charge_name: charge,
+        degree: degree,
+        bail_amount: bail,
+        must_appear: appear,
+        jail: jail,
+        fine: fine
+      });
+    }
+  });
+
+  // Gather Paragraphs
+  const paragraphs = [];
+  document.querySelectorAll('.para-item').forEach(item => {
+    const counter = item.querySelector('.para-counter').value.trim();
+    const text = item.querySelector('.para-text').value.trim();
+    if (counter || text) {
+      paragraphs.push({ counter, text });
+    }
+  });
+
+  // Build Search Index Object
+  const searchIndexObj = {
+    id: id,
+    title: title,
+    title_num: titleNum,
+    degrees: Array.from(degreesSet).length > 0 ? Array.from(degreesSet) : ["Misdemeanor"],
+    keywords: keywords
+  };
+
+  // Build Title File Object
+  const titleFileObj = {
+    id: id,
+    title: `${id}. ${title}.`,
+    offenses: offenses,
+    paragraphs: paragraphs,
+    history: history
+  };
+
+  document.getElementById('searchIndexJson').textContent = JSON.stringify(searchIndexObj, null, 2);
+  document.getElementById('titleFileJson').textContent = JSON.stringify(titleFileObj, null, 2);
+}
+
+// Copy Helper
+function copyToClipboard(elementId) {
+  const text = document.getElementById(elementId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert("JSON copied to clipboard!");
+  });
+}
+</script>
+
+</body>
+</html>

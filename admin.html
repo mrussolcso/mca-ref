@@ -71,11 +71,11 @@
     <div class="form-grid">
       <div>
         <label for="ghOwner">Repository Owner (Username/Org)</label>
-        <input type="text" id="ghOwner" placeholder="e.g. your-github-user">
+        <input type="text" id="ghOwner" placeholder="e.g. mrussolcso">
       </div>
       <div>
         <label for="ghRepo">Repository Name</label>
-        <input type="text" id="ghRepo" placeholder="e.g. mca-statutes">
+        <input type="text" id="ghRepo" placeholder="e.g. mca-ref">
       </div>
       <div>
         <label for="ghBranch">Target Branch</label>
@@ -83,7 +83,7 @@
       </div>
       <div>
         <label for="ghToken">Personal Access Token (PAT with 'repo' scope)</label>
-        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+        <input type="text" id="ghToken" placeholder="ghp_xxxxxxxxxxxx" style="-webkit-text-security: disc;" autocomplete="off" onpaste="true">
       </div>
     </div>
     <div class="btn-group">

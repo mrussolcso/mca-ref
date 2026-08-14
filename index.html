@@ -17,12 +17,14 @@
     --badge-felony: #c53030;
     --active-item-bg: #ebf8ff;
     --active-item-border: #3182ce;
+    --highlight-bg: #fefcbf;
+    --highlight-border: #d69e2e;
   }
 
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg-main); overflow: hidden; }
 
-  /* Master App Layout */
+  /* Master Layout */
   .app-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
   /* Left Sidebar Navigation */
@@ -76,11 +78,14 @@
   .section-title { margin: 20px 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
 
   /* Hierarchy Indentation Classes */
-  .p-item { margin-bottom: 10px; line-height: 1.6; font-size: 0.95rem; }
-  .indent-level-1 { padding-left: 0px; }
-  .indent-level-2 { padding-left: 24px; }
-  .indent-level-3 { padding-left: 48px; }
-  .indent-level-4 { padding-left: 72px; }
+  .p-item { margin-bottom: 10px; line-height: 1.6; font-size: 0.95rem; border-radius: 4px; padding: 4px 8px; transition: background 0.2s ease, border-color 0.2s ease; }
+  .indent-level-1 { margin-left: 0px; }
+  .indent-level-2 { margin-left: 24px; }
+  .indent-level-3 { margin-left: 48px; }
+  .indent-level-4 { margin-left: 72px; }
+
+  /* Subsection Highlight Style */
+  .p-item.highlighted-subsection { background-color: var(--highlight-bg); border-left: 4px solid var(--highlight-border); font-weight: 500; }
 
   .history-box { margin-top: 28px; padding: 14px 16px; background: #edf2f7; border-radius: 6px; font-size: 0.82rem; color: #4a5568; line-height: 1.5; border: 1px solid var(--border); }
   .loading-state, .error-state { text-align: center; padding: 30px; font-size: 0.9rem; color: var(--text-muted); }
@@ -148,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSearchIndex();
 });
 
-// Cache-busting fetch for search-index.json
 async function loadSearchIndex() {
   const sidebarList = document.getElementById('sidebarList');
   try {
@@ -162,7 +166,6 @@ async function loadSearchIndex() {
     searchIndex = await response.json();
     renderSidebar(searchIndex);
 
-    // Auto-select 45-5-507 or first element
     if (searchIndex.length > 0) {
       const defaultMatch = searchIndex.find(i => i.id === '45-5-507') || searchIndex[0];
       selectStatute(defaultMatch.id);
@@ -231,7 +234,6 @@ function renderSidebar(list) {
   `).join('');
 }
 
-// Clean and collapse empty parent counters like "(2)" directly with "(a)"
 function formatParagraphs(paragraphs) {
   const cleaned = [];
 
@@ -244,7 +246,7 @@ function formatParagraphs(paragraphs) {
         counter: `${current.counter}${next.counter}`,
         text: next.text
       });
-      i++; // Skip merged child
+      i++;
     } else {
       const multiMatch = current.text ? current.text.match(/^(\((?:[a-z0-9]+|[ivx]+)\))\s*(.*)/i) : null;
       if (multiMatch && current.counter) {
@@ -258,7 +260,6 @@ function formatParagraphs(paragraphs) {
   return cleaned;
 }
 
-// Helper to determine degree when missing from legacy entries
 function detectStatuteDegree(data) {
   if (data.offenses && data.offenses.length > 0 && data.offenses[0].degree) {
     return data.offenses[0].degree;
@@ -270,7 +271,6 @@ function detectStatuteDegree(data) {
   return 'Misdemeanor';
 }
 
-// Load selected statute into right main content area
 async function selectStatute(statuteId) {
   currentActiveId = statuteId;
 
@@ -305,8 +305,8 @@ async function selectStatute(statuteId) {
 
     let contentHtml = '';
 
-    // Generate or Render Bond Schedule Table
     const offensesList = (data.offenses && data.offenses.length > 0) ? data.offenses : [{
+      subsection: null,
       charge_name: data.title ? data.title.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '') : 'General Offense',
       degree: mainDegree,
       recommended_bond: 'Court Appearance Required',
@@ -316,6 +316,12 @@ async function selectStatute(statuteId) {
       must_appear: 'REQUIRED',
       jail: mainDegree === 'Felony' ? 'Up to Life / State Prison' : 'County Jail'
     }];
+
+    // Collect active subsection targets for highlighting
+    const targetSubsections = offensesList
+      .map(o => o.subsection)
+      .filter(Boolean)
+      .map(s => s.replace(/\s+/g, ''));
 
     contentHtml += `
       <h3 class="section-title">Bond Book Schedule</h3>
@@ -334,7 +340,10 @@ async function selectStatute(statuteId) {
         <tbody>
           ${offensesList.map(o => `
             <tr>
-              <td><strong>${o.charge_name}</strong>${o.jail ? `<br><small style="color:#718096;">${o.jail}</small>` : ''}</td>
+              <td>
+                <strong>${o.charge_name}</strong>
+                ${o.jail ? `<br><small style="color:#718096;">${o.jail}</small>` : ''}
+              </td>
               <td><span class="badge badge-${(o.degree || mainDegree).toLowerCase()}">${o.degree || mainDegree}</span></td>
               <td>${o.recommended_bond || o.bail_amount || '-'}</td>
               <td>${o.min_fine || '-'}</td>
@@ -347,19 +356,25 @@ async function selectStatute(statuteId) {
       </table>
     `;
 
-    // Render Formatted Statute Text
+    // Render Statute Text with Subsection Highlights
     contentHtml += `<h3 class="section-title">Statute Text</h3>`;
     if (data.paragraphs && data.paragraphs.length > 0) {
       const formatted = formatParagraphs(data.paragraphs);
+      
       formatted.forEach(p => {
         const indentClass = getIndentClass(p.counter);
-        contentHtml += `<p class="p-item ${indentClass}"><strong>${p.counter}</strong> ${p.text}</p>`;
+        const cleanedCounter = (p.counter || '').replace(/\s+/g, '');
+        
+        // Highlight matching paragraph counter (e.g. "(1)(a)" matches targetSubsections)
+        const isHighlighted = targetSubsections.some(target => cleanedCounter.includes(target) || target.includes(cleanedCounter));
+        const highlightClass = isHighlighted ? 'highlighted-subsection' : '';
+
+        contentHtml += `<p class="p-item ${indentClass} ${highlightClass}"><strong>${p.counter}</strong> ${p.text}</p>`;
       });
     } else {
       contentHtml += `<p style="color:var(--text-muted);">No statutory text content available.</p>`;
     }
 
-    // Render Statutory History
     if (data.history) {
       contentHtml += `<div class="history-box"><strong>History:</strong> ${data.history.replace(/^History:\s*/i, '')}</div>`;
     }

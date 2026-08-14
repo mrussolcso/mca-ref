@@ -3,198 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Montana Code Annotated & Bond Reference</title>
+<title>45-5-503. Sexual intercourse without consent, MCA</title>
 <style>
-  :root {
-    --primary: #1a365d;
-    --secondary: #2b6cb0;
-    --accent-red: #9b2c2c;
-    --bg-gray: #f7fafc;
-    --border: #e2e8f0;
-    --text: #2d3748;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
-    color: var(--text);
-    background-color: #f0f4f8;
-    margin: 0;
-    padding: 20px;
-  }
-
-  .container {
-    max-width: 900px;
-    margin: 0 auto;
-  }
-
-  /* Statute Card Layout */
-  .statute-card {
-    background: #ffffff;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    margin-bottom: 24px;
-    overflow: hidden;
-  }
-
-  .statute-header {
-    background-color: var(--primary);
-    color: #ffffff;
-    padding: 16px 20px;
-    font-size: 1.25rem;
-    font-weight: 700;
-  }
-
+  :root { --primary: #1a365d; --border: #e2e8f0; --text: #2d3748; --accent-red: #9b2c2c; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: var(--text); }
+  .container { max-width: 900px; margin: 0 auto; }
+  .statute-card { background: #fff; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 24px; overflow: hidden; }
+  .statute-header { background: var(--primary); color: #fff; padding: 16px 20px; font-size: 1.25rem; font-weight: 700; }
+  
   /* Bond Book Summary Bar */
-  .bond-info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
-    background-color: #ebf8ff;
-    border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
-  }
+  .bond-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: #ebf8ff; border-bottom: 1px solid var(--border); padding: 16px 20px; }
+  .bond-stat { display: flex; flex-direction: column; }
+  .bond-stat .label { font-size: 0.75rem; text-transform: uppercase; color: #4a5568; font-weight: 600; }
+  .bond-stat .value { font-size: 1.05rem; font-weight: 700; color: var(--primary); }
+  .bond-stat .value.must-appear { color: var(--accent-red); }
 
-  .bond-stat {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .bond-stat .label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #4a5568;
-    font-weight: 600;
-  }
-
-  .bond-stat .value {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--primary);
-  }
-
-  .bond-stat .value.must-appear {
-    color: var(--accent-red);
-  }
-
-  /* Statute Body & CSS Grid Hanging Indents */
-  .statute-body {
-    padding: 20px 24px;
-  }
-
-  .statute-list {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-  }
-
-  .statute-list li {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    column-gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .counter {
-    font-weight: 700;
-    color: var(--primary);
-    white-space: nowrap;
-  }
-
-  /* Hierarchy Indent Levels */
-  .level-num { margin-left: 0px; }
-  .level-compound { margin-left: 0px; }
-  .level-alpha { margin-left: 28px; }
-  .level-roman { margin-left: 56px; }
-  .level-cap-alpha { margin-left: 84px; }
-
-  .history-text {
-    margin-top: 20px;
-    padding-top: 12px;
-    font-size: 0.85rem;
-    color: #718096;
-    border-top: 1px dashed var(--border);
-    font-style: italic;
-  }
+  /* Collapsible Accordion Styles */
+  details.statute-accordion { border-top: 1px solid var(--border); }
+  summary.accordion-trigger { padding: 16px 20px; font-weight: 700; color: var(--primary); background: #f7fafc; cursor: pointer; user-select: none; border-bottom: 1px solid var(--border); }
+  summary.accordion-trigger:hover { background: #edf2f7; }
+  
+  .statute-body { padding: 20px 24px; }
+  .statute-list { list-style: none; padding-left: 0; margin: 0; }
+  .statute-list li { margin-bottom: 10px; line-height: 1.6; }
+  .level-num { margin-left: 0px; font-weight: 600; }
+  .level-alpha { margin-left: 24px; }
+  .level-roman { margin-left: 48px; }
+  .level-cap-alpha { margin-left: 72px; }
 </style>
 </head>
 <body>
-
 <div class="container">
-
-  <!-- MCA 45-5-502 CARD -->
   <div class="statute-card">
-    <div class="statute-header">
-      45-5-502. Sexual assault.
-    </div>
-
-    <!-- Bond Book Summary Metadata -->
+    <div class="statute-header">45-5-503. Sexual intercourse without consent, MCA</div>
+    
+    <!-- Bond Summary -->
     <div class="bond-info-grid">
-      <div class="bond-stat">
-        <span class="label">Offense Classification</span>
-        <span class="value">Misd. / Felony</span>
-      </div>
-      <div class="bond-stat">
-        <span class="label">Recommended Bond</span>
-        <span class="value">$1,000 / Court-Set</span>
-      </div>
-      <div class="bond-stat">
-        <span class="label">Must Appear?</span>
-        <span class="value must-appear">YES</span>
-      </div>
-      <div class="bond-stat">
-        <span class="label">Statutory Fine Range</span>
-        <span class="value">$0 – $50,000</span>
-      </div>
+      <div class="bond-stat"><span class="label">Offense Degree</span><span class="value">Pending Review</span></div>
+      <div class="bond-stat"><span class="label">Recommended Bond</span><span class="value">See Schedule</span></div>
+      <div class="bond-stat"><span class="label">Must Appear?</span><span class="value must-appear">REQUIRED</span></div>
+      <div class="bond-stat"><span class="label">Source URL</span><span class="value"><a href="https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0050/section_0030/0450-0050-0050-0030.html" target="_blank" style="font-size:0.85rem;">MCA Link</a></span></div>
     </div>
 
-    <!-- Full Statute Body -->
-    <div class="statute-body">
-      <ol class="statute-list">
-        <li class="level-num"><span class="counter">(1)</span><div>A person who knowingly subjects another person to any sexual contact without consent commits the offense of sexual assault.</div></li>
-
-        <li class="level-num"><span class="counter">(2)</span><div>Except as provided in subsections (3) and (4):</div></li>
-        <li class="level-alpha"><span class="counter">(a)</span><div>on a first conviction for sexual assault, the offender shall be fined an amount not to exceed $1,000 or be imprisoned in the county jail for a term not to exceed 1 year, or both;</div></li>
-        <li class="level-alpha"><span class="counter">(b)</span><div>on a second conviction for sexual assault, the offender shall be fined an amount not to exceed $5,000 or be imprisoned for a term not to exceed 5 years, or both; and</div></li>
-        <li class="level-alpha"><span class="counter">(c)</span><div>on a third and subsequent conviction for sexual assault, the offender shall be fined an amount not to exceed $10,000 or be imprisoned for a term not to exceed 10 years, or both.</div></li>
-
-        <li class="level-num"><span class="counter">(3)</span><div>If the victim is less than 16 years old and the offender is 3 or more years older than the victim or if the offender inflicts bodily injury upon anyone in the course of committing sexual assault, the offender shall be punished by life imprisonment or by imprisonment in the state prison for a term of not less than 4 years, unless the judge makes a written finding that there is good cause to impose a term of less than 4 years and imposes a term of less than 4 years, or more than 100 years and may be fined not more than $50,000.</div></li>
-
-        <li class="level-num"><span class="counter">(4)</span><div>If the victim is a client receiving psychotherapy services and the offender is providing or purporting to provide psychotherapy services to the victim, the offender shall be punished by life imprisonment or by imprisonment in the state prison for a term of not less than 4 years, unless the judge makes a written finding that there is good cause to impose a term of less than 4 years and imposes a term of less than 4 years, or more than 100 years and may be fined not more than $50,000.</div></li>
-
-        <li class="level-num"><span class="counter">(5)</span><div>An act "in the course of committing sexual assault" includes an attempt to commit the offense or flight after the attempt or commission.</div></li>
-
-        <li class="level-compound"><span class="counter">(6) (a)</span><div>Subject to subsections (6)(b) through (6)(f), consent is ineffective under this section if the victim is:</div></li>
-        <li class="level-roman"><span class="counter">(i)</span><div>incarcerated in an adult or juvenile correctional, detention, or treatment facility or is on probation, conditional release, or parole and the perpetrator is an employee, contractor, or volunteer of the supervising authority and has supervisory or disciplinary authority over the victim, unless the act is part of a lawful search;</div></li>
-        <li class="level-roman"><span class="counter">(ii)</span><div>less than 14 years old and the offender is 3 or more years older than the victim;</div></li>
-        <li class="level-roman"><span class="counter">(iii)</span><div>receiving services from a youth care facility, as defined in 52-2-602, and the perpetrator:</div></li>
-        <li class="level-cap-alpha"><span class="counter">(A)</span><div>has supervisory or disciplinary authority over the victim or is providing treatment to the victim; and</div></li>
-        <li class="level-cap-alpha"><span class="counter">(B)</span><div>is an employee, contractor, or volunteer of the youth care facility;</div></li>
-        <li class="level-roman"><span class="counter">(iv)</span><div>admitted to a mental health facility, as defined in 53-21-102, is admitted to a community-based facility or a residential facility, as those terms are defined in 53-20-102, or is receiving community-based services, as defined in 53-20-102, and the perpetrator:</div></li>
-        <li class="level-cap-alpha"><span class="counter">(A)</span><div>has supervisory or disciplinary authority over the victim or is providing treatment to the victim; and</div></li>
-        <li class="level-cap-alpha"><span class="counter">(B)</span><div>is an employee, contractor, or volunteer of the facility or community-based service;</div></li>
-        <li class="level-roman"><span class="counter">(v)</span><div>a program participant, as defined in 52-2-802, in a private alternative adolescent residential or outdoor program, pursuant to Title 52, chapter 2, part 8, and the perpetrator is a person associated with the program, as defined in 52-2-802;</div></li>
-        <li class="level-roman"><span class="counter">(vi)</span><div>the victim is a client receiving psychotherapy services and the perpetrator:</div></li>
-        <li class="level-cap-alpha"><span class="counter">(A)</span><div>is providing or purporting to provide psychotherapy services to the victim; or</div></li>
-        <li class="level-cap-alpha"><span class="counter">(B)</span><div>is an employee, contractor, or volunteer of a facility that provides or purports to provide psychotherapy services to the victim and the perpetrator has supervisory or disciplinary authority over the victim; or</div></li>
-        <li class="level-roman"><span class="counter">(vii)</span><div>a student of an elementary, middle, junior high, or high school, whether public or nonpublic, and the perpetrator is not a student of an elementary, middle, junior high, or high school and is an employee, contractor, or volunteer of any school who has ever had instructional, supervisory, disciplinary, or other authority over the student in a school setting.</div></li>
-
-        <li class="level-alpha"><span class="counter">(b)</span><div>Subsection (6)(a)(i) does not apply if one of the parties is on probation, conditional release, or parole and the other party is a probation or parole officer of the supervising authority and the parties are married to each other.</div></li>
-        <li class="level-alpha"><span class="counter">(c)</span><div>Subsections (6)(a)(iii) and (6)(a)(iv) do not apply if the individuals are married to each other and one of the individuals involved is a patient in or resident of a facility, is a recipient of community-based services, or is receiving services from a youth care facility and the other individual is an employee, contractor, or volunteer of the facility or community-based service.</div></li>
-        <li class="level-alpha"><span class="counter">(d)</span><div>Subsection (6)(a)(v) does not apply if the individuals are married to each other and one of the individuals involved is a program participant and the other individual is a person associated with the program.</div></li>
-        <li class="level-alpha"><span class="counter">(e)</span><div>Subsection (6)(a)(vi) does not apply if the individuals are married to each other and one of the individuals involved is a psychotherapy client and the other individual is a psychotherapist or an employee, contractor, or volunteer of a facility that provides or purports to provide psychotherapy services to the client.</div></li>
-        <li class="level-alpha"><span class="counter">(f)</span><div>Subsection (6)(a)(vii) does not apply if the individuals are married to each other.</div></li>
-      </ol>
-
-      <div class="history-text">
-        History: En. 94-5-502 by Sec. 1, Ch. 513, L. 1973; R.C.M. 1947, 94-5-502; amd. Sec. 1, Ch. 687, L. 1979; amd. Sec. 7, Ch. 198, L. 1981; amd. Sec. 1, Ch. 172, L. 1985; amd. Sec. 1, Ch. 564, L. 1991; amd. Sec. 2, Ch. 687, L. 1991; amd. Sec. 1, Ch. 550, L. 1995; amd. Sec. 2, Ch. 84, L. 1999; amd. Sec. 1, Ch. 450, L. 2003; amd. Sec. 2, Ch. 321, L. 2007; amd. Sec. 2, Ch. 335, L. 2007; amd. Sec. 1, Ch. 46, L. 2011; amd. Sec. 2, Ch. 181, L. 2019; amd. Sec. 25, Ch. 344, L. 2019; amd. Sec. 2, Ch. 346, L. 2019; amd. Sec. 1, Ch. 205, L. 2023; amd. Sec. 1, Ch. 602, L. 2025.
+    <!-- Collapsible Full Text -->
+    <details class="statute-accordion" open>
+      <summary class="accordion-trigger">Full Statutory Text (Click to Collapse/Expand)</summary>
+      <div class="statute-body">
+        <ul class="statute-list">
+          <li class="level-num">(2)	A person convicted of sexual intercourse without consent shall be punished by life imprisonment or by imprisonment in the state prison for a term of not more than 20 years and may be fined not more than $50,000, except as provided in46-18-219,46-18-222, and subsections (3), (4), and (5) of this section.</li>
+<li class="level-num">(3)	(a) If the victim is less than 16 years old and the offender is 4 or more years older than the victim or if the offender inflicts bodily injury on anyone in the course of committing sexual intercourse without consent, the offender shall be punished by life imprisonment or by imprisonment in the state prison for a term of not less than 4 years or more than 100 years and may be fined not more than $50,000, except as provided in46-18-219and46-18-222.</li>
+<li class="level-alpha">(b)	If two or more persons are convicted of sexual intercourse without consent with the same victim in an incident in which each offender was present at the location where another offender's offense occurred during a time period in which each offender could have reasonably known of the other's offense, each offender shall be punished by life imprisonment or by imprisonment in the state prison for a term of not less than 5 years or more than 100 years and may be fined not more than $50,000, except as provided in46-18-219and46-18-222.</li>
+<li class="level-alpha">(c)	If the offender was previously convicted of an offense under this section or of an offense under the laws of another state or of the United States that if committed in this state would be an offense under this section and if the offender inflicted serious bodily injury on a person in the course of committing each offense, the offender shall be:</li>
+<li class="level-alpha">(i)	punished by death as provided in46-18-301through46-18-310, unless the offender is less than 18 years of age at the time of the commission of the offense; or</li>
+<li class="level-roman">(ii)	punished as provided in46-18-219.</li>
+<li class="level-num">(4)	(a) If the victim was 12 years of age or younger and the offender in the course of committing a violation of this section was 18 years of age or older at the time of the offense, the offender:</li>
+<li class="level-alpha">(i)	shall be punished by imprisonment in a state prison for a term of 100 years. The court may not suspend execution or defer imposition of the first 25 years of a sentence of imprisonment imposed under this subsection (4)(a)(i) except as provided in46-18-222(1) through (5), and during the first 25 years of imprisonment, the offender is not eligible for parole. The exception provided in46-18-222(6) does not apply.</li>
+<li class="level-roman">(ii)	may be fined an amount not to exceed $50,000; and</li>
+<li class="level-roman">(iii)	shall be ordered to enroll in and successfully complete the educational phase and the cognitive and behavioral phase of a sexual offender treatment program provided or approved by the department of corrections.</li>
+<li class="level-alpha">(b)	If the offender is released after the mandatory minimum period of imprisonment, the offender is subject to supervision by the department of corrections for the remainder of the offender's life and shall participate in the program for continuous, satellite-based monitoring provided for in46-23-1010.</li>
+<li class="level-num">(5)	If the victim is at least 14 years of age and the offender is 18 years of age or younger, the offender may be punished by imprisonment in the state prison for a term of not more than 5 years and may be fined not more than $10,000 if:</li>
+<li class="level-alpha">(a)	the offender has not previously been found to have committed or been adjudicated for a sexual offense as defined in46-23-502;</li>
+<li class="level-alpha">(b)	a psychosexual evaluation of the offender has been prepared and the court finds that registration is not necessary for protection of the public and that relief from registration is in the public's best interest; and</li>
+<li class="level-alpha">(c)	the court finds that the alleged conduct was consensual as indicated by words or overt actions indicating a freely given agreement to have sexual intercourse or sexual contact.</li>
+<li class="level-num">(6)	In addition to any sentence imposed under subsection (2) or (3), the court shall require the offender to pay the victim's reasonable medical and counseling costs that result from the offense. The amount, method, and time of payment must be determined in the same manner as provided in46-18-244.</li>
+<li class="level-num">(7)	As used in subsections (3) and (4), an act "in the course of committing sexual intercourse without consent" includes an attempt to commit the offense or the act of flight after the attempt or commission.</li>
+<li class="level-num">(8)	If as a result of sexual intercourse without consent a child is born, the offender who has been convicted of an offense under this section and who is the biological parent of the child resulting from the sexual intercourse without consent forfeits all parental and custodial rights to the child if the provisions of46-1-401have been followed.</li>
+        </ul>
       </div>
-    </div>
+    </details>
   </div>
-
 </div>
-
 </body>
 </html>

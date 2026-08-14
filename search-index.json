@@ -3,21 +3,38 @@
     "id": "45-5-206",
     "title": "Partner or family member assault",
     "title_num": 45,
-    "degrees": ["Misdemeanor", "Felony"],
+    "degrees": [
+      "Misdemeanor",
+      "Felony"
+    ],
     "keywords": "pfma domestic abuse assault violence partner family 1st 2nd 3rd"
   },
   {
     "id": "45-5-502",
     "title": "Sexual assault",
     "title_num": 45,
-    "degrees": ["Misdemeanor", "Felony"],
+    "degrees": [
+      "Misdemeanor",
+      "Felony"
+    ],
     "keywords": "sexual assault abuse contact nonconsensual"
   },
   {
     "id": "61-8-1002",
     "title": "Driving under the influence",
     "title_num": 61,
-    "degrees": ["Misdemeanor"],
+    "degrees": [
+      "Misdemeanor"
+    ],
     "keywords": "dui driving under influence alcohol drugs drunk impaired"
+  },
+  {
+    "id": "45-5-507",
+    "title": "Incest",
+    "title_num": 45,
+    "degrees": [
+      "Misdemeanor"
+    ],
+    "keywords": "incest"
   }
 ]

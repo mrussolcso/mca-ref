@@ -1,0 +1,38 @@
+[
+  {
+    "id": "45-5-206",
+    "title": "45-5-206. Partner or family member assault.",
+    "bond": {
+      "degree": "Misdemeanor (1st/2nd)",
+      "amount": "$1,000 / Court-Set",
+      "must_appear": "REQUIRED",
+      "statutory_fine": "Up to $1,000",
+      "jail_time": "24 hrs to 1 year"
+    },
+    "paragraphs": [
+      { "counter": "(1)", "text": "A person commits the offense of partner or family member assault if the person:" },
+      { "counter": "(a)", "text": "purposely or knowingly causes bodily injury to a partner or family member;" },
+      { "counter": "(b)", "text": "negligently causes bodily injury to a partner or family member with a weapon; or" },
+      { "counter": "(c)", "text": "purposely or knowingly causes reasonable apprehension of bodily injury in a partner or family member." },
+      { "counter": "(2)", "text": "For the purposes of 45-5-206, 'family member' means spouses, former spouses, persons having a child in common, and persons who have been or are currently in a dating relationship." }
+    ],
+    "history": "History: En. Sec. 1, Ch. 426, L. 1985; amd. Sec. 1, Ch. 448, L. 1989; amd. Sec. 1, Ch. 350, L. 1995."
+  },
+  {
+    "id": "45-5-502",
+    "title": "45-5-502. Sexual assault.",
+    "bond": {
+      "degree": "Misdemeanor / Felony",
+      "amount": "$1,000 / Court-Set",
+      "must_appear": "REQUIRED",
+      "statutory_fine": "Up to $50,000",
+      "jail_time": "1 yr / Up to Life"
+    },
+    "paragraphs": [
+      { "counter": "(1)", "text": "A person who knowingly subjects another person to any sexual contact without consent commits the offense of sexual assault." },
+      { "counter": "(2)", "text": "Except as provided in subsections (3) and (4):" },
+      { "counter": "(a)", "text": "on a first conviction for sexual assault, the offender shall be fined an amount not to exceed $1,000 or be imprisoned in the county jail for a term not to exceed 1 year, or both;" }
+    ],
+    "history": "History: En. 94-5-502 by Sec. 1, Ch. 513, L. 1973; R.C.M. 1947, 94-5-502."
+  }
+]

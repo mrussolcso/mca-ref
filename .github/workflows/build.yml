@@ -6,7 +6,11 @@ on:
       statute_url:
         description: 'Paste Montana MCA Statute URL'
         required: true
-        default: 'https://leg.mt.gov/statute-example'
+        default: 'https://leg.mt.gov/'
+
+# Explicitly grant permissions to push changes to the repository
+permissions:
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -18,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install Dependencies
         run: pip install beautifulsoup4
@@ -31,5 +35,4 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git commit -m "Auto-built statute page from URL" || exit 0
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-built statute page from URL" && git push)

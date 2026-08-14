@@ -142,7 +142,7 @@ fetch('search-index.json')
     applyFilters();
   })
   .catch(err => {
-    document.getElementById('results').innerHTML = '<p style="color:red;">Error loading search index. Please check search-index.json file.</p>';
+    document.getElementById('results').innerHTML = '<p style="color:red;">Error loading search-index.json file. Check path and valid JSON syntax.</p>';
   });
 
 // Search input listener
@@ -165,22 +165,34 @@ document.getElementById('titleNav').addEventListener('click', (e) => {
   applyFilters();
 });
 
-// Core Filtering Logic
+// Safe Filtering Logic (prevents script crash if properties are missing)
 function applyFilters() {
   const query = document.getElementById('searchInput').value.toLowerCase().trim();
   const checkedDegrees = Array.from(document.querySelectorAll('.filter-degree:checked')).map(cb => cb.value);
 
   const filtered = searchIndex.filter(item => {
     // 1. Text Search Match
-    const matchesSearch = item.id.toLowerCase().includes(query) ||
-                          item.title.toLowerCase().includes(query) ||
-                          (item.keywords && item.keywords.toLowerCase().includes(query));
+    const matchesSearch = !query || 
+      (item.id && item.id.toLowerCase().includes(query)) ||
+      (item.title && item.title.toLowerCase().includes(query)) ||
+      (item.keywords && item.keywords.toLowerCase().includes(query));
 
-    // 2. Offense Degree Checkbox Match (checks if statute contains any of the checked degrees)
-    const matchesDegree = item.degrees && item.degrees.some(deg => checkedDegrees.includes(deg));
+    // 2. Defensive Offense Degree Check (handles array 'degrees', string 'degree', or missing)
+    let itemDegrees = [];
+    if (Array.isArray(item.degrees)) {
+      itemDegrees = item.degrees;
+    } else if (typeof item.degree === 'string') {
+      itemDegrees = [item.degree];
+    }
+
+    // If checkboxes are checked, match any degree; if no checkboxes are checked, pass all items
+    const matchesDegree = checkedDegrees.length === 0 || 
+      itemDegrees.length === 0 || 
+      itemDegrees.some(d => checkedDegrees.some(c => d.toLowerCase().includes(c.toLowerCase())));
 
     // 3. Title Sidebar Match
-    const matchesTitle = selectedTitle === 'all' || item.title_num.toString() === selectedTitle;
+    const itemTitleNum = item.title_num ? item.title_num.toString() : '';
+    const matchesTitle = selectedTitle === 'all' || itemTitleNum === selectedTitle;
 
     return matchesSearch && matchesDegree && matchesTitle;
   });
@@ -201,7 +213,7 @@ function renderResults(items) {
     <div class="statute-card" id="card-${item.id}">
       <div class="statute-header">
         <span>MCA ${item.id} - ${item.title}</span>
-        <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Title ${item.title_num}</span>
+        <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Title ${item.title_num || ''}</span>
       </div>
       
       <details class="statute-accordion" ontoggle="loadFullStatute('${item.id}', ${item.title_num}, this)">
@@ -251,14 +263,14 @@ async function loadFullStatute(statuteId, titleNum, detailsElement) {
       `;
 
       statute.offenses.forEach(off => {
-        const degreeClass = off.degree.toLowerCase().includes('felony') ? 'badge-felony' : 'badge-misdemeanor';
-        const mustAppearClass = off.must_appear.toUpperCase().includes('REQ') ? 'badge-must-appear' : '';
+        const degreeClass = (off.degree || '').toLowerCase().includes('felony') ? 'badge-felony' : 'badge-misdemeanor';
+        const mustAppearClass = (off.must_appear || '').toUpperCase().includes('REQ') ? 'badge-must-appear' : '';
         tableHTML += `
           <tr>
-            <td><strong>${off.charge_name}</strong></td>
-            <td><span class="badge-degree ${degreeClass}">${off.degree}</span></td>
-            <td><strong>${off.bail_amount}</strong></td>
-            <td><span class="${mustAppearClass}">${off.must_appear}</span></td>
+            <td><strong>${off.charge_name || ''}</strong></td>
+            <td><span class="badge-degree ${degreeClass}">${off.degree || ''}</span></td>
+            <td><strong>${off.bail_amount || ''}</strong></td>
+            <td><span class="${mustAppearClass}">${off.must_appear || ''}</span></td>
             <td>${off.jail || ''} ${off.fine ? '| ' + off.fine : ''}</td>
           </tr>
         `;
@@ -268,7 +280,7 @@ async function loadFullStatute(statuteId, titleNum, detailsElement) {
     }
 
     // 2. Render Subsections Paragraph List
-    const paragraphHTML = statute.paragraphs.map(p => {
+    const paragraphHTML = (statute.paragraphs || []).map(p => {
       let levelClass = 'level-num';
       if (/^\([a-z]\)/.test(p.counter)) levelClass = 'level-alpha';
       else if (/^\([i|v|x]+\)/.test(p.counter)) levelClass = 'level-roman';

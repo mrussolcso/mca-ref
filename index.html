@@ -3,265 +3,296 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Montana MCA & Bond Reference Dashboard</title>
+<title>Montana Code Annotated (MCA) Direct</title>
 <style>
-  :root { 
-    --primary: #1a365d; 
+  :root {
+    --primary: #1a365d;
     --primary-light: #2b6cb0;
-    --border: #cbd5e0; 
+    --border: #cbd5e0;
     --bg-main: #f7fafc;
     --bg-card: #ffffff;
-    --text: #2d3748; 
-    --accent-red: #c53030; 
-    --badge-misd: #c6f6d5;
-    --badge-misd-text: #22543d;
-    --badge-felony: #fed7d7;
-    --badge-felony-text: #742a2a;
+    --text: #2d3748;
+    --badge-misd: #2b6cb0;
+    --badge-felony: #c53030;
   }
-  
+
   * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 0; color: var(--text); height: 100vh; display: flex; flex-direction: column; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 20px; color: var(--text); }
 
-  header { background: var(--primary); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  header h1 { margin: 0; font-size: 1.25rem; font-weight: 700; }
-  header .badge { background: var(--primary-light); padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; }
+  header { max-width: 1000px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+  header h1 { margin: 0; color: var(--primary); font-size: 1.6rem; }
+  header a { color: var(--primary-light); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
+  header a:hover { text-decoration: underline; }
 
-  .app-container { display: flex; flex: 1; overflow: hidden; }
+  .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
-  .sidebar { width: 280px; background: #edf2f7; border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
-  .filter-group { background: var(--bg-card); padding: 14px; border-radius: 6px; border: 1px solid var(--border); }
-  .filter-group h3 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: #4a5568; }
+  /* Search & Controls Card */
+  .search-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .search-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .search-input { flex-grow: 1; padding: 10px 14px; border: 1px solid var(--border); border-radius: 6px; font-size: 1rem; }
+  .search-input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(43,108,176,0.1); }
   
-  .filter-option { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; margin-bottom: 8px; cursor: pointer; }
-  .filter-option:last-child { margin-bottom: 0; }
-  .filter-option input { cursor: pointer; }
+  .filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 0.85rem; color: #4a5568; }
+  .filter-btn { background: #edf2f7; border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: 600; color: #4a5568; }
+  .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-  .title-nav-list { list-style: none; padding: 0; margin: 0; }
-  .title-nav-item { padding: 8px 10px; border-radius: 4px; font-size: 0.88rem; cursor: pointer; margin-bottom: 4px; transition: background 0.15s; }
-  .title-nav-item:hover { background: #e2e8f0; }
-  .title-nav-item.active { background: var(--primary); color: white; font-weight: 600; }
+  /* Statute Grid / Results */
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .statute-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: transform 0.1s ease, box-shadow 0.1s ease; display: flex; flex-direction: column; justify-content: space-between; }
+  .statute-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--primary-light); }
+  .statute-card h3 { margin: 0 0 8px 0; font-size: 1.05rem; color: var(--primary); }
+  .statute-card p { margin: 0; font-size: 0.85rem; color: #718096; line-height: 1.4; }
+  .badge-container { margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge { font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; color: white; text-transform: uppercase; }
+  .badge-misdemeanor { background: var(--badge-misd); }
+  .badge-felony { background: var(--badge-felony); }
 
-  .main-content { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+  /* Statute Viewer Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-card { background: white; border-radius: 8px; max-width: 850px; width: 92%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden; }
+  .modal-header { padding: 16px 20px; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h2 { margin: 0; font-size: 1.2rem; }
+  .modal-body { padding: 20px; overflow-y: auto; font-size: 0.92rem; line-height: 1.6; color: #2d3748; }
 
-  .search-wrapper { position: relative; }
-  .search-box { width: 100%; padding: 12px 16px; font-size: 1rem; border: 2px solid var(--border); border-radius: 6px; }
-  .search-box:focus { outline: none; border-color: var(--primary); }
+  /* Bond Book Display Table inside Modal */
+  .bond-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem; }
+  .bond-table th, .bond-table td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; }
+  .bond-table th { background: #edf2f7; color: var(--primary); font-weight: bold; }
 
-  .results-meta { font-size: 0.85rem; color: #718096; margin-top: -8px; }
+  .p-item { margin-bottom: 10px; }
+  .indent-level-1 { margin-left: 0px; }
+  .indent-level-2 { margin-left: 20px; }
+  .indent-level-3 { margin-left: 40px; }
 
-  .statute-card { background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 16px; }
-  .statute-header { background: var(--primary); color: #fff; padding: 12px 18px; font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+  .history-box { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 0.8rem; color: #718096; }
 
-  .offense-table-wrapper { overflow-x: auto; padding: 14px 18px; background: #f8fafc; border-bottom: 1px solid var(--border); }
-  .offense-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left; }
-  .offense-table th { background: #edf2f7; color: #4a5568; padding: 8px 12px; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 2px solid var(--border); }
-  .offense-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
-  .offense-table tr:last-child td { border-bottom: none; }
-
-  .badge-degree { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
-  .badge-misdemeanor { background: var(--badge-misd); color: var(--badge-misd-text); }
-  .badge-felony { background: var(--badge-felony); color: var(--badge-felony-text); }
-  .badge-must-appear { color: var(--accent-red); font-weight: 700; font-size: 0.8rem; }
-
-  details.statute-accordion { border-top: 1px solid var(--border); }
-  summary.accordion-trigger { padding: 12px 18px; font-weight: 600; font-size: 0.9rem; color: var(--primary-light); background: #fafafa; cursor: pointer; user-select: none; }
-  summary.accordion-trigger:hover { background: #f0f0f0; }
-
-  .statute-body { padding: 18px 24px; }
-  .statute-list { list-style: none; padding-left: 0; margin: 0; }
-  .statute-list li { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; margin-bottom: 6px; font-size: 0.95rem; line-height: 1.5; }
-  .counter { font-weight: 700; color: var(--primary); }
-
-  .level-num { margin-left: 0px; }
-  .level-alpha { margin-left: 18px; }
-  .level-roman { margin-left: 36px; }
-
-  .history-text { margin-top: 16px; font-size: 0.8rem; color: #718096; font-style: italic; border-top: 1px solid #edf2f7; padding-top: 10px; }
+  .status-text { text-align: center; padding: 40px; font-size: 1.1rem; color: #718096; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Montana Code & Bond Reference</h1>
-  <span class="badge">Static CDN Ready</span>
+  <h1>MCA Statute & Bond Book Search</h1>
+  <a href="admin.html">⚙️ Admin Publisher</a>
 </header>
 
-<div class="app-container">
-  <aside class="sidebar">
-    <div class="filter-group">
-      <h3>Offense Classification</h3>
-      <label class="filter-option">
-        <input type="checkbox" value="Misdemeanor" class="filter-degree" checked> Misdemeanor
-      </label>
-      <label class="filter-option">
-        <input type="checkbox" value="Felony" class="filter-degree" checked> Felony
-      </label>
-    </div>
+<div class="container">
 
-    <div class="filter-group">
-      <h3>MCA Titles</h3>
-      <ul class="title-nav-list" id="titleNav">
-        <li class="title-nav-item active" data-title="all">All Titles</li>
-        <li class="title-nav-item" data-title="45">Title 45 - Crimes</li>
-        <li class="title-nav-item" data-title="61">Title 61 - Motor Vehicles</li>
-      </ul>
+  <!-- Search Card -->
+  <div class="search-card">
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input" placeholder="Search by Statute ID (e.g. 45-5-507), Title, or Keyword..." oninput="handleSearch()">
+      <button class="filter-btn" onclick="clearSearch()">Clear</button>
     </div>
-  </aside>
-
-  <main class="main-content">
-    <div class="search-wrapper">
-      <input type="text" id="searchInput" class="search-box" placeholder="Search by statute number (e.g. 45-5-206) or charge keyword (e.g. assault, DUI)...">
+    
+    <div class="filter-row">
+      <span>Filter Degree:</span>
+      <button class="filter-btn active" id="btn-all" onclick="setDegreeFilter('ALL')">All</button>
+      <button class="filter-btn" id="btn-misd" onclick="setDegreeFilter('Misdemeanor')">Misdemeanor</button>
+      <button class="filter-btn" id="btn-felony" onclick="setDegreeFilter('Felony')">Felony</button>
+      <span style="margin-left: auto;" id="resultCount">Loading statutes...</span>
     </div>
-    <div class="results-meta" id="resultsCount">Loading index...</div>
+  </div>
 
-    <div id="results">Loading database index...</div>
-  </main>
+  <!-- Results List -->
+  <div id="resultsGrid" class="results-grid">
+    <div class="status-text">Loading search index...</div>
+  </div>
+
+</div>
+
+<!-- Statute Detail View Modal -->
+<div id="statuteModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 id="modalTitle">Statute Details</h2>
+      <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1.4rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body">
+      <!-- Dynamic Statute Content -->
+    </div>
+  </div>
 </div>
 
 <script>
 let searchIndex = [];
-const statuteCache = {};
-let selectedTitle = 'all';
+let activeDegreeFilter = 'ALL';
 
-fetch('search-index.json')
-  .then(res => res.json())
-  .then(data => {
-    searchIndex = data;
-    applyFilters();
-  })
-  .catch(err => {
-    document.getElementById('results').innerHTML = '<p style="color:red;">Error loading search-index.json file.</p>';
-  });
-
-document.getElementById('searchInput').addEventListener('input', applyFilters);
-
-document.querySelectorAll('.filter-degree').forEach(cb => {
-  cb.addEventListener('change', applyFilters);
+document.addEventListener('DOMContentLoaded', () => {
+  loadSearchIndex();
 });
 
-document.getElementById('titleNav').addEventListener('click', (e) => {
-  const item = e.target.closest('.title-nav-item');
-  if (!item) return;
+// Cache-busting fetch for search-index.json
+async function loadSearchIndex() {
+  const grid = document.getElementById('resultsGrid');
+  try {
+    const timestamp = new Date().getTime();
+    const response = await fetch(`search-index.json?t=${timestamp}`);
+    
+    if (!response.ok) {
+      throw new Error("Could not fetch search index file.");
+    }
+    
+    searchIndex = await response.json();
+    renderResults(searchIndex);
 
-  document.querySelectorAll('.title-nav-item').forEach(i => i.classList.remove('active'));
-  item.classList.add('active');
+  } catch (err) {
+    grid.innerHTML = `<div class="status-text" style="color:var(--badge-felony);">Failed to load statutes index: ${err.message}</div>`;
+  }
+}
+
+function setDegreeFilter(degree) {
+  activeDegreeFilter = degree;
+  document.querySelectorAll('.filter-row .filter-btn').forEach(btn => btn.classList.remove('active'));
   
-  selectedTitle = item.getAttribute('data-title');
-  applyFilters();
-});
+  if (degree === 'ALL') document.getElementById('btn-all').classList.add('active');
+  if (degree === 'Misdemeanor') document.getElementById('btn-misd').classList.add('active');
+  if (degree === 'Felony') document.getElementById('btn-felony').classList.add('active');
 
-function applyFilters() {
-  const query = document.getElementById('searchInput').value.toLowerCase().trim();
-  const checkedDegrees = Array.from(document.querySelectorAll('.filter-degree:checked')).map(cb => cb.value);
+  handleSearch();
+}
+
+function handleSearch() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
 
   const filtered = searchIndex.filter(item => {
-    const matchesSearch = !query || 
+    // Check degree filter
+    const matchesDegree = (activeDegreeFilter === 'ALL') || 
+      (item.degrees && item.degrees.includes(activeDegreeFilter));
+
+    // Check search query against ID, Title, and Keywords
+    const matchesQuery = !query || 
       (item.id && item.id.toLowerCase().includes(query)) ||
       (item.title && item.title.toLowerCase().includes(query)) ||
       (item.keywords && item.keywords.toLowerCase().includes(query));
 
-    let itemDegrees = Array.isArray(item.degrees) ? item.degrees : (item.degree ? [item.degree] : []);
-
-    const matchesDegree = checkedDegrees.length === 0 || 
-      itemDegrees.length === 0 || 
-      itemDegrees.some(d => checkedDegrees.some(c => d.toLowerCase().includes(c.toLowerCase())));
-
-    const itemTitleNum = item.title_num ? item.title_num.toString() : '';
-    const matchesTitle = selectedTitle === 'all' || itemTitleNum === selectedTitle;
-
-    return matchesSearch && matchesDegree && matchesTitle;
+    return matchesDegree && matchesQuery;
   });
 
-  document.getElementById('resultsCount').textContent = `Showing ${filtered.length} of ${searchIndex.length} statutes`;
   renderResults(filtered);
 }
 
-function renderResults(items) {
-  const container = document.getElementById('results');
-  if (items.length === 0) {
-    container.innerHTML = '<p>No statutes found matching selected filters.</p>';
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  setDegreeFilter('ALL');
+}
+
+function renderResults(list) {
+  const grid = document.getElementById('resultsGrid');
+  const countSpan = document.getElementById('resultCount');
+
+  countSpan.textContent = `${list.length} statute${list.length === 1 ? '' : 's'} found`;
+
+  if (list.length === 0) {
+    grid.innerHTML = `<div class="status-text">No statutes found matching your criteria.</div>`;
     return;
   }
 
-  container.innerHTML = items.map(item => `
-    <div class="statute-card" id="card-${item.id}">
-      <div class="statute-header">
-        <span>MCA ${item.id} - ${item.title}</span>
-        <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Title ${item.title_num || ''}</span>
+  grid.innerHTML = list.map(item => `
+    <div class="statute-card" onclick="openStatuteModal('${item.id}')">
+      <div>
+        <h3>${item.id}. ${item.title}</h3>
+        <p>Title Chapter: Title ${item.title_num || item.id.split('-')[0]}</p>
       </div>
-      
-      <details class="statute-accordion" ontoggle="loadFullStatute('${item.id}', this)">
-        <summary class="accordion-trigger">View Bond Schedule Charges & Statutory MCA Text</summary>
-        <div class="statute-body" id="body-${item.id}">
-          <em>Loading detailed statute data...</em>
-        </div>
-      </details>
+      <div class="badge-container">
+        ${(item.degrees || ['Misdemeanor']).map(d => `
+          <span class="badge badge-${d.toLowerCase()}">${d}</span>
+        `).join('')}
+      </div>
     </div>
   `).join('');
 }
 
-async function loadFullStatute(statuteId, detailsElement) {
-  if (!detailsElement.open) return;
-  const bodyElem = document.getElementById(`body-${statuteId}`);
+// Fetch statute JSON with cache-busting timestamp
+async function openStatuteModal(statuteId) {
+  const modal = document.getElementById('statuteModal');
+  const modalBody = document.getElementById('modalBody');
+  const modalTitle = document.getElementById('modalTitle');
 
-  if (!statuteCache[statuteId]) {
-    try {
-      const res = await fetch(`data/statutes/${statuteId}.json`);
-      if (!res.ok) throw new Error('File not found');
-      statuteCache[statuteId] = await res.json();
-    } catch (e) {
-      bodyElem.innerHTML = `<p style="color:red;">Failed to load data file <code>data/statutes/${statuteId}.json</code>.</p>`;
-      return;
+  modalTitle.textContent = `Loading MCA ${statuteId}...`;
+  modalBody.innerHTML = `<div class="status-text">Loading statute data...</div>`;
+  modal.style.display = 'flex';
+
+  try {
+    const timestamp = new Date().getTime();
+    const response = await fetch(`data/statutes/${statuteId}.json?t=${timestamp}`);
+    
+    if (!response.ok) {
+      throw new Error(`Statute file data/statutes/${statuteId}.json not found.`);
     }
-  }
 
-  const statute = statuteCache[statuteId];
+    const data = await response.json();
+    modalTitle.textContent = data.title || `${statuteId}`;
 
-  let tableHTML = '';
-  if (statute.offenses && statute.offenses.length > 0) {
-    tableHTML = `
-      <div class="offense-table-wrapper" style="margin: -18px -24px 18px -24px;">
-        <table class="offense-table">
+    let contentHtml = '';
+
+    // Render Bond Book Entries Table if present
+    if (data.offenses && data.offenses.length > 0) {
+      contentHtml += `
+        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Bond Book Schedule</h4>
+        <table class="bond-table">
           <thead>
             <tr>
-              <th>Bond Book Charge Title</th>
+              <th>Offense / Charge</th>
               <th>Degree</th>
-              <th>Recommended Bail</th>
-              <th>Court Appearance</th>
-              <th>Statutory Jail / Fine</th>
+              <th>Rec. Bond</th>
+              <th>Min Fine</th>
+              <th>Max Fine</th>
+              <th>Surcharges</th>
+              <th>Must Appear</th>
             </tr>
           </thead>
           <tbody>
-    `;
-
-    statute.offenses.forEach(off => {
-      const degreeClass = (off.degree || '').toLowerCase().includes('felony') ? 'badge-felony' : 'badge-misdemeanor';
-      const mustAppearClass = (off.must_appear || '').toUpperCase().includes('REQ') ? 'badge-must-appear' : '';
-      tableHTML += `
-        <tr>
-          <td><strong>${off.charge_name || ''}</strong></td>
-          <td><span class="badge-degree ${degreeClass}">${off.degree || ''}</span></td>
-          <td><strong>${off.bail_amount || ''}</strong></td>
-          <td><span class="${mustAppearClass}">${off.must_appear || ''}</span></td>
-          <td>${off.jail || ''} ${off.fine ? '| ' + off.fine : ''}</td>
-        </tr>
+            ${data.offenses.map(o => `
+              <tr>
+                <td><strong>${o.charge_name || data.title}</strong>${o.jail ? `<br><small style="color:#718096;">${o.jail}</small>` : ''}</td>
+                <td><span class="badge badge-${(o.degree || 'Misdemeanor').toLowerCase()}">${o.degree || 'Misdemeanor'}</span></td>
+                <td>${o.recommended_bond || o.bail_amount || '-'}</td>
+                <td>${o.min_fine || '-'}</td>
+                <td>${o.max_fine || '-'}</td>
+                <td>${o.surcharges || '-'}</td>
+                <td><strong>${o.must_appear || 'REQUIRED'}</strong></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
       `;
-    });
+    }
 
-    tableHTML += `</tbody></table></div>`;
+    // Render Text Subsections
+    contentHtml += `<h4 style="margin: 0 0 10px 0; color: var(--primary);">Statute Text</h4>`;
+    if (data.paragraphs && data.paragraphs.length > 0) {
+      data.paragraphs.forEach(p => {
+        const indentClass = getIndentClass(p.counter);
+        contentHtml += `<p class="p-item ${indentClass}"><strong>${p.counter}</strong> ${p.text}</p>`;
+      });
+    } else {
+      contentHtml += `<p>No text body available.</p>`;
+    }
+
+    // Render History Text
+    if (data.history) {
+      contentHtml += `<div class="history-box">${data.history}</div>`;
+    }
+
+    modalBody.innerHTML = contentHtml;
+
+  } catch (err) {
+    modalBody.innerHTML = `<div class="status-text" style="color:var(--badge-felony);">${err.message}</div>`;
   }
+}
 
-  const paragraphHTML = (statute.paragraphs || []).map(p => {
-    let levelClass = 'level-num';
-    if (/^\([a-z]\)/.test(p.counter)) levelClass = 'level-alpha';
-    else if (/^\([i|v|x]+\)/.test(p.counter)) levelClass = 'level-roman';
-    return `<li class="${levelClass}"><span class="counter">${p.counter}</span><div>${p.text}</div></li>`;
-  }).join('');
+function getIndentClass(counter) {
+  if (!counter) return "indent-level-1";
+  if (/^\([0-9]+\)$/.test(counter)) return "indent-level-1";
+  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2";
+  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3";
+  return "indent-level-1";
+}
 
-  bodyElem.innerHTML = tableHTML + `
-    <ol class="statute-list">${paragraphHTML}</ol>
-    <div class="history-text">${statute.history || ''}</div>
-  `;
+function closeModal() {
+  document.getElementById('statuteModal').style.display = 'none';
 }
 </script>
 

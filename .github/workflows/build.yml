@@ -1,0 +1,35 @@
+name: Import Statute Page
+
+on:
+  workflow_dispatch:
+    inputs:
+      statute_url:
+        description: 'Paste Montana MCA Statute URL'
+        required: true
+        default: 'https://leg.mt.gov/statute-example'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: pip install beautifulsoup4
+
+      - name: Run Build Script
+        run: python build_statute.py "${{ github.event.inputs.statute_url }}"
+
+      - name: Commit and Push Updated Site
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Auto-built statute page from URL" || exit 0
+          git push

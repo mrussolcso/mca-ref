@@ -35,28 +35,33 @@
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+  .form-row-5 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 8px; }
 
   .dynamic-section { background: #edf2f7; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
 
   .btn { background: var(--primary-light); color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
   .btn:hover { background: var(--primary); }
+  .btn-secondary { background: #4a5568; }
+  .btn-secondary:hover { background: #2d3748; }
   .btn-danger { background: var(--danger); }
   .btn-danger:hover { background: #9b2c2c; }
   .btn-success { background: var(--success); }
   .btn-success:hover { background: #22543d; }
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-  textarea.raw-input { width: 100%; height: 220px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
+  textarea.raw-input { width: 100%; height: 180px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
+  
   .status-log { font-size: 0.9rem; font-weight: 600; margin-top: 10px; padding: 10px; border-radius: 4px; display: none; }
   .status-log.info { display: block; background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
   .status-log.success { display: block; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+  .status-log.warning { display: block; background: #fefcbf; color: #744210; border: 1px solid #fbd38d; }
   .status-log.error { display: block; background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; }
 
   /* Side-by-Side Modal Overlay Styling */
   .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.65); z-index: 1000; justify-content: center; align-items: center; }
   .modal-card { background: white; border-radius: 8px; max-width: 1100px; width: 95%; height: 88vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow: hidden; }
   .modal-header { padding: 16px 20px; background: var(--primary); color: white; font-weight: bold; font-size: 1.1rem; display: flex; justify-content: space-between; align-items: center; }
-  .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; overflow-hidden; flex-grow: 1; height: calc(100% - 130px); }
+  .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; overflow: hidden; flex-grow: 1; height: calc(100% - 130px); }
   .modal-pane { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
   .modal-pane h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
   .pane-content { border: 1px solid var(--border); border-radius: 6px; padding: 14px; background: #f8fafc; overflow-y: auto; flex-grow: 1; font-size: 0.85rem; line-height: 1.5; }
@@ -73,9 +78,9 @@
 
 <div class="admin-container">
 
-  <!-- 1. GitHub Connection Credentials -->
+  <!-- GitHub Credentials Configuration -->
   <div class="card">
-    <h2>1. GitHub Repository Credentials</h2>
+    <h2>GitHub Credentials Configuration</h2>
     <div class="form-row-4">
       <div class="form-group">
         <label for="ghOwner">GitHub Username / Org</label>
@@ -94,48 +99,66 @@
         <input type="text" id="ghToken" class="form-control" placeholder="github_pat_xxxxxxxx" autocomplete="off" spellcheck="false">
       </div>
     </div>
-    <button type="button" class="btn" onclick="saveCredentials()">Save Credentials in Browser</button>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="saveCredentials()">Save Credentials in Browser</button>
   </div>
 
-  <!-- 2. Raw Statute Input & Auto Parse -->
+  <!-- 1. Statute Identification & Status Check -->
   <div class="card">
-    <h2>2. Paste Raw MCA Statute Text</h2>
-    <div class="form-group">
-      <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;45-5-207. Criminal endangerment. (1) A person commits the offense of criminal endangerment if...&#10;History: En. Sec. 2, Ch. 196, L. 1987..."></textarea>
-    </div>
-    <button type="button" class="btn btn-success" onclick="parseTextOnly()" style="width: 100%;">⚡ Step 1: Parse Raw Text & Open Side-by-Side Preview</button>
-  </div>
-
-  <!-- 3. Edit Metadata & Offense Tiers -->
-  <div class="card">
-    <h2>3. Verify Details & Push to GitHub</h2>
-
-    <div class="form-row">
-      <div class="form-group">
+    <h2>1. Statute Identification & Check Status</h2>
+    <div class="form-row" style="grid-template-columns: 1fr 2fr auto; align-items: end; gap: 12px;">
+      <div class="form-group" style="margin-bottom:0;">
         <label for="statuteId">Statute ID</label>
         <input type="text" id="statuteId" class="form-control" placeholder="45-5-207">
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin-bottom:0;">
         <label for="statuteTitle">Statute Title</label>
         <input type="text" id="statuteTitle" class="form-control" placeholder="Criminal endangerment">
       </div>
+      <div>
+        <button type="button" id="checkStatusBtn" class="btn" onclick="checkStatuteStatus()">🔍 Check Status</button>
+      </div>
+    </div>
+    <div id="checkStatusLog" class="status-log"></div>
+  </div>
+
+  <!-- 2. MCA Statute Text & History -->
+  <div class="card">
+    <h2>2. MCA Statute Text & History</h2>
+    <div class="form-group">
+      <label for="rawMcaText">Raw MCA Text (Subsections)</label>
+      <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;(1) A person commits the offense of criminal endangerment if...&#10;(2) A person convicted of criminal endangerment shall be..."></textarea>
     </div>
 
     <div class="form-group">
-      <label for="keywords">Search Keywords</label>
-      <input type="text" id="keywords" class="form-control" placeholder="endangerment high risk bodily injury">
+      <label for="historyText">Statute History Text</label>
+      <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2, Ch. 196, L. 1987; amd. Sec. 1, Ch. 397, L. 1999.">
     </div>
 
-    <h3 style="font-size: 0.95rem; margin-top: 20px;">Bond Book Offense Tiers</h3>
+    <button type="button" class="btn btn-success" onclick="parseTextOnly()" style="width: 100%;">⚡ Step 1: Parse Raw Text & Open Side-by-Side Preview</button>
+  </div>
+
+  <!-- 3. Search Keywords -->
+  <div class="card">
+    <h2>3. Search Keywords</h2>
+    <div class="form-group" style="margin-bottom:0;">
+      <label for="keywords">Search Keywords (Space or comma separated)</label>
+      <input type="text" id="keywords" class="form-control" placeholder="endangerment high risk bodily injury severe harm recklessness">
+    </div>
+  </div>
+
+  <!-- 4. Bond Book Offense Entries -->
+  <div class="card">
+    <h2>4. Bond Book Entries</h2>
+    <p style="font-size: 0.85rem; color: #718096; margin-top: -8px;">Match the columns from the official Montana Bond Book schedule.</p>
+    
     <div id="offenseList"></div>
-    <button type="button" class="btn btn-sm" onclick="addOffenseRow()" style="margin-bottom: 20px;">+ Add Bond Book Tier</button>
+    <button type="button" class="btn btn-sm" onclick="addOffenseRow()">+ Add Bond Book Entry</button>
+  </div>
 
-    <div class="form-group">
-      <label for="historyText">History Text</label>
-      <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2...">
-    </div>
-
-    <button type="button" id="saveBtn" class="btn btn-success" onclick="commitToGitHub()" style="width: 100%; font-size: 1.05rem; padding: 12px; margin-top: 10px;">🚀 Step 2: Commit & Push to GitHub</button>
+  <!-- 5. Final Commit Action -->
+  <div class="card">
+    <h2>5. Publish to GitHub</h2>
+    <button type="button" id="saveBtn" class="btn btn-success" onclick="commitToGitHub()" style="width: 100%; font-size: 1.05rem; padding: 12px;">🚀 Step 2: Commit & Push to GitHub</button>
     <div id="statusLog" class="status-log"></div>
   </div>
 
@@ -195,40 +218,136 @@ function saveCredentials() {
   localStorage.setItem('mca_gh_repo', document.getElementById('ghRepo').value.trim());
   localStorage.setItem('mca_gh_branch', document.getElementById('ghBranch').value.trim());
   localStorage.setItem('mca_gh_token', document.getElementById('ghToken').value.trim());
-  showStatus("GitHub credentials saved to browser storage!", "success");
+  showStatus("GitHub credentials saved to browser storage!", "success", "statusLog");
 }
 
-function showStatus(message, type = "info") {
-  const log = document.getElementById('statusLog');
+function showStatus(message, type = "info", targetId = "statusLog") {
+  const log = document.getElementById(targetId);
+  if (!log) return;
   log.className = `status-log ${type}`;
   log.textContent = message;
+}
+
+// 1 & 2. Check Status and Pre-populate if JSON exists
+async function checkStatuteStatus() {
+  const id = document.getElementById('statuteId').value.trim();
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const token = document.getElementById('ghToken').value.trim();
+
+  if (!id) {
+    alert("Please enter a Statute ID first (e.g. 45-5-207).");
+    return;
+  }
+  if (!owner || !repo || !token) {
+    alert("Please configure your GitHub credentials above first.");
+    return;
+  }
+
+  showStatus(`Checking GitHub for data/statutes/${id}.json...`, "info", "checkStatusLog");
+
+  try {
+    const path = `data/statutes/${id}.json`;
+    const statuteFile = await getGitHubFile(owner, repo, branch, path, token);
+
+    // Also fetch search-index.json to pre-populate keywords if available
+    let keywordsFound = "";
+    try {
+      const indexFile = await getGitHubFile(owner, repo, branch, "search-index.json", token);
+      if (indexFile) {
+        const indexList = JSON.parse(indexFile.content);
+        const match = indexList.find(item => item.id === id);
+        if (match && match.keywords) {
+          keywordsFound = match.keywords;
+        }
+      }
+    } catch(e) {
+      console.warn("Could not load search index for keywords", e);
+    }
+
+    if (statuteFile) {
+      const data = JSON.parse(statuteFile.content);
+      
+      // Populate Title
+      let cleanTitle = data.title || '';
+      cleanTitle = cleanTitle.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '');
+      document.getElementById('statuteTitle').value = cleanTitle;
+
+      // Populate History
+      document.getElementById('historyText').value = data.history || '';
+
+      // Populate Keywords
+      document.getElementById('keywords').value = keywordsFound || cleanTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+
+      // Reconstruct Raw MCA Text from Paragraphs
+      parsedParagraphs = data.paragraphs || [];
+      const rawTextArr = parsedParagraphs.map(p => `${p.counter} ${p.text}`);
+      document.getElementById('rawMcaText').value = rawTextArr.join('\n\n');
+
+      // Populate Bond Book Offenses
+      const offenseContainer = document.getElementById('offenseList');
+      offenseContainer.innerHTML = '';
+      if (data.offenses && data.offenses.length > 0) {
+        data.offenses.forEach(off => {
+          addOffenseRow(
+            off.charge_name || '',
+            off.degree || 'Misdemeanor',
+            off.recommended_bond || off.bail_amount || '',
+            off.min_fine || '',
+            off.max_fine || '',
+            off.surcharges || '',
+            off.must_appear || 'REQUIRED',
+            off.jail || ''
+          );
+        });
+      } else {
+        addOffenseRow();
+      }
+
+      showStatus(`✅ Existing JSON found for ${id}! All fields pre-populated with current repository data.`, "success", "checkStatusLog");
+    } else {
+      showStatus(`ℹ️ No existing JSON file found for ${id}. Please fill out the details below to create a new statute entry.`, "warning", "checkStatusLog");
+    }
+
+  } catch (err) {
+    showStatus(`Error checking statute status: ${err.message}`, "error", "checkStatusLog");
+  }
 }
 
 // Parse Raw Text & Display Side-by-Side Modal
 function parseTextOnly() {
   const raw = document.getElementById('rawMcaText').value.trim();
-  if (!raw) {
-    alert("Please paste MCA statute text first.");
+  const statuteId = document.getElementById('statuteId').value.trim();
+  const statuteTitle = document.getElementById('statuteTitle').value.trim();
+  const historyTextVal = document.getElementById('historyText').value.trim();
+
+  if (!raw && !historyTextVal) {
+    alert("Please paste MCA statute text or fill in history text first.");
     return;
   }
 
   let mainText = raw;
-  let historyStr = "";
-  const historyIndex = raw.search(/History:/i);
+  let historyStr = historyTextVal;
+
+  // Extract inline History if present in raw text box
+  const historyIndex = mainText.search(/History:/i);
   if (historyIndex !== -1) {
-    historyStr = raw.substring(historyIndex).trim();
-    mainText = raw.substring(0, historyIndex).trim();
+    historyStr = mainText.substring(historyIndex).trim();
+    mainText = mainText.substring(0, historyIndex).trim();
+    document.getElementById('historyText').value = historyStr;
   }
 
-  let statuteId = "";
-  let statuteTitle = "";
-  let titleNum = "";
-
+  // Extract inline ID/Title if header line is present
   const headerMatch = mainText.match(/^(\d+-\d+-\d+)\.\s*([^.\n\r]+)\./);
+  let derivedId = statuteId;
+  let derivedTitle = statuteTitle;
+
   if (headerMatch) {
-    statuteId = headerMatch[1];
-    statuteTitle = headerMatch[2].trim();
-    titleNum = statuteId.split('-')[0];
+    derivedId = headerMatch[1];
+    derivedTitle = headerMatch[2].trim();
+    document.getElementById('statuteId').value = derivedId;
+    document.getElementById('statuteTitle').value = derivedTitle;
     mainText = mainText.substring(headerMatch[0].length).trim();
   }
 
@@ -246,30 +365,31 @@ function parseTextOnly() {
     paragraphs.push({ counter: "(1)", text: mainText });
   }
 
-  const keywords = statuteTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+  const keywords = document.getElementById('keywords').value.trim() || derivedTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+  document.getElementById('keywords').value = keywords;
 
   // 1. Construct JSON Object
   const statuteJson = {
-    id: statuteId,
-    title: `${statuteId}. ${statuteTitle}.`,
-    offenses: [],
+    id: derivedId,
+    title: `${derivedId}. ${derivedTitle}.`,
+    offenses: gatherOffensesFromForm(),
     paragraphs: paragraphs,
     history: historyStr
   };
 
   pendingParseData = {
-    statuteId,
-    statuteTitle,
-    titleNum,
+    statuteId: derivedId,
+    statuteTitle: derivedTitle,
     keywords,
     historyStr,
     paragraphs
   };
 
   // 2. Build Left-Panel Rendered Preview HTML
+  const titleNum = derivedId ? derivedId.split('-')[0] : 'N/A';
   let renderHtml = `
-    <h2 style="font-size:1.1rem; color:var(--primary); margin-top:0;">${statuteId || 'ID Missing'}. ${statuteTitle || 'Title Missing'}</h2>
-    <p><strong>Auto Title:</strong> Title ${titleNum || 'N/A'} | <strong>Keywords:</strong> <code>${keywords}</code></p>
+    <h2 style="font-size:1.1rem; color:var(--primary); margin-top:0;">${derivedId || 'ID Missing'}. ${derivedTitle || 'Title Missing'}</h2>
+    <p><strong>Title Chapter:</strong> Title ${titleNum} | <strong>Keywords:</strong> <code>${keywords}</code></p>
     <hr style="border:0; border-top:1px solid #cbd5e0; margin:10px 0;">
   `;
 
@@ -310,18 +430,16 @@ function confirmParsedData() {
     // Apply JSON values back to the form
     document.getElementById('statuteId').value = updatedJson.id || pendingParseData.statuteId;
     
-    // Clean title string if formatted as "45-5-207. Title."
     let cleanTitle = updatedJson.title || pendingParseData.statuteTitle;
     cleanTitle = cleanTitle.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '');
     
     document.getElementById('statuteTitle').value = cleanTitle;
-    document.getElementById('keywords').value = cleanTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
     document.getElementById('historyText').value = updatedJson.history || '';
     
     parsedParagraphs = updatedJson.paragraphs || [];
 
     closePreviewModal();
-    showStatus("Parsed details applied from modal to form. Set offenses below and commit to GitHub.", "info");
+    showStatus("Parsed details applied from modal to form.", "info", "statusLog");
 
   } catch (e) {
     errorSpan.style.display = 'inline';
@@ -329,11 +447,39 @@ function confirmParsedData() {
   }
 }
 
-// Automatically derive title_num from Statute ID
 function getDerivedTitleNum(statuteId) {
   if (!statuteId) return 0;
   const parts = statuteId.split('-');
   return parseInt(parts[0], 10) || 0;
+}
+
+// Helper to extract current offenses from UI
+function gatherOffensesFromForm() {
+  const offenses = [];
+  document.querySelectorAll('.offense-item').forEach(item => {
+    const charge = item.querySelector('.off-charge').value.trim();
+    const degree = item.querySelector('.off-degree').value;
+    const bond = item.querySelector('.off-bond').value.trim();
+    const minFine = item.querySelector('.off-minfine').value.trim();
+    const maxFine = item.querySelector('.off-maxfine').value.trim();
+    const surcharges = item.querySelector('.off-surcharges').value.trim();
+    const appear = item.querySelector('.off-appear').value;
+    const jail = item.querySelector('.off-jail').value.trim();
+
+    if (charge || bond || minFine || maxFine) {
+      offenses.push({
+        charge_name: charge,
+        degree: degree,
+        recommended_bond: bond,
+        min_fine: minFine,
+        max_fine: maxFine,
+        surcharges: surcharges,
+        must_appear: appear,
+        jail: jail
+      });
+    }
+  });
+  return offenses;
 }
 
 // GitHub REST API Wrapper: Fetch File
@@ -411,38 +557,17 @@ async function commitToGitHub() {
   const titleNum = getDerivedTitleNum(id);
 
   if (!id || !title) {
-    alert("Statute ID and Title are required!");
+    alert("Statute ID and Title are required in Section 1!");
     return;
   }
 
   const saveBtn = document.getElementById('saveBtn');
   saveBtn.disabled = true;
-  showStatus("Connecting to GitHub API...", "info");
+  showStatus("Connecting to GitHub REST API...", "info", "statusLog");
 
-  // Gather Offenses
-  const offenses = [];
+  const offenses = gatherOffensesFromForm();
   const degreesSet = new Set();
-  document.querySelectorAll('.offense-item').forEach(item => {
-    const charge = item.querySelector('.off-charge').value.trim();
-    const degree = item.querySelector('.off-degree').value;
-    const bail = item.querySelector('.off-bail').value.trim();
-    const appear = item.querySelector('.off-appear').value;
-    const jail = item.querySelector('.off-jail').value.trim();
-    const fine = item.querySelector('.off-fine').value.trim();
-
-    if (degree) degreesSet.add(degree);
-
-    if (charge || bail) {
-      offenses.push({
-        charge_name: charge,
-        degree: degree,
-        bail_amount: bail,
-        must_appear: appear,
-        jail: jail,
-        fine: fine
-      });
-    }
-  });
+  offenses.forEach(o => { if (o.degree) degreesSet.add(o.degree); });
 
   const statuteFileObj = {
     id: id,
@@ -463,11 +588,11 @@ async function commitToGitHub() {
   try {
     // 1. Commit Statute JSON file
     const statutePath = `data/statutes/${id}.json`;
-    showStatus(`Fetching ${statutePath} from GitHub...`, "info");
+    showStatus(`Fetching ${statutePath} from GitHub...`, "info", "statusLog");
     const existingStatute = await getGitHubFile(owner, repo, branch, statutePath, token);
     const statuteSha = existingStatute ? existingStatute.sha : null;
 
-    showStatus(`Pushing ${statutePath} to GitHub...`, "info");
+    showStatus(`Pushing ${statutePath} to GitHub...`, "info", "statusLog");
     await saveGitHubFile(
       owner, repo, branch, statutePath,
       JSON.stringify(statuteFileObj, null, 2),
@@ -477,7 +602,7 @@ async function commitToGitHub() {
 
     // 2. Commit updated search-index.json
     const indexPath = `search-index.json`;
-    showStatus(`Fetching ${indexPath} from GitHub...`, "info");
+    showStatus(`Fetching ${indexPath} from GitHub...`, "info", "statusLog");
     const existingIndex = await getGitHubFile(owner, repo, branch, indexPath, token);
     
     let searchIndex = [];
@@ -499,7 +624,7 @@ async function commitToGitHub() {
       searchIndex.push(searchIndexEntry);
     }
 
-    showStatus(`Updating search-index.json on GitHub...`, "info");
+    showStatus(`Updating search-index.json on GitHub...`, "info", "statusLog");
     await saveGitHubFile(
       owner, repo, branch, indexPath,
       JSON.stringify(searchIndex, null, 2),
@@ -507,42 +632,44 @@ async function commitToGitHub() {
       indexSha, token
     );
 
-    showStatus(`🎉 Success! Saved data/statutes/${id}.json and updated search-index.json directly on GitHub!`, "success");
+    showStatus(`🎉 Success! Saved data/statutes/${id}.json and updated search-index.json directly on GitHub!`, "success", "statusLog");
 
     // Clear main input for next entry
     document.getElementById('rawMcaText').value = '';
 
   } catch (err) {
-    showStatus(`Error saving to GitHub: ${err.message}`, "error");
+    showStatus(`Error saving to GitHub: ${err.message}`, "error", "statusLog");
   } finally {
     saveBtn.disabled = false;
   }
 }
 
-// Helpers
-function addOffenseRow(charge = '', degree = 'Misdemeanor', bail = '', appear = 'REQUIRED', jail = '', fine = '') {
+// Dynamic Bond Book Row Creation (Matching Bond Book Schedule)
+function addOffenseRow(charge = '', degree = 'Misdemeanor', bond = '', minFine = '', maxFine = '', surcharges = '', appear = 'REQUIRED', jail = '') {
   const container = document.getElementById('offenseList');
   const div = document.createElement('div');
   div.className = 'dynamic-section offense-item';
   div.innerHTML = `
     <div class="form-row" style="margin-bottom: 8px;">
-      <input type="text" class="form-control off-charge" value="${charge}" placeholder="Charge Name">
+      <input type="text" class="form-control off-charge" value="${charge}" placeholder="Charge / Offense Subtype Name">
       <select class="form-control off-degree">
         <option value="Misdemeanor" ${degree === 'Misdemeanor' ? 'selected' : ''}>Misdemeanor</option>
         <option value="Felony" ${degree === 'Felony' ? 'selected' : ''}>Felony</option>
       </select>
     </div>
-    <div class="form-row-3" style="margin-bottom: 8px;">
-      <input type="text" class="form-control off-bail" value="${bail}" placeholder="Bail ($1,000)">
+    <div class="form-row-5" style="margin-bottom: 8px;">
+      <input type="text" class="form-control off-bond" value="${bond}" placeholder="Rec. Bond ($)">
+      <input type="text" class="form-control off-minfine" value="${minFine}" placeholder="Min Fine ($)">
+      <input type="text" class="form-control off-maxfine" value="${maxFine}" placeholder="Max Fine ($)">
+      <input type="text" class="form-control off-surcharges" value="${surcharges}" placeholder="Surcharges ($)">
       <select class="form-control off-appear">
-        <option value="REQUIRED" ${appear === 'REQUIRED' ? 'selected' : ''}>MUST APPEAR: Required</option>
-        <option value="OPTIONAL" ${appear === 'OPTIONAL' ? 'selected' : ''}>MUST APPEAR: Optional</option>
+        <option value="REQUIRED" ${appear === 'REQUIRED' ? 'selected' : ''}>Must Appear: YES</option>
+        <option value="OPTIONAL" ${appear === 'OPTIONAL' ? 'selected' : ''}>Must Appear: NO</option>
       </select>
-      <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove();">Remove</button>
     </div>
-    <div class="form-row">
-      <input type="text" class="form-control off-jail" value="${jail}" placeholder="Jail term">
-      <input type="text" class="form-control off-fine" value="${fine}" placeholder="Fine">
+    <div class="form-row" style="grid-template-columns: 1fr auto; gap: 8px; align-items: center;">
+      <input type="text" class="form-control off-jail" value="${jail}" placeholder="Jail Term / Penalty Notes">
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove();">Remove Entry</button>
     </div>
   `;
   container.appendChild(div);

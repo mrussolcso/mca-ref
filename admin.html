@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCA Statute & Bond Book Builder (Admin)</title>
+<title>MCA Statute Auto-Parser & Direct File Saver</title>
 <style>
   :root {
     --primary: #1a365d;
@@ -13,20 +13,23 @@
     --bg-card: #ffffff;
     --text: #2d3748;
     --success: #2f855a;
+    --warning: #d69e2e;
   }
 
   * { box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 20px; color: var(--text); }
 
-  .admin-container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  @media (max-width: 900px) { .admin-container { grid-template-columns: 1fr; } }
-
-  header { max-width: 1200px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+  header { max-width: 1000px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
   header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
   header a { color: var(--primary-light); text-decoration: none; font-weight: 600; }
 
+  .admin-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
   .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+  .folder-status { padding: 12px 16px; border-radius: 6px; background: #feebc8; border: 1px solid var(--warning); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+  .folder-status.connected { background: #c6f6d5; border-color: var(--success); color: #22543d; }
 
   .form-group { margin-bottom: 14px; }
   .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #4a5568; }
@@ -35,9 +38,8 @@
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
 
   .dynamic-section { background: #edf2f7; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
-  .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
 
-  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 14px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+  .btn { background: var(--primary-light); color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
   .btn:hover { background: var(--primary); }
   .btn-danger { background: #e53e3e; }
   .btn-danger:hover { background: #9b2c2c; }
@@ -45,31 +47,38 @@
   .btn-success:hover { background: #22543d; }
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-  textarea.raw-input { width: 100%; height: 220px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
-
-  pre { background: #1a202c; color: #f7fafc; padding: 14px; border-radius: 6px; overflow-x: auto; font-size: 0.82rem; height: 320px; }
-  .output-actions { display: flex; gap: 10px; margin-top: 8px; }
+  textarea.raw-input { width: 100%; height: 260px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
+  .status-log { font-size: 0.85rem; font-weight: 600; margin-top: 10px; color: var(--primary); }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>MCA Statute Text Auto-Parser & Entry Builder</h1>
+  <h1>MCA Direct File System Auto-Parser</h1>
   <a href="index.html">← Back to Main App</a>
 </header>
 
 <div class="admin-container">
-  
-  <!-- Left Side: Paste MCA Text & Configure Offenses -->
-  <div class="card">
-    <h2>1. Paste Raw MCA Text</h2>
-    <div class="form-group">
-      <label for="rawMcaText">Paste Statute text directly from official MCA site:</label>
-      <textarea id="rawMcaText" class="form-control raw-input" placeholder="45-5-207. Criminal endangerment. (1) A person commits the offense of criminal endangerment if the person knowingly engages in conduct that creates a substantial risk of death or serious bodily injury to another. (2) A person convicted of criminal endangerment shall be fined... History: En. Sec. 2, Ch. 196, L. 1987..."></textarea>
-    </div>
-    <button type="button" class="btn btn-success" onclick="parseRawMcaText()" style="width: 100%; margin-bottom: 16px;">⚡ Auto-Parse MCA Text</button>
 
-    <h2>2. General Metadata</h2>
+  <!-- 1. Folder Connection Bar -->
+  <div class="folder-status" id="folderStatus">
+    <span><strong>Status:</strong> Not connected to local directory.</span>
+    <button class="btn btn-sm" onclick="connectDirectory()">Connect Project Root Folder</button>
+  </div>
+
+  <!-- 2. Raw Statute Input & Auto Parse -->
+  <div class="card">
+    <h2>1. Paste Raw MCA Statute Text</h2>
+    <div class="form-group">
+      <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;45-5-207. Criminal endangerment. (1) A person commits the offense of criminal endangerment if...&#10;History: En. Sec. 2, Ch. 196, L. 1987..."></textarea>
+    </div>
+    <button type="button" class="btn btn-success" onclick="parseTextOnly()" style="width: 100%;">⚡ Step 1: Parse Raw Text</button>
+  </div>
+
+  <!-- 3. Edit Metadata & Offense Tiers -->
+  <div class="card">
+    <h2>2. Verify Details & Configure Bond Tiers</h2>
+
     <div class="form-row">
       <div class="form-group">
         <label for="statuteId">Statute ID</label>
@@ -87,66 +96,57 @@
     </div>
 
     <div class="form-group">
-      <label for="keywords">Search Keywords (Space separated)</label>
-      <input type="text" id="keywords" class="form-control" placeholder="endangerment high risk recklessly bodily injury">
+      <label for="keywords">Search Keywords</label>
+      <input type="text" id="keywords" class="form-control" placeholder="endangerment high risk bodily injury">
     </div>
 
-    <h2>3. Bond Book Offense Tiers</h2>
+    <h3 style="font-size: 0.95rem; margin-top: 20px;">Bond Book Offense Tiers</h3>
     <div id="offenseList"></div>
-    <button type="button" class="btn btn-sm" onclick="addOffenseRow()">+ Add Bond Book Tier</button>
+    <button type="button" class="btn btn-sm" onclick="addOffenseRow()" style="margin-bottom: 20px;">+ Add Bond Book Tier</button>
 
-    <h2 style="margin-top: 20px;">4. Parsed MCA Subsections</h2>
-    <div id="paragraphList"></div>
-    <button type="button" class="btn btn-sm" onclick="addParagraphRow()">+ Add Manual Paragraph</button>
-
-    <div class="form-group" style="margin-top: 20px;">
+    <div class="form-group">
       <label for="historyText">History Text</label>
-      <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2, Ch. 196, L. 1987...">
-    </div>
-  </div>
-
-  <!-- Right Side: Generated JSON Output -->
-  <div>
-    <div class="card" style="margin-bottom: 20px;">
-      <h2>Search Index Output (`search-index.json`)</h2>
-      <p style="font-size: 0.8rem; color: #718096; margin-top: -6px;">Append this object into your root <code>search-index.json</code> array.</p>
-      <pre id="searchIndexJson">// Fill or parse text to view output</pre>
-      <div class="output-actions">
-        <button class="btn btn-success" onclick="copyToClipboard('searchIndexJson')">Copy Search Index JSON</button>
-      </div>
+      <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2...">
     </div>
 
-    <div class="card">
-      <h2>Title File Detail Output (`data/titles/title_XX.json`)</h2>
-      <p style="font-size: 0.8rem; color: #718096; margin-top: -6px;">Append this object into your <code>data/titles/title_<span id="titleNumLabel">XX</span>.json</code> file.</p>
-      <pre id="titleFileJson">// Fill or parse text to view output</pre>
-      <div class="output-actions">
-        <button class="btn btn-success" onclick="copyToClipboard('titleFileJson')">Copy Title Data JSON</button>
-      </div>
-    </div>
+    <button type="button" class="btn btn-success" onclick="saveStatuteToDisk()" style="width: 100%; font-size: 1.05rem; padding: 12px; margin-top: 10px;">💾 Step 2: Auto-Save File & Update Index</button>
+    <div id="statusLog" class="status-log"></div>
   </div>
 
 </div>
 
 <script>
-// Initial setup
+let rootDirectoryHandle = null;
+let parsedParagraphs = [];
+
 document.addEventListener('DOMContentLoaded', () => {
   addOffenseRow();
-  
-  document.querySelectorAll('input').forEach(input => {
-    input.addEventListener('input', generateJSON);
-  });
 });
 
-// Auto-Parse raw pasted text
-function parseRawMcaText() {
+// Connect to Project Directory via File System Access API
+async function connectDirectory() {
+  try {
+    rootDirectoryHandle = await window.showDirectoryPicker({
+      mode: 'readwrite'
+    });
+    
+    const statusDiv = document.getElementById('folderStatus');
+    statusDiv.className = 'folder-status connected';
+    statusDiv.innerHTML = `<span><strong>Connected:</strong> Folder "<code>${rootDirectoryHandle.name}</code>" selected. Ready to write files.</span>`;
+  } catch (err) {
+    alert("Folder connection failed or was canceled.");
+  }
+}
+
+// Parse Raw Text into Input Fields
+function parseTextOnly() {
   const raw = document.getElementById('rawMcaText').value.trim();
   if (!raw) {
     alert("Please paste MCA statute text first.");
     return;
   }
 
-  // 1. Extract History section if present
+  // 1. Extract History section
   let mainText = raw;
   let historyStr = "";
   const historyIndex = raw.search(/History:/i);
@@ -156,7 +156,7 @@ function parseRawMcaText() {
   }
   document.getElementById('historyText').value = historyStr;
 
-  // 2. Extract Statute ID and Title (e.g. "45-5-207. Criminal endangerment.")
+  // 2. Extract Statute ID and Title
   const headerMatch = mainText.match(/^(\d+-\d+-\d+)\.\s*([^.\n\r]+)\./);
   if (headerMatch) {
     const statuteId = headerMatch[1];
@@ -166,88 +166,47 @@ function parseRawMcaText() {
     document.getElementById('statuteId').value = statuteId;
     document.getElementById('statuteTitle').value = statuteTitle;
     document.getElementById('titleNum').value = titleNum;
-    
-    // Auto-generate initial keywords
     document.getElementById('keywords').value = statuteTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
 
-    // Trim header off main text
     mainText = mainText.substring(headerMatch[0].length).trim();
   }
 
-  // 3. Extract Subsections using Regex for (1), (a), (i), etc.
-  const paraContainer = document.getElementById('paragraphList');
-  paraContainer.innerHTML = ''; // Clear existing
-
+  // 3. Extract Subsections
+  parsedParagraphs = [];
   const regex = /(\((?:[0-9]+|[a-z]+|[ivx]+)\))/gi;
   const parts = mainText.split(regex);
 
-  // If text starts without a counter, create paragraph (1) or unnumbered block
   if (parts.length > 1) {
     for (let i = 1; i < parts.length; i += 2) {
       const counter = parts[i].trim();
       const text = (parts[i + 1] || '').trim();
-      addParagraphRow(counter, text);
+      parsedParagraphs.push({ counter, text });
     }
   } else if (mainText.length > 0) {
-    addParagraphRow("(1)", mainText);
+    parsedParagraphs.push({ counter: "(1)", text: mainText });
   }
 
-  generateJSON();
+  document.getElementById('statusLog').style.color = '#2f855a';
+  document.getElementById('statusLog').textContent = "Text parsed! Add any Bond Book tiers above, then click 'Auto-Save File'.";
 }
 
-// Add dynamic Offense Tier input row
-function addOffenseRow(charge = '', degree = 'Misdemeanor', bail = '', appear = 'REQUIRED', jail = '', fine = '') {
-  const container = document.getElementById('offenseList');
-  const div = document.createElement('div');
-  div.className = 'dynamic-section offense-item';
-  div.innerHTML = `
-    <div class="form-row" style="margin-bottom: 8px;">
-      <input type="text" class="form-control off-charge" value="${charge}" placeholder="Charge Name (e.g. Criminal Endangerment)" oninput="generateJSON()">
-      <select class="form-control off-degree" onchange="generateJSON()">
-        <option value="Misdemeanor" ${degree === 'Misdemeanor' ? 'selected' : ''}>Misdemeanor</option>
-        <option value="Felony" ${degree === 'Felony' ? 'selected' : ''}>Felony</option>
-      </select>
-    </div>
-    <div class="form-row-3" style="margin-bottom: 8px;">
-      <input type="text" class="form-control off-bail" value="${bail}" placeholder="Bail Amount ($1,000 / Court-Set)" oninput="generateJSON()">
-      <select class="form-control off-appear" onchange="generateJSON()">
-        <option value="REQUIRED" ${appear === 'REQUIRED' ? 'selected' : ''}>MUST APPEAR: Required</option>
-        <option value="OPTIONAL" ${appear === 'OPTIONAL' ? 'selected' : ''}>MUST APPEAR: Optional</option>
-      </select>
-      <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove(); generateJSON();">Remove Tier</button>
-    </div>
-    <div class="form-row">
-      <input type="text" class="form-control off-jail" value="${jail}" placeholder="Jail (e.g. up to 10 yrs)" oninput="generateJSON()">
-      <input type="text" class="form-control off-fine" value="${fine}" placeholder="Fine (e.g. up to $50,000)" oninput="generateJSON()">
-    </div>
-  `;
-  container.appendChild(div);
-  generateJSON();
-}
+// Save Statute JSON file and update search-index.json directly on disk
+async function saveStatuteToDisk() {
+  if (!rootDirectoryHandle) {
+    alert("Please connect your project root folder first using the top bar!");
+    return;
+  }
 
-// Add dynamic Subsection Paragraph row
-function addParagraphRow(counter = '', text = '') {
-  const container = document.getElementById('paragraphList');
-  const div = document.createElement('div');
-  div.className = 'dynamic-row para-item';
-  div.innerHTML = `
-    <input type="text" class="form-control para-counter" style="width: 80px;" value="${counter}" placeholder="(1)" oninput="generateJSON()">
-    <input type="text" class="form-control para-text" value="${text}" placeholder="Subsection text..." oninput="generateJSON()">
-    <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove(); generateJSON();">X</button>
-  `;
-  container.appendChild(div);
-  generateJSON();
-}
-
-// Generate JSON Realtime
-function generateJSON() {
-  const id = document.getElementById('statuteId').value.trim() || "45-5-207";
-  const title = document.getElementById('statuteTitle').value.trim() || "Criminal endangerment";
-  const titleNum = parseInt(document.getElementById('titleNum').value.trim()) || 45;
+  const id = document.getElementById('statuteId').value.trim();
+  const title = document.getElementById('statuteTitle').value.trim();
+  const titleNum = parseInt(document.getElementById('titleNum').value.trim());
   const keywords = document.getElementById('keywords').value.trim();
   const history = document.getElementById('historyText').value.trim();
 
-  document.getElementById('titleNumLabel').textContent = titleNum;
+  if (!id || !title) {
+    alert("Statute ID and Title are required!");
+    return;
+  }
 
   // Gather Offenses
   const offenses = [];
@@ -274,18 +233,15 @@ function generateJSON() {
     }
   });
 
-  // Gather Paragraphs
-  const paragraphs = [];
-  document.querySelectorAll('.para-item').forEach(item => {
-    const counter = item.querySelector('.para-counter').value.trim();
-    const text = item.querySelector('.para-text').value.trim();
-    if (counter || text) {
-      paragraphs.push({ counter, text });
-    }
-  });
+  const statuteFileObj = {
+    id: id,
+    title: `${id}. ${title}.`,
+    offenses: offenses,
+    paragraphs: parsedParagraphs,
+    history: history
+  };
 
-  // Build Search Index Object
-  const searchIndexObj = {
+  const searchIndexEntry = {
     id: id,
     title: title,
     title_num: titleNum,
@@ -293,25 +249,80 @@ function generateJSON() {
     keywords: keywords
   };
 
-  // Build Title File Object
-  const titleFileObj = {
-    id: id,
-    title: `${id}. ${title}.`,
-    offenses: offenses,
-    paragraphs: paragraphs,
-    history: history
-  };
+  try {
+    // 1. Write Statute File to /data/statutes/{id}.json
+    const dataDirHandle = await rootDirectoryHandle.getDirectoryHandle('data', { create: true });
+    const statutesDirHandle = await dataDirHandle.getDirectoryHandle('statutes', { create: true });
+    const statuteFileHandle = await statutesDirHandle.getFileHandle(`${id}.json`, { create: true });
+    
+    const statuteWritable = await statuteFileHandle.createWritable();
+    await statuteWritable.write(JSON.stringify(statuteFileObj, null, 2));
+    await statuteWritable.close();
 
-  document.getElementById('searchIndexJson').textContent = JSON.stringify(searchIndexObj, null, 2);
-  document.getElementById('titleFileJson').textContent = JSON.stringify(titleFileObj, null, 2);
+    // 2. Read, Update, and Write search-index.json
+    let searchIndex = [];
+    try {
+      const indexFileHandle = await rootDirectoryHandle.getFileHandle('search-index.json', { create: true });
+      const indexFile = await indexFileHandle.getFile();
+      const indexText = await indexFile.text();
+      if (indexText.trim()) {
+        searchIndex = JSON.parse(indexText);
+      }
+
+      // Update existing entry or append new
+      const existingIdx = searchIndex.findIndex(item => item.id === id);
+      if (existingIdx !== -1) {
+        searchIndex[existingIdx] = searchIndexEntry;
+      } else {
+        searchIndex.push(searchIndexEntry);
+      }
+
+      const indexWritable = await indexFileHandle.createWritable();
+      await indexWritable.write(JSON.stringify(searchIndex, null, 2));
+      await indexWritable.close();
+    } catch (e) {
+      console.error("Error updating index file:", e);
+    }
+
+    document.getElementById('statusLog').style.color = '#2f855a';
+    document.getElementById('statusLog').textContent = `Success! Saved data/statutes/${id}.json and updated search-index.json.`;
+
+    // Clear main input for next entry
+    document.getElementById('rawMcaText').value = '';
+
+  } catch (err) {
+    document.getElementById('statusLog').style.color = '#e53e3e';
+    document.getElementById('statusLog').textContent = `Error saving files: ${err.message}`;
+  }
 }
 
-// Copy Helper
-function copyToClipboard(elementId) {
-  const text = document.getElementById(elementId).textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    alert("JSON copied to clipboard!");
-  });
+// Helpers
+function addOffenseRow(charge = '', degree = 'Misdemeanor', bail = '', appear = 'REQUIRED', jail = '', fine = '') {
+  const container = document.getElementById('offenseList');
+  const div = document.createElement('div');
+  div.className = 'dynamic-section offense-item';
+  div.innerHTML = `
+    <div class="form-row" style="margin-bottom: 8px;">
+      <input type="text" class="form-control off-charge" value="${charge}" placeholder="Charge Name">
+      <select class="form-control off-degree">
+        <option value="Misdemeanor" ${degree === 'Misdemeanor' ? 'selected' : ''}>Misdemeanor</option>
+        <option value="Felony" ${degree === 'Felony' ? 'selected' : ''}>Felony</option>
+      </select>
+    </div>
+    <div class="form-row-3" style="margin-bottom: 8px;">
+      <input type="text" class="form-control off-bail" value="${bail}" placeholder="Bail ($1,000)">
+      <select class="form-control off-appear">
+        <option value="REQUIRED" ${appear === 'REQUIRED' ? 'selected' : ''}>MUST APPEAR: Required</option>
+        <option value="OPTIONAL" ${appear === 'OPTIONAL' ? 'selected' : ''}>MUST APPEAR: Optional</option>
+      </select>
+      <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.parentElement.remove();">Remove</button>
+    </div>
+    <div class="form-row">
+      <input type="text" class="form-control off-jail" value="${jail}" placeholder="Jail term">
+      <input type="text" class="form-control off-fine" value="${fine}" placeholder="Fine">
+    </div>
+  `;
+  container.appendChild(div);
 }
 </script>
 

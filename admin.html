@@ -65,6 +65,14 @@
   .modal-pane { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
   .modal-pane h3 { margin: 0 0 8px 0; font-size: 0.95rem; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
   .pane-content { border: 1px solid var(--border); border-radius: 6px; padding: 14px; background: #f8fafc; overflow-y: auto; flex-grow: 1; font-size: 0.85rem; line-height: 1.5; }
+  
+  /* Indentation Levels for Formatted Statute Rendering */
+  .p-item { margin-bottom: 8px; font-size: 0.9rem; }
+  .indent-level-1 { margin-left: 0px; }
+  .indent-level-2 { margin-left: 18px; }
+  .indent-level-3 { margin-left: 36px; }
+  .indent-level-4 { margin-left: 54px; }
+
   textarea.json-editor { width: 100%; height: 100%; font-family: 'Courier New', Courier, monospace; font-size: 0.82rem; padding: 12px; border: 1px solid var(--border); border-radius: 6px; background: #1e1e1e; color: #d4d4d4; resize: none; white-space: pre; word-wrap: normal; overflow-x: auto; }
   .modal-footer { padding: 12px 20px; background: #edf2f7; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
 </style>
@@ -126,7 +134,7 @@
     <h2>2. MCA Statute Text & History</h2>
     <div class="form-group">
       <label for="rawMcaText">Raw MCA Text (Subsections)</label>
-      <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;(1) A person commits the offense of criminal endangerment if...&#10;(2) A person convicted of criminal endangerment shall be..."></textarea>
+      <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;(1) A person commits the offense of incest if...&#10;(a) Consent is a defense to incest..."></textarea>
     </div>
 
     <div class="form-group">
@@ -251,7 +259,6 @@ async function checkStatuteStatus() {
     const path = `data/statutes/${id}.json`;
     const statuteFile = await getGitHubFile(owner, repo, branch, path, token);
 
-    // Also fetch search-index.json to pre-populate keywords if available
     let keywordsFound = "";
     try {
       const indexFile = await getGitHubFile(owner, repo, branch, "search-index.json", token);
@@ -269,23 +276,17 @@ async function checkStatuteStatus() {
     if (statuteFile) {
       const data = JSON.parse(statuteFile.content);
       
-      // Populate Title
       let cleanTitle = data.title || '';
       cleanTitle = cleanTitle.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '');
       document.getElementById('statuteTitle').value = cleanTitle;
 
-      // Populate History
       document.getElementById('historyText').value = data.history || '';
-
-      // Populate Keywords
       document.getElementById('keywords').value = keywordsFound || cleanTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
 
-      // Reconstruct Raw MCA Text from Paragraphs
       parsedParagraphs = data.paragraphs || [];
       const rawTextArr = parsedParagraphs.map(p => `${p.counter} ${p.text}`);
-      document.getElementById('rawMcaText').value = rawTextArr.join('\n\n');
+      document.getElementById('rawMcaText').value = rawTextArr.join('\n');
 
-      // Populate Bond Book Offenses
       const offenseContainer = document.getElementById('offenseList');
       offenseContainer.innerHTML = '';
       if (data.offenses && data.offenses.length > 0) {
@@ -315,22 +316,90 @@ async function checkStatuteStatus() {
   }
 }
 
+// Improved Line-Aware MCA Subsection Parser
+function parseMcaSubsections(rawText) {
+  const paragraphs = [];
+  // Tokenize by newlines or markers at the beginning of a line/sentence
+  const lines = rawText.split(/\n+/);
+
+  let currentCounter = "";
+  let currentBuffer = "";
+
+  const counterPattern = /^(\((?:[0-9]+|[a-z]+|[ivx]+)\))\s*(.*)/i;
+
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+
+    // Check if line starts with a subsection counter like (1), (a), or (i)
+    const match = trimmed.match(counterPattern);
+    if (match) {
+      if (currentCounter || currentBuffer) {
+        paragraphs.push({ counter: currentCounter || "(1)", text: currentBuffer.trim() });
+      }
+      currentCounter = match[1];
+      currentBuffer = match[2];
+    } else {
+      // Inline search for sub-counters if multiple exist on one line
+      const inlineRegex = /(\((?:[0-9]+|[a-z]+|[ivx]+)\))/gi;
+      const parts = trimmed.split(inlineRegex);
+
+      if (parts.length > 1) {
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i].trim();
+          if (!part) continue;
+          if (part.match(/^(\((?:[0-9]+|[a-z]+|[ivx]+)\))$/i)) {
+            if (currentCounter || currentBuffer) {
+              paragraphs.push({ counter: currentCounter || "(1)", text: currentBuffer.trim() });
+            }
+            currentCounter = part;
+            currentBuffer = "";
+          } else {
+            currentBuffer += (currentBuffer ? " " : "") + part;
+          }
+        }
+      } else {
+        currentBuffer += (currentBuffer ? " " : "") + trimmed;
+      }
+    }
+  });
+
+  if (currentCounter || currentBuffer) {
+    paragraphs.push({ counter: currentCounter || "(1)", text: currentBuffer.trim() });
+  }
+
+  return paragraphs;
+}
+
+// Get Indentation Level Based on Counter Format
+function getIndentClass(counter) {
+  if (!counter) return "indent-level-1";
+  if (/^\([0-9]+\)$/.test(counter)) return "indent-level-1"; // (1), (2)
+  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2"; // (a), (b)
+  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3"; // (i), (ii)
+  return "indent-level-1";
+}
+
 // Parse Raw Text & Display Side-by-Side Modal
 function parseTextOnly() {
   const raw = document.getElementById('rawMcaText').value.trim();
-  const statuteId = document.getElementById('statuteId').value.trim();
-  const statuteTitle = document.getElementById('statuteTitle').value.trim();
-  const historyTextVal = document.getElementById('historyText').value.trim();
-
-  if (!raw && !historyTextVal) {
-    alert("Please paste MCA statute text or fill in history text first.");
-    return;
-  }
+  let statuteId = document.getElementById('statuteId').value.trim();
+  let statuteTitle = document.getElementById('statuteTitle').value.trim();
+  let historyStr = document.getElementById('historyText').value.trim();
 
   let mainText = raw;
-  let historyStr = historyTextVal;
 
-  // Extract inline History if present in raw text box
+  // Header extraction fallback if user pasted statute title into the raw textarea
+  const headerMatch = mainText.match(/^(\d+-\d+-\d+)\.\s*([^.\n\r]+)\./);
+  if (headerMatch) {
+    if (!statuteId) statuteId = headerMatch[1];
+    if (!statuteTitle) statuteTitle = headerMatch[2].trim();
+    document.getElementById('statuteId').value = statuteId;
+    document.getElementById('statuteTitle').value = statuteTitle;
+    mainText = mainText.substring(headerMatch[0].length).trim();
+  }
+
+  // Inline history fallback
   const historyIndex = mainText.search(/History:/i);
   if (historyIndex !== -1) {
     historyStr = mainText.substring(historyIndex).trim();
@@ -338,63 +407,37 @@ function parseTextOnly() {
     document.getElementById('historyText').value = historyStr;
   }
 
-  // Extract inline ID/Title if header line is present
-  const headerMatch = mainText.match(/^(\d+-\d+-\d+)\.\s*([^.\n\r]+)\./);
-  let derivedId = statuteId;
-  let derivedTitle = statuteTitle;
-
-  if (headerMatch) {
-    derivedId = headerMatch[1];
-    derivedTitle = headerMatch[2].trim();
-    document.getElementById('statuteId').value = derivedId;
-    document.getElementById('statuteTitle').value = derivedTitle;
-    mainText = mainText.substring(headerMatch[0].length).trim();
-  }
-
-  const paragraphs = [];
-  const regex = /(\((?:[0-9]+|[a-z]+|[ivx]+)\))/gi;
-  const parts = mainText.split(regex);
-
-  if (parts.length > 1) {
-    for (let i = 1; i < parts.length; i += 2) {
-      const counter = parts[i].trim();
-      const text = (parts[i + 1] || '').trim();
-      paragraphs.push({ counter, text });
-    }
-  } else if (mainText.length > 0) {
-    paragraphs.push({ counter: "(1)", text: mainText });
-  }
-
-  const keywords = document.getElementById('keywords').value.trim() || derivedTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+  const paragraphs = parseMcaSubsections(mainText);
+  const keywords = document.getElementById('keywords').value.trim() || statuteTitle.toLowerCase().replace(/[^a-z0-9 ]/g, '');
   document.getElementById('keywords').value = keywords;
 
-  // 1. Construct JSON Object
   const statuteJson = {
-    id: derivedId,
-    title: `${derivedId}. ${derivedTitle}.`,
+    id: statuteId,
+    title: `${statuteId}. ${statuteTitle}.`,
     offenses: gatherOffensesFromForm(),
     paragraphs: paragraphs,
     history: historyStr
   };
 
   pendingParseData = {
-    statuteId: derivedId,
-    statuteTitle: derivedTitle,
+    statuteId,
+    statuteTitle,
     keywords,
     historyStr,
     paragraphs
   };
 
-  // 2. Build Left-Panel Rendered Preview HTML
-  const titleNum = derivedId ? derivedId.split('-')[0] : 'N/A';
+  // Build Left Panel Rendered Preview HTML with Indentation
+  const titleNum = statuteId ? statuteId.split('-')[0] : 'N/A';
   let renderHtml = `
-    <h2 style="font-size:1.1rem; color:var(--primary); margin-top:0;">${derivedId || 'ID Missing'}. ${derivedTitle || 'Title Missing'}</h2>
+    <h2 style="font-size:1.1rem; color:var(--primary); margin-top:0;">${statuteId || 'ID Missing'}. ${statuteTitle || 'Title Missing'}</h2>
     <p><strong>Title Chapter:</strong> Title ${titleNum} | <strong>Keywords:</strong> <code>${keywords}</code></p>
     <hr style="border:0; border-top:1px solid #cbd5e0; margin:10px 0;">
   `;
 
   paragraphs.forEach(p => {
-    renderHtml += `<p style="margin-bottom:8px;"><strong>${p.counter}</strong> ${p.text}</p>`;
+    const indentClass = getIndentClass(p.counter);
+    renderHtml += `<p class="p-item ${indentClass}"><strong>${p.counter}</strong> ${p.text}</p>`;
   });
 
   if (historyStr) {
@@ -406,7 +449,7 @@ function parseTextOnly() {
 
   document.getElementById('renderedTextPreview').innerHTML = renderHtml;
 
-  // 3. Populate Right-Panel Editable JSON
+  // Populate Right Panel JSON
   document.getElementById('jsonEditor').value = JSON.stringify(statuteJson, null, 2);
   document.getElementById('jsonParseError').style.display = 'none';
 
@@ -418,7 +461,6 @@ function closePreviewModal() {
   pendingParseData = null;
 }
 
-// Confirm Modal Data & Sync Changes to Form
 function confirmParsedData() {
   const jsonText = document.getElementById('jsonEditor').value;
   const errorSpan = document.getElementById('jsonParseError');
@@ -427,7 +469,6 @@ function confirmParsedData() {
     const updatedJson = JSON.parse(jsonText);
     errorSpan.style.display = 'none';
 
-    // Apply JSON values back to the form
     document.getElementById('statuteId').value = updatedJson.id || pendingParseData.statuteId;
     
     let cleanTitle = updatedJson.title || pendingParseData.statuteTitle;
@@ -453,7 +494,6 @@ function getDerivedTitleNum(statuteId) {
   return parseInt(parts[0], 10) || 0;
 }
 
-// Helper to extract current offenses from UI
 function gatherOffensesFromForm() {
   const offenses = [];
   document.querySelectorAll('.offense-item').forEach(item => {
@@ -482,7 +522,6 @@ function gatherOffensesFromForm() {
   return offenses;
 }
 
-// GitHub REST API Wrapper: Fetch File
 async function getGitHubFile(owner, repo, branch, path, token) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
   const response = await fetch(url, {
@@ -506,7 +545,6 @@ async function getGitHubFile(owner, repo, branch, path, token) {
   }
 }
 
-// GitHub REST API Wrapper: Write File
 async function saveGitHubFile(owner, repo, branch, path, contentStr, message, sha, token) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
   
@@ -538,7 +576,6 @@ async function saveGitHubFile(owner, repo, branch, path, contentStr, message, sh
   return await response.json();
 }
 
-// Commit to GitHub
 async function commitToGitHub() {
   const owner = document.getElementById('ghOwner').value.trim();
   const repo = document.getElementById('ghRepo').value.trim();
@@ -586,7 +623,6 @@ async function commitToGitHub() {
   };
 
   try {
-    // 1. Commit Statute JSON file
     const statutePath = `data/statutes/${id}.json`;
     showStatus(`Fetching ${statutePath} from GitHub...`, "info", "statusLog");
     const existingStatute = await getGitHubFile(owner, repo, branch, statutePath, token);
@@ -600,7 +636,6 @@ async function commitToGitHub() {
       statuteSha, token
     );
 
-    // 2. Commit updated search-index.json
     const indexPath = `search-index.json`;
     showStatus(`Fetching ${indexPath} from GitHub...`, "info", "statusLog");
     const existingIndex = await getGitHubFile(owner, repo, branch, indexPath, token);
@@ -634,7 +669,6 @@ async function commitToGitHub() {
 
     showStatus(`🎉 Success! Saved data/statutes/${id}.json and updated search-index.json directly on GitHub!`, "success", "statusLog");
 
-    // Clear main input for next entry
     document.getElementById('rawMcaText').value = '';
 
   } catch (err) {
@@ -644,7 +678,6 @@ async function commitToGitHub() {
   }
 }
 
-// Dynamic Bond Book Row Creation (Matching Bond Book Schedule)
 function addOffenseRow(charge = '', degree = 'Misdemeanor', bond = '', minFine = '', maxFine = '', surcharges = '', appear = 'REQUIRED', jail = '') {
   const container = document.getElementById('offenseList');
   const div = document.createElement('div');

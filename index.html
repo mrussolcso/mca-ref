@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Montana Code Annotated & Bond Reference Dashboard</title>
+<title>Montana MCA & Bond Reference Dashboard</title>
 <style>
   :root { 
     --primary: #1a365d; 
@@ -13,6 +13,10 @@
     --bg-card: #ffffff;
     --text: #2d3748; 
     --accent-red: #c53030; 
+    --badge-misd: #c6f6d5;
+    --badge-misd-text: #22543d;
+    --badge-felony: #fed7d7;
+    --badge-felony-text: #742a2a;
   }
   
   * { box-sizing: border-box; }
@@ -51,20 +55,28 @@
   .results-meta { font-size: 0.85rem; color: #718096; margin-top: -8px; }
 
   /* Statute Cards */
-  .statute-card { background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
-  .statute-header { background: var(--primary); color: #fff; padding: 12px 18px; font-size: 1.05rem; font-weight: 700; }
+  .statute-card { background: var(--bg-card); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 16px; }
+  .statute-header { background: var(--primary); color: #fff; padding: 12px 18px; font-size: 1.05rem; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
 
-  .bond-info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #f0f4f8; border-bottom: 1px solid var(--border); padding: 10px 18px; }
-  .bond-stat { display: flex; flex-direction: column; }
-  .bond-stat .label { font-size: 0.7rem; text-transform: uppercase; color: #4a5568; font-weight: 600; }
-  .bond-stat .value { font-size: 0.95rem; font-weight: 700; color: var(--primary); }
+  /* Offense / Bond Table */
+  .offense-table-wrapper { overflow-x: auto; padding: 14px 18px; background: #f8fafc; border-bottom: 1px solid var(--border); }
+  .offense-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; text-align: left; }
+  .offense-table th { background: #edf2f7; color: #4a5568; padding: 8px 12px; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; border-bottom: 2px solid var(--border); }
+  .offense-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
+  .offense-table tr:last-child td { border-bottom: none; }
+
+  /* Offense Badges */
+  .badge-degree { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+  .badge-misdemeanor { background: var(--badge-misd); color: var(--badge-misd-text); }
+  .badge-felony { background: var(--badge-felony); color: var(--badge-felony-text); }
+  .badge-must-appear { color: var(--accent-red); font-weight: 700; font-size: 0.8rem; }
 
   /* Accordion styling */
   details.statute-accordion { border-top: 1px solid var(--border); }
-  summary.accordion-trigger { padding: 10px 18px; font-weight: 600; font-size: 0.9rem; color: var(--primary-light); background: #fafafa; cursor: pointer; }
+  summary.accordion-trigger { padding: 12px 18px; font-weight: 600; font-size: 0.9rem; color: var(--primary-light); background: #fafafa; cursor: pointer; user-select: none; }
   summary.accordion-trigger:hover { background: #f0f0f0; }
 
-  .statute-body { padding: 18px; }
+  .statute-body { padding: 18px 24px; }
   .statute-list { list-style: none; padding-left: 0; margin: 0; }
   .statute-list li { display: grid; grid-template-columns: auto 1fr; column-gap: 8px; margin-bottom: 6px; font-size: 0.95rem; line-height: 1.5; }
   .counter { font-weight: 700; color: var(--primary); }
@@ -73,7 +85,7 @@
   .level-alpha { margin-left: 18px; }
   .level-roman { margin-left: 36px; }
 
-  .history-text { margin-top: 12px; font-size: 0.8rem; color: #718096; font-style: italic; }
+  .history-text { margin-top: 16px; font-size: 0.8rem; color: #718096; font-style: italic; border-top: 1px solid #edf2f7; padding-top: 10px; }
 </style>
 </head>
 <body>
@@ -87,7 +99,7 @@
   <!-- Left Navigation / Filter Column -->
   <aside class="sidebar">
     <div class="filter-group">
-      <h3>Filter by Offense</h3>
+      <h3>Offense Classification</h3>
       <label class="filter-option">
         <input type="checkbox" value="Misdemeanor" class="filter-degree" checked> Misdemeanor
       </label>
@@ -109,9 +121,9 @@
   <!-- Right Main Search & Content Panel -->
   <main class="main-content">
     <div class="search-wrapper">
-      <input type="text" id="searchInput" class="search-box" placeholder="Search by statute number (e.g. 45-5-206) or keyword (e.g. assault, DUI)...">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search by statute number (e.g. 45-5-206) or charge keyword (e.g. assault, DUI)...">
     </div>
-    <div class="results-meta" id="resultsCount">Showing all statutes</div>
+    <div class="results-meta" id="resultsCount">Loading index...</div>
 
     <div id="results">Loading database index...</div>
   </main>
@@ -128,6 +140,9 @@ fetch('search-index.json')
   .then(data => {
     searchIndex = data;
     applyFilters();
+  })
+  .catch(err => {
+    document.getElementById('results').innerHTML = '<p style="color:red;">Error loading search index. Please check search-index.json file.</p>';
   });
 
 // Search input listener
@@ -159,10 +174,10 @@ function applyFilters() {
     // 1. Text Search Match
     const matchesSearch = item.id.toLowerCase().includes(query) ||
                           item.title.toLowerCase().includes(query) ||
-                          item.keywords.toLowerCase().includes(query);
+                          (item.keywords && item.keywords.toLowerCase().includes(query));
 
-    // 2. Offense Degree Checkbox Match
-    const matchesDegree = checkedDegrees.some(deg => item.degree.includes(deg));
+    // 2. Offense Degree Checkbox Match (checks if statute contains any of the checked degrees)
+    const matchesDegree = item.degrees && item.degrees.some(deg => checkedDegrees.includes(deg));
 
     // 3. Title Sidebar Match
     const matchesTitle = selectedTitle === 'all' || item.title_num.toString() === selectedTitle;
@@ -184,15 +199,15 @@ function renderResults(items) {
 
   container.innerHTML = items.map(item => `
     <div class="statute-card" id="card-${item.id}">
-      <div class="statute-header">${item.id} - ${item.title}</div>
-      <div class="bond-info-grid">
-        <div class="bond-stat"><span class="label">Degree</span><span class="value">${item.degree}</span></div>
-        <div class="bond-stat"><span class="label">Title</span><span class="value">Title ${item.title_num}</span></div>
+      <div class="statute-header">
+        <span>MCA ${item.id} - ${item.title}</span>
+        <span style="font-size: 0.8rem; font-weight: normal; opacity: 0.9;">Title ${item.title_num}</span>
       </div>
+      
       <details class="statute-accordion" ontoggle="loadFullStatute('${item.id}', ${item.title_num}, this)">
-        <summary class="accordion-trigger">Expand Full Statute Text</summary>
+        <summary class="accordion-trigger">View Bond Schedule Charges & Statutory MCA Text</summary>
         <div class="statute-body" id="body-${item.id}">
-          <em>Loading full statutory details...</em>
+          <em>Loading detailed statute data...</em>
         </div>
       </details>
     </div>
@@ -214,10 +229,45 @@ async function loadFullStatute(statuteId, titleNum, detailsElement) {
     }
   }
 
-  const titleData = loadedTitleFiles[titleNum];
-  const statute = titleData.find(s => s.id === statuteId);
+  const statute = loadedTitleFiles[titleNum].find(s => s.id === statuteId);
 
   if (statute) {
+    // 1. Render Bond Schedule Charges Table
+    let tableHTML = '';
+    if (statute.offenses && statute.offenses.length > 0) {
+      tableHTML = `
+        <div class="offense-table-wrapper" style="margin: -18px -24px 18px -24px;">
+          <table class="offense-table">
+            <thead>
+              <tr>
+                <th>Bond Book Charge Title</th>
+                <th>Degree</th>
+                <th>Recommended Bail</th>
+                <th>Court Appearance</th>
+                <th>Statutory Jail / Fine</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      statute.offenses.forEach(off => {
+        const degreeClass = off.degree.toLowerCase().includes('felony') ? 'badge-felony' : 'badge-misdemeanor';
+        const mustAppearClass = off.must_appear.toUpperCase().includes('REQ') ? 'badge-must-appear' : '';
+        tableHTML += `
+          <tr>
+            <td><strong>${off.charge_name}</strong></td>
+            <td><span class="badge-degree ${degreeClass}">${off.degree}</span></td>
+            <td><strong>${off.bail_amount}</strong></td>
+            <td><span class="${mustAppearClass}">${off.must_appear}</span></td>
+            <td>${off.jail || ''} ${off.fine ? '| ' + off.fine : ''}</td>
+          </tr>
+        `;
+      });
+
+      tableHTML += `</tbody></table></div>`;
+    }
+
+    // 2. Render Subsections Paragraph List
     const paragraphHTML = statute.paragraphs.map(p => {
       let levelClass = 'level-num';
       if (/^\([a-z]\)/.test(p.counter)) levelClass = 'level-alpha';
@@ -225,10 +275,12 @@ async function loadFullStatute(statuteId, titleNum, detailsElement) {
       return `<li class="${levelClass}"><span class="counter">${p.counter}</span><div>${p.text}</div></li>`;
     }).join('');
 
-    bodyElem.innerHTML = `
+    bodyElem.innerHTML = tableHTML + `
       <ol class="statute-list">${paragraphHTML}</ol>
       <div class="history-text">${statute.history || ''}</div>
     `;
+  } else {
+    bodyElem.innerHTML = '<p>Statute detail text not found in title data file.</p>';
   }
 }
 </script>

@@ -82,12 +82,18 @@
     <form id="statuteForm" onsubmit="publishStatute(event)">
       <div class="form-grid">
         <div>
-          <label for="statuteId">Statute ID (e.g. 45-5-507)</label>
+          <label for="statuteId">Base Statute ID (e.g. 45-5-507)</label>
           <input type="text" id="statuteId" placeholder="45-5-507" required>
         </div>
         <div>
           <label for="statuteTitle">Statute Title</label>
           <input type="text" id="statuteTitle" placeholder="Incest" required>
+        </div>
+        
+        <!-- Subsection-specific Bond Entry Fields -->
+        <div>
+          <label for="subsectionTag">Bond Subsection Ref (e.g. (1)(a) or (2))</label>
+          <input type="text" id="subsectionTag" placeholder="(1)(a)">
         </div>
         <div>
           <label for="offenseDegree">Offense Degree</label>
@@ -96,12 +102,7 @@
             <option value="Misdemeanor">Misdemeanor</option>
           </select>
         </div>
-        <div>
-          <label for="keywords">Search Keywords (comma separated)</label>
-          <input type="text" id="keywords" placeholder="incest, family, sexual offense">
-        </div>
 
-        <!-- Bond Book Details -->
         <div>
           <label for="recommendedBond">Recommended Bond</label>
           <input type="text" id="recommendedBond" placeholder="Court Appearance Required">
@@ -109,6 +110,11 @@
         <div>
           <label for="maxFine">Max Fine</label>
           <input type="text" id="maxFine" placeholder="$50,000">
+        </div>
+
+        <div class="full-width">
+          <label for="keywords">Search Keywords (comma separated)</label>
+          <input type="text" id="keywords" placeholder="incest, family, sexual offense">
         </div>
 
         <div class="full-width">
@@ -133,7 +139,6 @@
 </div>
 
 <script>
-// Auto-load GitHub credentials from localStorage
 document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('ghOwner')) document.getElementById('ghOwner').value = localStorage.getItem('ghOwner');
   if (localStorage.getItem('ghRepo')) document.getElementById('ghRepo').value = localStorage.getItem('ghRepo');
@@ -148,13 +153,11 @@ function saveConfig() {
   localStorage.setItem('ghToken', document.getElementById('ghToken').value.trim());
 }
 
-// Convert raw text into structured paragraph objects
 function parseStatuteParagraphs(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const paragraphs = [];
 
   lines.forEach(line => {
-    // Matches counters like (1), (2), (a), (i)
     const match = line.match(/^(\((?:[0-9]+|[a-z]+|[ivx]+)\))\s*(.*)/i);
     if (match) {
       paragraphs.push({ counter: match[1], text: match[2] });
@@ -177,6 +180,7 @@ async function publishStatute(e) {
 
   const statuteId = document.getElementById('statuteId').value.trim();
   const title = document.getElementById('statuteTitle').value.trim();
+  const subsectionTag = document.getElementById('subsectionTag').value.trim();
   const degree = document.getElementById('offenseDegree').value;
   const keywords = document.getElementById('keywords').value.trim();
   const recommendedBond = document.getElementById('recommendedBond').value.trim() || 'Court Appearance Required';
@@ -194,15 +198,20 @@ async function publishStatute(e) {
     }
 
     const titleNum = parseInt(statuteId.split('-')[0], 10) || 45;
+    
+    // Format charge citation (e.g., "45-5-507(1)(a). Incest" or "Incest")
+    const fullCitation = subsectionTag ? `${statuteId}${subsectionTag}` : statuteId;
+    const chargeDisplayName = `${fullCitation}. ${title}`;
 
-    // 1. Construct the Statute Object
+    // 1. Construct the Statute Object with Subsection Specificity
     const statuteData = {
       id: statuteId,
       title: title,
       title_num: titleNum,
       paragraphs: parseStatuteParagraphs(rawText),
       offenses: [{
-        charge_name: title,
+        subsection: subsectionTag || null,
+        charge_name: chargeDisplayName,
         degree: degree,
         recommended_bond: recommendedBond,
         min_fine: "$0",
@@ -218,16 +227,16 @@ async function publishStatute(e) {
     const statuteFilePath = `data/statutes/${statuteId}.json`;
     await commitToGitHub(owner, repo, branch, token, statuteFilePath, JSON.stringify(statuteData, null, 2), `Update statute ${statuteId}`);
 
-    // 3. Fetch, Update, and Commit `search-index.json`
+    // 3. Sync `search-index.json` with subsection keywords included
     await syncSearchIndex(owner, repo, branch, token, {
       id: statuteId,
       title: title,
       title_num: titleNum,
       degrees: [degree],
-      keywords: keywords || `${statuteId} ${title.toLowerCase()}`
+      keywords: `${fullCitation} ${keywords} ${title.toLowerCase()}`.trim()
     });
 
-    showStatus(`Success! Statute ${statuteId} and search-index.json published to GitHub.`, true);
+    showStatus(`Success! Statute ${fullCitation} published to GitHub and search index updated.`, true);
 
   } catch (err) {
     showStatus(`Publish Error: ${err.message}`, false, true);
@@ -236,13 +245,11 @@ async function publishStatute(e) {
   }
 }
 
-// Fetches search-index.json, updates/inserts record, and commits back
 async function syncSearchIndex(owner, repo, branch, token, newEntry) {
   const indexPath = 'search-index.json';
   let searchIndex = [];
   let sha = null;
 
-  // Fetch current index from GitHub
   const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${indexPath}?ref=${branch}`;
   const getRes = await fetch(getUrl, {
     headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -251,12 +258,10 @@ async function syncSearchIndex(owner, repo, branch, token, newEntry) {
   if (getRes.ok) {
     const fileInfo = await getRes.json();
     sha = fileInfo.sha;
-    // Decode base64 UTF-8 string safely
     const contentStr = decodeURIComponent(escape(atob(fileInfo.content.replace(/\n/g, ''))));
     searchIndex = JSON.parse(contentStr);
   }
 
-  // Insert or update existing item in index
   const existingIndex = searchIndex.findIndex(item => item.id === newEntry.id);
   if (existingIndex >= 0) {
     searchIndex[existingIndex] = newEntry;
@@ -264,18 +269,14 @@ async function syncSearchIndex(owner, repo, branch, token, newEntry) {
     searchIndex.push(newEntry);
   }
 
-  // Sort array alphabetically by statute ID
   searchIndex.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
 
-  // Commit updated index
   await commitToGitHub(owner, repo, branch, token, indexPath, JSON.stringify(searchIndex, null, 2), `Sync search-index.json for ${newEntry.id}`, sha);
 }
 
-// GitHub Contents API commit helper
 async function commitToGitHub(owner, repo, branch, token, path, contentStr, commitMessage, existingSha = null) {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
 
-  // If SHA not supplied, check if file exists
   if (!existingSha) {
     const checkRes = await fetch(`${url}?ref=${branch}`, {
       headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
@@ -286,7 +287,6 @@ async function commitToGitHub(owner, repo, branch, token, path, contentStr, comm
     }
   }
 
-  // Base64 encode string safely for UTF-8 characters
   const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
 
   const payload = {

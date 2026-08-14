@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCA Statute Auto-Parser & Direct File Saver</title>
+<title>MCA Statute GitHub Auto-Publisher</title>
 <style>
   :root {
     --primary: #1a365d;
@@ -14,6 +14,7 @@
     --text: #2d3748;
     --success: #2f855a;
     --warning: #d69e2e;
+    --danger: #e53e3e;
   }
 
   * { box-sizing: border-box; }
@@ -26,49 +27,68 @@
   .admin-container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
   .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-
-  .folder-status { padding: 12px 16px; border-radius: 6px; background: #feebc8; border: 1px solid var(--warning); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
-  .folder-status.connected { background: #c6f6d5; border-color: var(--success); color: #22543d; }
+  .card h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
   .form-group { margin-bottom: 14px; }
   .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #4a5568; }
   .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
 
   .dynamic-section { background: #edf2f7; padding: 12px; border-radius: 6px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
 
   .btn { background: var(--primary-light); color: white; border: none; padding: 10px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
   .btn:hover { background: var(--primary); }
-  .btn-danger { background: #e53e3e; }
+  .btn-danger { background: var(--danger); }
   .btn-danger:hover { background: #9b2c2c; }
   .btn-success { background: var(--success); }
   .btn-success:hover { background: #22543d; }
   .btn-sm { padding: 4px 8px; font-size: 0.75rem; }
 
-  textarea.raw-input { width: 100%; height: 260px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
-  .status-log { font-size: 0.85rem; font-weight: 600; margin-top: 10px; color: var(--primary); }
+  textarea.raw-input { width: 100%; height: 240px; font-family: monospace; font-size: 0.85rem; padding: 10px; border: 1px solid var(--border); border-radius: 4px; resize: vertical; }
+  .status-log { font-size: 0.9rem; font-weight: 600; margin-top: 10px; padding: 10px; border-radius: 4px; display: none; }
+  .status-log.info { display: block; background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+  .status-log.success { display: block; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+  .status-log.error { display: block; background: #fed7d7; color: #9b2c2c; border: 1px solid #feb2b2; }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>MCA Direct File System Auto-Parser</h1>
+  <h1>MCA Direct GitHub Auto-Publisher</h1>
   <a href="index.html">← Back to Main App</a>
 </header>
 
 <div class="admin-container">
 
-  <!-- 1. Folder Connection Bar -->
-  <div class="folder-status" id="folderStatus">
-    <span><strong>Status:</strong> Not connected to local directory.</span>
-    <button class="btn btn-sm" onclick="connectDirectory()">Connect Project Root Folder</button>
+  <!-- 1. GitHub Connection Credentials -->
+  <div class="card">
+    <h2>1. GitHub Repository Credentials</h2>
+    <div class="form-row-4">
+      <div class="form-group">
+        <label for="ghOwner">GitHub Username / Org</label>
+        <input type="text" id="ghOwner" class="form-control" placeholder="my-username">
+      </div>
+      <div class="form-group">
+        <label for="ghRepo">Repository Name</label>
+        <input type="text" id="ghRepo" class="form-control" placeholder="mca-code-app">
+      </div>
+      <div class="form-group">
+        <label for="ghBranch">Branch</label>
+        <input type="text" id="ghBranch" class="form-control" value="main">
+      </div>
+      <div class="form-group">
+        <label for="ghToken">Personal Access Token (PAT)</label>
+        <input type="password" id="ghToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+    </div>
+    <button type="button" class="btn" onclick="saveCredentials()">Save Credentials in Browser</button>
   </div>
 
   <!-- 2. Raw Statute Input & Auto Parse -->
   <div class="card">
-    <h2>1. Paste Raw MCA Statute Text</h2>
+    <h2>2. Paste Raw MCA Statute Text</h2>
     <div class="form-group">
       <textarea id="rawMcaText" class="form-control raw-input" placeholder="Paste full MCA text here... e.g.:&#10;45-5-207. Criminal endangerment. (1) A person commits the offense of criminal endangerment if...&#10;History: En. Sec. 2, Ch. 196, L. 1987..."></textarea>
     </div>
@@ -77,7 +97,7 @@
 
   <!-- 3. Edit Metadata & Offense Tiers -->
   <div class="card">
-    <h2>2. Verify Details & Configure Bond Tiers</h2>
+    <h2>3. Verify Details & Push to GitHub</h2>
 
     <div class="form-row">
       <div class="form-group">
@@ -109,36 +129,42 @@
       <input type="text" id="historyText" class="form-control" placeholder="History: En. Sec. 2...">
     </div>
 
-    <button type="button" class="btn btn-success" onclick="saveStatuteToDisk()" style="width: 100%; font-size: 1.05rem; padding: 12px; margin-top: 10px;">💾 Step 2: Auto-Save File & Update Index</button>
+    <button type="button" id="saveBtn" class="btn btn-success" onclick="commitToGitHub()" style="width: 100%; font-size: 1.05rem; padding: 12px; margin-top: 10px;">🚀 Step 2: Commit & Push to GitHub</button>
     <div id="statusLog" class="status-log"></div>
   </div>
 
 </div>
 
 <script>
-let rootDirectoryHandle = null;
 let parsedParagraphs = [];
 
 document.addEventListener('DOMContentLoaded', () => {
   addOffenseRow();
+  loadCredentials();
 });
 
-// Connect to Project Directory via File System Access API
-async function connectDirectory() {
-  try {
-    rootDirectoryHandle = await window.showDirectoryPicker({
-      mode: 'readwrite'
-    });
-    
-    const statusDiv = document.getElementById('folderStatus');
-    statusDiv.className = 'folder-status connected';
-    statusDiv.innerHTML = `<span><strong>Connected:</strong> Folder "<code>${rootDirectoryHandle.name}</code>" selected. Ready to write files.</span>`;
-  } catch (err) {
-    alert("Folder connection failed or was canceled.");
-  }
+function loadCredentials() {
+  document.getElementById('ghOwner').value = localStorage.getItem('mca_gh_owner') || '';
+  document.getElementById('ghRepo').value = localStorage.getItem('mca_gh_repo') || '';
+  document.getElementById('ghBranch').value = localStorage.getItem('mca_gh_branch') || 'main';
+  document.getElementById('ghToken').value = localStorage.getItem('mca_gh_token') || '';
 }
 
-// Parse Raw Text into Input Fields
+function saveCredentials() {
+  localStorage.setItem('mca_gh_owner', document.getElementById('ghOwner').value.trim());
+  localStorage.setItem('mca_gh_repo', document.getElementById('ghRepo').value.trim());
+  localStorage.setItem('mca_gh_branch', document.getElementById('ghBranch').value.trim());
+  localStorage.setItem('mca_gh_token', document.getElementById('ghToken').value.trim());
+  showStatus("GitHub credentials saved to browser storage!", "success");
+}
+
+function showStatus(message, type = "info") {
+  const log = document.getElementById('statusLog');
+  log.className = `status-log ${type}`;
+  log.textContent = message;
+}
+
+// Parse Raw Text
 function parseTextOnly() {
   const raw = document.getElementById('rawMcaText').value.trim();
   if (!raw) {
@@ -146,7 +172,6 @@ function parseTextOnly() {
     return;
   }
 
-  // 1. Extract History section
   let mainText = raw;
   let historyStr = "";
   const historyIndex = raw.search(/History:/i);
@@ -156,7 +181,6 @@ function parseTextOnly() {
   }
   document.getElementById('historyText').value = historyStr;
 
-  // 2. Extract Statute ID and Title
   const headerMatch = mainText.match(/^(\d+-\d+-\d+)\.\s*([^.\n\r]+)\./);
   if (headerMatch) {
     const statuteId = headerMatch[1];
@@ -171,7 +195,6 @@ function parseTextOnly() {
     mainText = mainText.substring(headerMatch[0].length).trim();
   }
 
-  // 3. Extract Subsections
   parsedParagraphs = [];
   const regex = /(\((?:[0-9]+|[a-z]+|[ivx]+)\))/gi;
   const parts = mainText.split(regex);
@@ -186,14 +209,76 @@ function parseTextOnly() {
     parsedParagraphs.push({ counter: "(1)", text: mainText });
   }
 
-  document.getElementById('statusLog').style.color = '#2f855a';
-  document.getElementById('statusLog').textContent = "Text parsed! Add any Bond Book tiers above, then click 'Auto-Save File'.";
+  showStatus("Text parsed successfully! Review metadata and click 'Commit & Push to GitHub'.", "info");
 }
 
-// Save Statute JSON file and update search-index.json directly on disk
-async function saveStatuteToDisk() {
-  if (!rootDirectoryHandle) {
-    alert("Please connect your project root folder first using the top bar!");
+// GitHub REST API Wrapper: Fetch file info (SHA needed for updates)
+async function getGitHubFile(owner, repo, branch, path, token) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+  const response = await fetch(url, {
+    headers: {
+      "Authorization": `token ${token}`,
+      "Accept": "application/vnd.github.v3+json"
+    }
+  });
+
+  if (response.status === 200) {
+    const data = await response.json();
+    // Decode Unicode content properly from base64
+    const binary = atob(data.content.replace(/\n/g, ''));
+    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+    const decodedText = new TextDecoder().decode(bytes);
+    return { sha: data.sha, content: decodedText };
+  } else if (response.status === 404) {
+    return null; // File does not exist yet
+  } else {
+    const err = await response.json();
+    throw new Error(err.message || "Failed to fetch file from GitHub");
+  }
+}
+
+// GitHub REST API Wrapper: Write/Update file
+async function saveGitHubFile(owner, repo, branch, path, contentStr, message, sha, token) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+  
+  // Base64 encode UTF-8 string properly
+  const utf8Bytes = new TextEncoder().encode(contentStr);
+  const base64Content = btoa(String.fromCharCode(...utf8Bytes));
+
+  const body = {
+    message: message,
+    content: base64Content,
+    branch: branch
+  };
+  if (sha) body.sha = sha;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${token}`,
+      "Content-Type": "application/json",
+      "Accept": "application/vnd.github.v3+json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.message || "Failed to commit file to GitHub");
+  }
+
+  return await response.json();
+}
+
+// Main Save Function
+async function commitToGitHub() {
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const token = document.getElementById('ghToken').value.trim();
+
+  if (!owner || !repo || !token) {
+    alert("Please fill in your GitHub Owner, Repo, and Personal Access Token.");
     return;
   }
 
@@ -207,6 +292,10 @@ async function saveStatuteToDisk() {
     alert("Statute ID and Title are required!");
     return;
   }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  showStatus("Connecting to GitHub API...", "info");
 
   // Gather Offenses
   const offenses = [];
@@ -250,49 +339,62 @@ async function saveStatuteToDisk() {
   };
 
   try {
-    // 1. Write Statute File to /data/statutes/{id}.json
-    const dataDirHandle = await rootDirectoryHandle.getDirectoryHandle('data', { create: true });
-    const statutesDirHandle = await dataDirHandle.getDirectoryHandle('statutes', { create: true });
-    const statuteFileHandle = await statutesDirHandle.getFileHandle(`${id}.json`, { create: true });
+    // 1. Commit Statute JSON file to data/statutes/{id}.json
+    const statutePath = `data/statutes/${id}.json`;
+    showStatus(`Fetching ${statutePath} status from GitHub...`, "info");
+    const existingStatute = await getGitHubFile(owner, repo, branch, statutePath, token);
+    const statuteSha = existingStatute ? existingStatute.sha : null;
+
+    showStatus(`Pushing ${statutePath} to GitHub...`, "info");
+    await saveGitHubFile(
+      owner, repo, branch, statutePath,
+      JSON.stringify(statuteFileObj, null, 2),
+      `Add/Update MCA Statute ${id}`,
+      statuteSha, token
+    );
+
+    // 2. Commit updated search-index.json
+    const indexPath = `search-index.json`;
+    showStatus(`Fetching ${indexPath} from GitHub...`, "info");
+    const existingIndex = await getGitHubFile(owner, repo, branch, indexPath, token);
     
-    const statuteWritable = await statuteFileHandle.createWritable();
-    await statuteWritable.write(JSON.stringify(statuteFileObj, null, 2));
-    await statuteWritable.close();
-
-    // 2. Read, Update, and Write search-index.json
     let searchIndex = [];
-    try {
-      const indexFileHandle = await rootDirectoryHandle.getFileHandle('search-index.json', { create: true });
-      const indexFile = await indexFileHandle.getFile();
-      const indexText = await indexFile.text();
-      if (indexText.trim()) {
-        searchIndex = JSON.parse(indexText);
-      }
+    let indexSha = null;
 
-      // Update existing entry or append new
-      const existingIdx = searchIndex.findIndex(item => item.id === id);
-      if (existingIdx !== -1) {
-        searchIndex[existingIdx] = searchIndexEntry;
-      } else {
-        searchIndex.push(searchIndexEntry);
+    if (existingIndex) {
+      indexSha = existingIndex.sha;
+      try {
+        searchIndex = JSON.parse(existingIndex.content);
+      } catch(e) {
+        searchIndex = [];
       }
-
-      const indexWritable = await indexFileHandle.createWritable();
-      await indexWritable.write(JSON.stringify(searchIndex, null, 2));
-      await indexWritable.close();
-    } catch (e) {
-      console.error("Error updating index file:", e);
     }
 
-    document.getElementById('statusLog').style.color = '#2f855a';
-    document.getElementById('statusLog').textContent = `Success! Saved data/statutes/${id}.json and updated search-index.json.`;
+    // Update existing or append new entry
+    const existingIdx = searchIndex.findIndex(item => item.id === id);
+    if (existingIdx !== -1) {
+      searchIndex[existingIdx] = searchIndexEntry;
+    } else {
+      searchIndex.push(searchIndexEntry);
+    }
+
+    showStatus(`Updating search-index.json on GitHub...`, "info");
+    await saveGitHubFile(
+      owner, repo, branch, indexPath,
+      JSON.stringify(searchIndex, null, 2),
+      `Update search-index for MCA Statute ${id}`,
+      indexSha, token
+    );
+
+    showStatus(`🎉 Success! Saved data/statutes/${id}.json and updated search-index.json directly on GitHub!`, "success");
 
     // Clear main input for next entry
     document.getElementById('rawMcaText').value = '';
 
   } catch (err) {
-    document.getElementById('statusLog').style.color = '#e53e3e';
-    document.getElementById('statusLog').textContent = `Error saving files: ${err.message}`;
+    showStatus(`Error saving to GitHub: ${err.message}`, "error");
+  } finally {
+    saveBtn.disabled = false;
   }
 }
 

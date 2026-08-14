@@ -12,8 +12,8 @@
     --bg-main: #f7fafc;
     --bg-card: #ffffff;
     --text: #2d3748;
-    --badge-felony: #c53030;
-    --badge-success: #2f855a;
+    --highlight-bg: #fefcbf;
+    --highlight-border: #d69e2e;
   }
 
   * { box-sizing: border-box; }
@@ -35,13 +35,25 @@
   textarea { resize: vertical; min-height: 120px; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(43,108,176,0.15); }
 
-  .btn { background: var(--primary-light); color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
   .btn:hover { background: var(--primary); }
+  .btn-secondary { background: #e2e8f0; color: #2d3748; }
+  .btn-secondary:hover { background: #cbd5e0; }
   .btn:disabled { background: #a0aec0; cursor: not-allowed; }
 
   .status-banner { padding: 12px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; display: none; margin-top: 15px; }
   .status-success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
   .status-error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
+  .status-info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+
+  /* Preview Section Styling */
+  .preview-box { margin-top: 15px; padding: 15px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; display: none; }
+  .p-item { margin-bottom: 8px; line-height: 1.5; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
+  .indent-level-1 { margin-left: 0px; }
+  .indent-level-2 { margin-left: 20px; }
+  .indent-level-3 { margin-left: 40px; }
+  .p-item.highlighted-subsection { background-color: var(--highlight-bg); border-left: 4px solid var(--highlight-border); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -55,7 +67,7 @@
 
   <!-- GitHub Settings Config -->
   <div class="card">
-    <h3>1. GitHub Sync Credentials</h3>
+    <h3>1. GitHub Credentials</h3>
     <div class="form-grid">
       <div>
         <label for="ghOwner">Repository Owner (Username/Org)</label>
@@ -74,6 +86,9 @@
         <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
       </div>
     </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary" onclick="verifyPAT()">🔑 Verify PAT & Access</button>
+    </div>
   </div>
 
   <!-- Statute & Bond Editor -->
@@ -90,7 +105,6 @@
           <input type="text" id="statuteTitle" placeholder="Incest" required>
         </div>
         
-        <!-- Subsection-specific Bond Entry Fields -->
         <div>
           <label for="subsectionTag">Bond Subsection Ref (e.g. (1)(a) or (2))</label>
           <input type="text" id="subsectionTag" placeholder="(1)(a)">
@@ -128,10 +142,18 @@
         </div>
       </div>
 
-      <div style="margin-top: 20px;">
+      <div class="btn-group" style="margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="checkFileExists()">🔍 Check File Exists</button>
+        <button type="button" class="btn btn-secondary" onclick="previewStatute()">👁️ Review Text & Highlight</button>
         <button type="submit" class="btn" id="publishBtn">🚀 Publish Statute & Update Index</button>
       </div>
     </form>
+
+    <!-- Preview Container -->
+    <div id="previewContainer" class="preview-box">
+      <h4 style="margin-top:0; color:var(--primary);">Parsed Text Preview</h4>
+      <div id="previewBody"></div>
+    </div>
 
     <div id="statusBanner" class="status-banner"></div>
   </div>
@@ -153,6 +175,114 @@ function saveConfig() {
   localStorage.setItem('ghToken', document.getElementById('ghToken').value.trim());
 }
 
+function getCredentials() {
+  saveConfig();
+  return {
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    branch: document.getElementById('ghBranch').value.trim(),
+    token: document.getElementById('ghToken').value.trim()
+  };
+}
+
+// 1. VERIFY PAT API CALL
+async function verifyPAT() {
+  const { token, owner, repo } = getCredentials();
+  if (!token) return showStatus("Please enter a Personal Access Token first.", false, true);
+
+  showStatus("Verifying PAT credentials with GitHub...", false, false, true);
+
+  try {
+    const res = await fetch(`https://api.github.com/user`, {
+      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    if (!res.ok) throw new Error("Invalid Personal Access Token or expired credentials.");
+    
+    const user = await res.json();
+    showStatus(`Success! Authenticated as GitHub user: ${user.login}`, true);
+  } catch (err) {
+    showStatus(`Verification Failed: ${err.message}`, false, true);
+  }
+}
+
+// 2. CHECK FILE EXISTS IN REPO
+async function checkFileExists() {
+  const { owner, repo, branch, token } = getCredentials();
+  const statuteId = document.getElementById('statuteId').value.trim();
+
+  if (!statuteId) return showStatus("Please enter a Statute ID (e.g. 45-5-507).", false, true);
+  if (!owner || !repo) return showStatus("Please specify Owner and Repository Name.", false, true);
+
+  const path = `data/statutes/${statuteId}.json`;
+  showStatus(`Checking existence of ${path}...`, false, false, true);
+
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+    const headers = token ? { 'Authorization': `token ${token}` } : {};
+    const res = await fetch(url, { headers });
+
+    if (res.status === 200) {
+      showStatus(`File data/statutes/${statuteId}.json EXISTS on branch '${branch}'. Publishing will overwrite this file.`, false, false, true);
+    } else if (res.status === 404) {
+      showStatus(`File data/statutes/${statuteId}.json DOES NOT exist yet. Publishing will create a new file.`, true);
+    } else {
+      throw new Error(`GitHub returned status code ${res.status}`);
+    }
+  } catch (err) {
+    showStatus(`Error checking file: ${err.message}`, false, true);
+  }
+}
+
+// 3. PREVIEW STATUTE TEXT & SUBSECTION HIGHLIGHT
+function previewStatute() {
+  const rawText = document.getElementById('statuteText').value.trim();
+  const targetTag = document.getElementById('subsectionTag').value.trim().toLowerCase().replace(/\s+/g, '');
+  const previewBox = document.getElementById('previewContainer');
+  const previewBody = document.getElementById('previewBody');
+
+  if (!rawText) return showStatus("Enter statute text to review.", false, true);
+
+  const paragraphs = parseStatuteParagraphs(rawText);
+  let html = '';
+  let currentLevel1 = '';
+  let currentLevel2 = '';
+
+  paragraphs.forEach(p => {
+    const counter = (p.counter || '').replace(/\s+/g, '').toLowerCase();
+
+    if (/^\([0-9]+\)$/.test(counter)) {
+      currentLevel1 = counter;
+      currentLevel2 = '';
+    } else if (/^\([a-z]+\)$/.test(counter)) {
+      currentLevel2 = counter;
+    } else if (/^\([0-9]+\)\([a-z]+\)$/.test(counter)) {
+      const match = counter.match(/^(\([0-9]+\))(\([a-z]+\))$/);
+      currentLevel1 = match[1];
+      currentLevel2 = match[2];
+    }
+
+    const fullPath = counter.startsWith('(') && counter.includes(')(') 
+      ? counter 
+      : `${currentLevel1}${currentLevel2}`;
+
+    const isHighlighted = targetTag && (
+      fullPath === targetTag || 
+      counter === targetTag || 
+      fullPath.startsWith(targetTag)
+    );
+
+    const indent = getIndentClass(p.counter);
+    const highlightClass = isHighlighted ? 'highlighted-subsection' : '';
+
+    html += `<div class="p-item ${indent} ${highlightClass}"><strong>${p.counter}</strong> ${p.text}</div>`;
+  });
+
+  previewBody.innerHTML = html;
+  previewBox.style.display = 'block';
+  showStatus("Text parsed successfully. Review preview box above.", true);
+}
+
 function parseStatuteParagraphs(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   const paragraphs = [];
@@ -169,14 +299,17 @@ function parseStatuteParagraphs(text) {
   return paragraphs;
 }
 
+function getIndentClass(counter) {
+  if (!counter) return "indent-level-1";
+  if (/^\([0-9]+\)(\([a-z]+\))?$/.test(counter)) return "indent-level-1";
+  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2";
+  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3";
+  return "indent-level-1";
+}
+
 async function publishStatute(e) {
   e.preventDefault();
-  saveConfig();
-
-  const owner = document.getElementById('ghOwner').value.trim();
-  const repo = document.getElementById('ghRepo').value.trim();
-  const branch = document.getElementById('ghBranch').value.trim();
-  const token = document.getElementById('ghToken').value.trim();
+  const { owner, repo, branch, token } = getCredentials();
 
   const statuteId = document.getElementById('statuteId').value.trim();
   const title = document.getElementById('statuteTitle').value.trim();
@@ -189,21 +322,16 @@ async function publishStatute(e) {
   const history = document.getElementById('statuteHistory').value.trim();
 
   const btn = document.getElementById('publishBtn');
-  showStatus("Processing statute update...", false);
+  showStatus("Publishing statute update...", false, false, true);
   btn.disabled = true;
 
   try {
-    if (!owner || !repo || !token) {
-      throw new Error("Missing GitHub credentials. Please complete Section 1.");
-    }
+    if (!owner || !repo || !token) throw new Error("Missing GitHub credentials in Section 1.");
 
     const titleNum = parseInt(statuteId.split('-')[0], 10) || 45;
-    
-    // Format charge citation (e.g., "45-5-507(1)(a). Incest" or "Incest")
     const fullCitation = subsectionTag ? `${statuteId}${subsectionTag}` : statuteId;
     const chargeDisplayName = `${fullCitation}. ${title}`;
 
-    // 1. Construct the Statute Object with Subsection Specificity
     const statuteData = {
       id: statuteId,
       title: title,
@@ -223,11 +351,9 @@ async function publishStatute(e) {
       history: history
     };
 
-    // 2. Commit `data/statutes/{statuteId}.json`
     const statuteFilePath = `data/statutes/${statuteId}.json`;
     await commitToGitHub(owner, repo, branch, token, statuteFilePath, JSON.stringify(statuteData, null, 2), `Update statute ${statuteId}`);
 
-    // 3. Sync `search-index.json` with subsection keywords included
     await syncSearchIndex(owner, repo, branch, token, {
       id: statuteId,
       title: title,
@@ -312,7 +438,7 @@ async function commitToGitHub(owner, repo, branch, token, path, contentStr, comm
   }
 }
 
-function showStatus(msg, isSuccess, isError = false) {
+function showStatus(msg, isSuccess = false, isError = false, isInfo = false) {
   const banner = document.getElementById('statusBanner');
   banner.textContent = msg;
   banner.style.display = 'block';
@@ -320,6 +446,7 @@ function showStatus(msg, isSuccess, isError = false) {
   banner.className = 'status-banner';
   if (isSuccess) banner.classList.add('status-success');
   if (isError) banner.classList.add('status-error');
+  if (isInfo) banner.classList.add('status-info');
 }
 </script>
 

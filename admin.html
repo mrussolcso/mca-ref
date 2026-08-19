@@ -482,12 +482,40 @@ function deleteNode(pathStr) {
   renderTree();
 }
 
-function flattenTree(nodes, indentLevel = 1) {
+/* ANCHOR SLUG & TREE STRUCTURING HELPERS */
+function slugifyCounter(counter) {
+  return (counter || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+}
+
+function processTreeAnchors(nodes, parentAnchor = '') {
+  return nodes.map(n => {
+    const slug = slugifyCounter(n.counter);
+    const anchorId = parentAnchor ? `${parentAnchor}-${slug}` : slug;
+    
+    return {
+      counter: n.counter,
+      anchor_id: anchorId,
+      text: n.text,
+      children: n.children && n.children.length > 0 ? processTreeAnchors(n.children, anchorId) : []
+    };
+  });
+}
+
+function flattenTree(nodes, parentAnchor = '', indentLevel = 1) {
   let flat = [];
   nodes.forEach(n => {
-    flat.push({ counter: n.counter, text: n.text, indent: indentLevel });
+    const slug = slugifyCounter(n.counter);
+    const anchorId = parentAnchor ? `${parentAnchor}-${slug}` : slug;
+
+    flat.push({ 
+      counter: n.counter, 
+      anchor_id: anchorId, 
+      text: n.text, 
+      indent: indentLevel 
+    });
+
     if (n.children && n.children.length > 0) {
-      flat = flat.concat(flattenTree(n.children, indentLevel + 1));
+      flat = flat.concat(flattenTree(n.children, anchorId, indentLevel + 1));
     }
   });
   return flat;
@@ -502,6 +530,8 @@ async function saveLaw() {
     return;
   }
 
+  const processedTree = processTreeAnchors(treeData);
+
   const payload = {
     law_id: currentComputedLawId,
     title: document.getElementById('law_title').value.trim(),
@@ -510,7 +540,7 @@ async function saveLaw() {
     last_updated: new Date().toISOString(),
     history: document.getElementById('law_history').value.trim(),
     paragraphs: flattenTree(treeData),
-    tree: treeData
+    tree: processedTree
   };
 
   await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);

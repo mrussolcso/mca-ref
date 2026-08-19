@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - Law & Offense Publisher</title>
+<title>Admin - Relational Law Directory</title>
 <style>
   :root { 
     --primary: #1a365d; 
@@ -12,8 +12,6 @@
     --bg: #f7fafc; 
     --card-bg: #ffffff;
     --text: #2d3748;
-    --danger: #e53e3e;
-    --success: #38a169;
   }
   
   body { 
@@ -25,13 +23,13 @@
   }
 
   .container { 
-    max-width: 1200px; 
+    max-width: 1400px; 
     margin: 0 auto; 
     display: flex; 
     flex-direction: column; 
     gap: 20px; 
   }
-  
+
   .app-header { 
     display: flex; 
     justify-content: space-between; 
@@ -56,15 +54,15 @@
 
   .btn-nav:hover { background: rgba(255, 255, 255, 0.35); }
 
-  .admin-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+  .two-column-layout { 
+    display: grid; 
+    grid-template-columns: 320px 1fr; 
+    gap: 20px; 
     align-items: start;
   }
 
   @media (max-width: 900px) {
-    .admin-grid { grid-template-columns: 1fr; }
+    .two-column-layout { grid-template-columns: 1fr; }
   }
 
   .card { 
@@ -74,31 +72,48 @@
     padding: 20px; 
   }
 
-  .form-group {
-    margin-bottom: 16px;
+  .search-box { 
+    width: 100%; 
+    padding: 10px; 
+    font-size: 0.9rem; 
+    border: 1px solid var(--border); 
+    border-radius: 6px; 
+    box-sizing: border-box; 
+    margin-bottom: 12px;
   }
 
-  .form-group label {
-    display: block;
-    font-weight: 600;
-    font-size: 0.88rem;
-    margin-bottom: 6px;
-    color: var(--primary);
-  }
-
-  .form-control {
-    width: 100%;
-    padding: 10px;
+  .law-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+    max-height: 650px; 
+    overflow-y: auto; 
     border: 1px solid var(--border);
     border-radius: 6px;
-    box-sizing: border-box;
-    font-size: 0.9rem;
   }
 
-  textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
+  .law-item { 
+    padding: 10px 12px; 
+    border-bottom: 1px solid var(--border); 
+    cursor: pointer; 
+    transition: background 0.15s; 
   }
+
+  .law-item:last-child { border-bottom: none; }
+  .law-item:hover { background: #edf2f7; }
+
+  .law-item.active { 
+    background: #ebf8ff; 
+    border-left: 4px solid var(--primary-light); 
+  }
+
+  .law-item-title { font-weight: 600; font-size: 0.88rem; color: var(--primary); }
+  .law-item-id { font-size: 0.78rem; color: #718096; margin-top: 2px; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; color: var(--primary); }
+  .form-control { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
+  textarea.form-control { resize: vertical; min-height: 80px; }
 
   .btn-submit {
     background: var(--primary-light);
@@ -110,79 +125,14 @@
     font-size: 0.95rem;
     cursor: pointer;
     width: 100%;
-    transition: background 0.2s;
+    margin-top: 10px;
   }
 
   .btn-submit:hover { background: var(--primary); }
 
-  /* Dynamic Offense Rows */
-  .offense-row {
-    background: #f8fafc;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 12px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-
-  .btn-remove {
-    background: #fed7d7;
-    color: var(--danger);
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    cursor: pointer;
-    float: right;
-  }
-
-  /* Live Preview Pane */
-  .preview-pane {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 450px;
-  }
-
-  .preview-header {
-    border-bottom: 2px solid var(--border);
-    padding-bottom: 12px;
-    margin-bottom: 16px;
-  }
-
-  .badge-source {
-    background: var(--primary-light);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: bold;
-    text-transform: uppercase;
-  }
-
-  .preview-body {
-    flex-grow: 1;
-    margin-bottom: 20px;
-  }
-
-  .preview-footer {
-    border-top: 1px solid var(--border);
-    background: #f8fafc;
-    border-radius: 6px;
-    padding: 12px;
-    font-size: 0.82rem;
-    color: #718096;
-  }
-
-  .status-alert {
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 0.88rem;
-    display: none;
-    margin-top: 10px;
-  }
-
+  .empty-msg { text-align: center; color: #a0aec0; padding: 30px 10px; font-style: italic; font-size: 0.9rem; }
+  
+  .status-alert { padding: 12px; border-radius: 6px; font-size: 0.88rem; display: none; margin-top: 10px; }
   .status-alert.success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
   .status-alert.error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
 </style>
@@ -192,17 +142,29 @@
 <div class="container">
   
   <header class="app-header">
-    <h1>⚙️ Law & Offense Publisher</h1>
+    <h1>⚙️ Law Directory Admin Publisher</h1>
     <a href="index.html" class="btn-nav">📖 Return to Directory</a>
   </header>
 
-  <div class="admin-grid">
+  <div class="two-column-layout">
     
-    <!-- LEFT COLUMN: Entry Form -->
+    <!-- LEFT COLUMN: Selector -->
     <div class="card">
-      <h3 style="margin-top:0; color:var(--primary);">Law & Offense Data Form</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="margin:0; font-size:1rem; color:var(--primary);">Select to Edit</h3>
+        <button type="button" onclick="createNewRecord()" style="background:#e2e8f0; border:none; padding:4px 8px; border-radius:4px; font-weight:600; cursor:pointer;">+ New Law</button>
+      </div>
+      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search laws..." oninput="filterLaws()">
+      <ul class="law-list" id="lawListContainer">
+        <li class="empty-msg">Loading laws...</li>
+      </ul>
+    </div>
+
+    <!-- RIGHT COLUMN: Editor Form Pane -->
+    <div class="card">
+      <h3 style="margin-top:0; color:var(--primary);" id="formTitle">Edit Law Entry</h3>
       
-      <!-- PAT Token Field with Eye Toggle -->
+      <!-- PAT Token Field with Toggle Eye -->
       <div class="form-group">
         <label for="patToken">GitHub Personal Access Token (PAT):</label>
         <div style="position: relative; display: flex; align-items: center;">
@@ -235,91 +197,40 @@
         </div>
       </div>
 
-      <div class="form-group">
-        <label for="law_id">Law ID / Section Number:</label>
-        <input type="text" id="law_id" class="form-control" placeholder="e.g., 45-5-206" oninput="updatePreview()">
-      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+          <label for="law_id">Law ID / Section:</label>
+          <input type="text" id="law_id" class="form-control" placeholder="e.g., 45-5-206">
+        </div>
 
-      <div class="form-group">
-        <label for="source_type">Source Type:</label>
-        <input type="text" id="source_type" class="form-control" value="MCA Statute" oninput="updatePreview()">
+        <div class="form-group">
+          <label for="source_type">Source Type:</label>
+          <input type="text" id="source_type" class="form-control" value="MCA Statute">
+        </div>
       </div>
 
       <div class="form-group">
         <label for="title">Title / Name:</label>
-        <input type="text" id="title" class="form-control" placeholder="e.g., Partner or Family Member Assault" oninput="updatePreview()">
+        <input type="text" id="title" class="form-control" placeholder="e.g., Partner or Family Member Assault">
       </div>
 
       <div class="form-group">
-        <label for="official_url">Official Publication URL:</label>
-        <input type="url" id="official_url" class="form-control" placeholder="https://leg.mt.gov/..." oninput="updatePreview()">
+        <label for="official_url">Official URL:</label>
+        <input type="url" id="official_url" class="form-control" placeholder="https://leg.mt.gov/...">
       </div>
 
       <div class="form-group">
-        <label for="law_content">Statute Content / Text:</label>
-        <textarea id="law_content" class="form-control" rows="5" placeholder="Enter full text of the law here..." oninput="updatePreview()"></textarea>
+        <label for="history">Revision History:</label>
+        <textarea id="history" class="form-control" rows="3" placeholder="En. Sec. 1, Ch. 700, L. 1985..."></textarea>
       </div>
 
       <div class="form-group">
-        <label for="history">Revision History / Historical Notes:</label>
-        <textarea id="history" class="form-control" rows="3" placeholder="En. Sec. 1, Ch. 700, L. 1985..." oninput="updatePreview()"></textarea>
+        <label for="json_content">Raw Content Structure (JSON Tree / Paragraphs):</label>
+        <textarea id="json_content" class="form-control" rows="10" style="font-family: monospace; font-size: 0.85rem;" placeholder="[]"></textarea>
       </div>
 
-      <!-- Associated Offenses Container -->
-      <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <label style="margin: 0;">Associated Offenses:</label>
-          <button type="button" onclick="addOffenseRow()" style="background:#e2e8f0; border:none; padding:4px 8px; border-radius:4px; font-weight:600; cursor:pointer;">+ Add Offense</button>
-        </div>
-        <div id="offensesList"></div>
-      </div>
-
-      <button type="button" class="btn-submit" onclick="publishRecord()">🚀 Publish & Sync to GitHub</button>
+      <button type="button" class="btn-submit" onclick="publishRecord()">🚀 Save & Commit to GitHub</button>
       <div id="statusAlert" class="status-alert"></div>
-    </div>
-
-    <!-- RIGHT COLUMN: Live Entry Preview -->
-    <div class="card preview-pane">
-      <div>
-        <h3 style="margin-top:0; color:#718096; font-size:0.9rem; text-transform:uppercase;">Live Form Preview</h3>
-        
-        <header class="preview-header">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
-            <div>
-              <span class="badge-source" id="prev_source_type">MCA Statute</span>
-              <h2 id="prev_title" style="margin: 8px 0 4px 0; color: var(--primary);">Untitled Record</h2>
-              <div style="font-size: 0.88rem; color: #4a5568;" id="prev_law_id"><strong>ID:</strong> --</div>
-            </div>
-            <div id="prev_url_container" style="display:none;">
-              <a id="prev_official_url" href="#" target="_blank" style="background:var(--primary-light); color:white; padding:6px 12px; border-radius:6px; text-decoration:none; font-size:0.8rem; font-weight:bold;">
-                🔗 Official Link
-              </a>
-            </div>
-          </div>
-        </header>
-
-        <main class="preview-body" id="prev_content">
-          <p style="color: #a0aec0; font-style: italic;">Text preview will appear here as you type...</p>
-        </main>
-      </div>
-
-      <!-- Bottom History and Metadata Footer -->
-      <footer class="preview-footer">
-        <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 0.82rem; text-transform: uppercase;">
-          HISTORY & METADATA
-        </h4>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div>
-            <strong>Revision History:</strong>
-            <div id="prev_history" style="margin-top: 2px; color: #4a5568;">--</div>
-          </div>
-          <div>
-            <strong>Database Tracking:</strong>
-            <div id="prev_updated" style="margin-top: 2px; color: #4a5568;">Last Updated: Pending Publish</div>
-          </div>
-        </div>
-      </footer>
-
     </div>
 
   </div>
@@ -333,7 +244,11 @@ const REPO_CONFIG = {
   branch: 'main'
 };
 
-// Toggle PAT Token Field Visibility
+let allLaws = [];
+let currentSelectedId = null;
+
+window.addEventListener('DOMContentLoaded', loadIndex);
+
 function togglePatTokenView() {
   const tokenInput = document.getElementById('patToken');
   const toggleBtn = document.getElementById('togglePatVisibility');
@@ -347,70 +262,95 @@ function togglePatTokenView() {
   }
 }
 
-// Dynamic Offense Sub-Form Rows
-function addOffenseRow(offenseData = {}) {
-  const container = document.getElementById('offensesList');
-  const div = document.createElement('div');
-  div.className = 'offense-row';
-  
-  div.innerHTML = `
-    <button type="button" class="btn-remove" onclick="this.parentElement.remove(); updatePreview();">Remove</button>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:4px;">
-      <input type="text" class="form-control off-title" placeholder="Offense Title" value="${offenseData.title || ''}" oninput="updatePreview()">
-      <input type="text" class="form-control off-severity" placeholder="Severity / Penalty" value="${offenseData.severity || ''}" oninput="updatePreview()">
-    </div>
-  `;
-  container.appendChild(div);
-  updatePreview();
+async function loadIndex() {
+  const container = document.getElementById('lawListContainer');
+  const url = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws-index.json`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch index.');
+
+    allLaws = await res.json();
+    renderList(allLaws);
+  } catch (err) {
+    container.innerHTML = `<li class="empty-msg" style="color:#e53e3e;">Failed to load laws index.</li>`;
+  }
 }
 
-// Live Preview Update Logic
-function updatePreview() {
-  const lawId = document.getElementById('law_id').value || '--';
-  const sourceType = document.getElementById('source_type').value || 'MCA Statute';
-  const title = document.getElementById('title').value || 'Untitled Record';
-  const officialUrl = document.getElementById('official_url').value;
-  const content = document.getElementById('law_content').value;
-  const history = document.getElementById('history').value;
+function renderList(laws) {
+  const container = document.getElementById('lawListContainer');
+  container.innerHTML = '';
 
-  document.getElementById('prev_law_id').innerHTML = `<strong>ID:</strong> ${lawId}`;
-  document.getElementById('prev_source_type').textContent = sourceType;
-  document.getElementById('prev_title').textContent = title;
-
-  const urlContainer = document.getElementById('prev_url_container');
-  if (officialUrl) {
-    document.getElementById('prev_official_url').href = officialUrl;
-    urlContainer.style.display = 'block';
-  } else {
-    urlContainer.style.display = 'none';
+  if (laws.length === 0) {
+    container.innerHTML = `<li class="empty-msg">No matching laws found.</li>`;
+    return;
   }
 
-  document.getElementById('prev_content').innerHTML = content 
-    ? content.replace(/\n/g, '<br>') 
-    : '<p style="color: #a0aec0; font-style: italic;">Text preview will appear here as you type...</p>';
+  laws.forEach(law => {
+    const li = document.createElement('li');
+    li.className = `law-item ${law.id === currentSelectedId ? 'active' : ''}`;
+    li.onclick = () => selectLaw(law.id, li);
 
-  document.getElementById('prev_history').textContent = history || '--';
-}
+    li.innerHTML = `
+      <div class="law-item-title">${law.title || 'Untitled Record'}</div>
+      <div class="law-item-id">ID: ${law.id}</div>
+    `;
 
-// Get Collected Offenses
-function getCollectedOffenses() {
-  const rows = document.querySelectorAll('.offense-row');
-  const offenses = [];
-  rows.forEach(row => {
-    const title = row.querySelector('.off-title').value;
-    const severity = row.querySelector('.off-severity').value;
-    if (title || severity) {
-      offenses.push({ title, severity });
-    }
+    container.appendChild(li);
   });
-  return offenses;
 }
 
-// GitHub API Direct Committer
+function filterLaws() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = allLaws.filter(l => 
+    (l.title && l.title.toLowerCase().includes(q)) || 
+    (l.id && l.id.toLowerCase().includes(q))
+  );
+  renderList(filtered);
+}
+
+async function selectLaw(lawId, element) {
+  currentSelectedId = lawId;
+  document.querySelectorAll('.law-item').forEach(el => el.classList.remove('active'));
+  if (element) element.classList.add('active');
+
+  const fileUrl = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`;
+
+  try {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error('Law record not found.');
+
+    const lawData = await res.json();
+    
+    document.getElementById('formTitle').textContent = `Edit Law: ${lawId}`;
+    document.getElementById('law_id').value = lawData.law_id || lawData.id || '';
+    document.getElementById('source_type').value = lawData.source_type || 'MCA Statute';
+    document.getElementById('title').value = lawData.title || '';
+    document.getElementById('official_url').value = lawData.official_url || '';
+    document.getElementById('history').value = lawData.history || '';
+    
+    const content = lawData.tree || lawData.paragraphs || [];
+    document.getElementById('json_content').value = JSON.stringify(content, null, 2);
+
+  } catch (err) {
+    showAlert(`Error loading details: ${err.message}`, 'error');
+  }
+}
+
+function createNewRecord() {
+  currentSelectedId = null;
+  document.querySelectorAll('.law-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('formTitle').textContent = 'Create New Law Entry';
+  document.getElementById('law_id').value = '';
+  document.getElementById('source_type').value = 'MCA Statute';
+  document.getElementById('title').value = '';
+  document.getElementById('official_url').value = '';
+  document.getElementById('history').value = '';
+  document.getElementById('json_content').value = '[]';
+}
+
 async function publishRecord() {
   const token = document.getElementById('patToken').value.trim();
-  const alertBox = document.getElementById('statusAlert');
-
   if (!token) {
     showAlert('Please enter your GitHub Personal Access Token.', 'error');
     return;
@@ -418,13 +358,18 @@ async function publishRecord() {
 
   const lawId = document.getElementById('law_id').value.trim();
   if (!lawId) {
-    showAlert('Please provide a Law ID.', 'error');
+    showAlert('Please specify a Law ID.', 'error');
     return;
   }
 
-  showAlert('Syncing with GitHub...', 'success');
+  let parsedContent;
+  try {
+    parsedContent = JSON.parse(document.getElementById('json_content').value);
+  } catch (e) {
+    showAlert('Invalid JSON content inside structure box.', 'error');
+    return;
+  }
 
-  const nowIso = new Date().toISOString();
   const lawPayload = {
     id: lawId,
     law_id: lawId,
@@ -432,28 +377,25 @@ async function publishRecord() {
     title: document.getElementById('title').value,
     official_url: document.getElementById('official_url').value,
     history: document.getElementById('history').value,
-    last_updated: nowIso,
-    paragraphs: [{ counter: "", text: document.getElementById('law_content').value }],
-    offenses: getCollectedOffenses()
+    last_updated: new Date().toISOString(),
+    tree: parsedContent
   };
+
+  showAlert('Syncing with GitHub...', 'success');
 
   const filePath = `data/laws/${lawId}.json`;
   const githubApiUrl = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${filePath}`;
 
   try {
-    // 1. Check for existing file SHA
     let existingSha = null;
-    const getRes = await fetch(githubApiUrl, {
-      headers: { Authorization: `token ${token}` }
-    });
+    const getRes = await fetch(githubApiUrl, { headers: { Authorization: `token ${token}` } });
     if (getRes.ok) {
       const existingData = await getRes.json();
       existingSha = existingData.sha;
     }
 
-    // 2. Commit law JSON file
     const commitBody = {
-      message: `Update law record ${lawId}`,
+      message: `Update record ${lawId}`,
       content: btoa(unescape(encodeURIComponent(JSON.stringify(lawPayload, null, 2)))),
       branch: REPO_CONFIG.branch
     };
@@ -461,19 +403,16 @@ async function publishRecord() {
 
     const putRes = await fetch(githubApiUrl, {
       method: 'PUT',
-      headers: {
-        Authorization: `token ${token}`,
-        'Content-Type': 'application/json'
-      },
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(commitBody)
     });
 
-    if (!putRes.ok) throw new Error('Failed to commit record file to GitHub.');
+    if (!putRes.ok) throw new Error('Failed to commit record.');
 
-    // 3. Update main index JSON
     await updateIndexFile(token, { id: lawId, title: lawPayload.title });
+    showAlert(`Record ${lawId} successfully saved!`, 'success');
+    loadIndex();
 
-    showAlert(`Successfully published record ${lawId}!`, 'success');
   } catch (err) {
     showAlert(`Error publishing: ${err.message}`, 'error');
   }
@@ -493,7 +432,6 @@ async function updateIndexFile(token, newEntry) {
     indexList = JSON.parse(decodeURIComponent(escape(atob(data.content))));
   }
 
-  // Update or append
   const idx = indexList.findIndex(item => item.id === newEntry.id);
   if (idx >= 0) {
     indexList[idx] = newEntry;
@@ -503,10 +441,7 @@ async function updateIndexFile(token, newEntry) {
 
   await fetch(indexUrl, {
     method: 'PUT',
-    headers: {
-      Authorization: `token ${token}`,
-      'Content-Type': 'application/json'
-    },
+    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       message: `Update directory index for ${newEntry.id}`,
       content: btoa(unescape(encodeURIComponent(JSON.stringify(indexList, null, 2)))),

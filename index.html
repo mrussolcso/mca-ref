@@ -264,12 +264,12 @@ async function loadOffenseDetail(offenseId) {
       if (lawRes && lawRes.ok) lawData = await lawRes.json();
     }
 
-    // Dynamic Header: Charge ID (e.g. 45-5-206(1)(a) [1st]) followed by Offense Title
-    const chargeTag = offense.display_tag || offense.offense_id;
+    // Method 1 Header Logic: Display clean display_tag (e.g., 45-5-206(1)(a) [1st]) + Name
+    const chargeTag = offense.display_tag || (offense.law_id ? `${offense.law_id} [${formatOccurrence(offense.occurrence)}]` : offense.offense_id);
     const offenseTitle = offense.name || 'Offense Record';
     const headerDisplay = `${chargeTag} ${offenseTitle}`;
 
-    // Center Pane HTML: Offense Box with dynamic charge header placed above Statute Text
+    // Center Pane HTML
     let centerHtml = `
       <div class="offense-details-box">
         <h2>${headerDisplay}</h2>
@@ -294,6 +294,7 @@ async function loadOffenseDetail(offenseId) {
         <div class="law-body">
       `;
 
+      // Highlights are strictly driven by target_anchors array
       const targetAnchors = (offense.target_anchors || []).map(a => a.toLowerCase().trim());
 
       (lawData.paragraphs || []).forEach(p => {
@@ -315,7 +316,7 @@ async function loadOffenseDetail(offenseId) {
 
     centerContainer.innerHTML = centerHtml;
 
-    // Render Right Pane: Related Offenses Sharing the Same Law ID
+    // Render Right Pane
     renderRelatedOffenses(offense.law_id, offense.offense_id);
 
   } catch (err) {
@@ -386,7 +387,6 @@ async function loadLawDetail(lawId) {
     html += `</div>`;
     centerContainer.innerHTML = html;
 
-    // In Law View, display all offenses associated with this statute on the right pane
     renderRelatedOffenses(lawId, null);
 
   } catch (err) {

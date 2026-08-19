@@ -1,0 +1,14 @@
+{
+  "offense_id": "45-5-206(1)(a)",
+  "name": "Partner Or Family Member Assault, Causing Bodily Injury To Partner Or Family Member - 1st Offense",
+  "severity": "Misdemeanor",
+  "description": "A person commits the offense of partner or family member assault if the person purposely or knowingly causes bodily injury to a partner or family member.\n\nThe following definitions apply:\n\n(a) \"Family member\" means mothers, fathers, children, brothers, sisters, and other past or present family members of a household. These relationships include relationships created by adoption and remarriage, including stepchildren, stepparents, in-laws, and adoptive children and parents. These relationships continue regardless of the ages of the parties and whether the parties reside in the same household.\n\n(b) \"Partners\" means spouses, former spouses, persons who have a child in common, and persons who have been or are currently in a dating or ongoing intimate relationship.",
+  "bond_amount": 0,
+  "mandatory_appearance": true,
+  "conditions": "",
+  "law_id": "45-5-206",
+  "target_anchors": [
+    "1-a"
+  ],
+  "last_updated": "2026-08-19T16:43:00.508Z"
+}

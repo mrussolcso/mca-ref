@@ -1,0 +1,147 @@
+{
+  "law_id": "45-5-214",
+  "title": "Assault With Bodily Fluid",
+  "source_type": "MCA Statute",
+  "official_url": "https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0140/0450-0050-0020-0140.html",
+  "last_updated": "2026-08-19T18:34:48.959Z",
+  "history": "En. Sec. 1, Ch. 388, L. 1999; amd. Sec. 1, Ch. 292, L. 2005; amd. Sec. 5, Ch. 321, L. 2017; amd. Sec. 12, Ch. 220, L. 2019; amd. Sec. 21, Ch. 339, L. 2021.",
+  "paragraphs": [
+    {
+      "counter": "(1)",
+      "anchor_id": "1",
+      "text": "A person commits the offense of assault with a bodily fluid if the person purposely causes one of the person's bodily fluids to make physical contact with:",
+      "indent": 1
+    },
+    {
+      "counter": "(a)",
+      "anchor_id": "1-a",
+      "text": "a law enforcement officer, a staff person of a correctional or detention facility, or a health care provider, as defined in 50-4-504, including a health care provider performing emergency services, while the health care provider is acting in the course and scope of the health care provider's profession and occupation:",
+      "indent": 2
+    },
+    {
+      "counter": "(i)",
+      "anchor_id": "1-a-i",
+      "text": "during or after an arrest for a criminal offense;",
+      "indent": 3
+    },
+    {
+      "counter": "(ii)",
+      "anchor_id": "1-a-ii",
+      "text": "while the person is incarcerated in or being transported to or from a state prison, a county, city, or regional jail or detention facility, or a health care facility; or",
+      "indent": 3
+    },
+    {
+      "counter": "(iii)",
+      "anchor_id": "1-a-iii",
+      "text": "if the person is a minor, while the youth is detained in or being transported to or from a county, city, or regional jail or detention facility or a youth detention facility, secure detention facility, regional detention facility, short-term detention center, correctional facility as defined in 41-5-103, health care facility, or shelter care facility; or",
+      "indent": 3
+    },
+    {
+      "counter": "(b)",
+      "anchor_id": "1-b",
+      "text": "an emergency responder.",
+      "indent": 2
+    },
+    {
+      "counter": "(2)",
+      "anchor_id": "2",
+      "text": "A person convicted of the offense of assault with a bodily fluid shall be fined an amount not to exceed $1,000 or incarcerated in a county jail or a state prison for a term not to exceed 1 year, or both.",
+      "indent": 1
+    },
+    {
+      "counter": "(3)",
+      "anchor_id": "3",
+      "text": "The youth court has jurisdiction of any violation of this section by a minor.",
+      "indent": 1
+    },
+    {
+      "counter": "(4)",
+      "anchor_id": "4",
+      "text": "As used in this section, the following definitions apply:",
+      "indent": 1
+    },
+    {
+      "counter": "(a)",
+      "anchor_id": "4-a",
+      "text": "\"Bodily fluid\" means any bodily secretion, including but not limited to feces, urine, blood, and saliva.",
+      "indent": 2
+    },
+    {
+      "counter": "(b)",
+      "anchor_id": "4-b",
+      "text": "\"Emergency responder\" means a licensed medical services provider, law enforcement officer, firefighter, volunteer firefighter or officer of a nonprofit volunteer fire company, emergency care provider, emergency nurse, ambulance operator, provider of civil defense services, or any other person who in good faith renders emergency care or assistance at a crime scene or the scene of an emergency or accident.",
+      "indent": 2
+    }
+  ],
+  "tree": [
+    {
+      "counter": "(1)",
+      "anchor_id": "1",
+      "text": "A person commits the offense of assault with a bodily fluid if the person purposely causes one of the person's bodily fluids to make physical contact with:",
+      "children": [
+        {
+          "counter": "(a)",
+          "anchor_id": "1-a",
+          "text": "a law enforcement officer, a staff person of a correctional or detention facility, or a health care provider, as defined in 50-4-504, including a health care provider performing emergency services, while the health care provider is acting in the course and scope of the health care provider's profession and occupation:",
+          "children": [
+            {
+              "counter": "(i)",
+              "anchor_id": "1-a-i",
+              "text": "during or after an arrest for a criminal offense;",
+              "children": []
+            },
+            {
+              "counter": "(ii)",
+              "anchor_id": "1-a-ii",
+              "text": "while the person is incarcerated in or being transported to or from a state prison, a county, city, or regional jail or detention facility, or a health care facility; or",
+              "children": []
+            },
+            {
+              "counter": "(iii)",
+              "anchor_id": "1-a-iii",
+              "text": "if the person is a minor, while the youth is detained in or being transported to or from a county, city, or regional jail or detention facility or a youth detention facility, secure detention facility, regional detention facility, short-term detention center, correctional facility as defined in 41-5-103, health care facility, or shelter care facility; or",
+              "children": []
+            }
+          ]
+        },
+        {
+          "counter": "(b)",
+          "anchor_id": "1-b",
+          "text": "an emergency responder.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "counter": "(2)",
+      "anchor_id": "2",
+      "text": "A person convicted of the offense of assault with a bodily fluid shall be fined an amount not to exceed $1,000 or incarcerated in a county jail or a state prison for a term not to exceed 1 year, or both.",
+      "children": []
+    },
+    {
+      "counter": "(3)",
+      "anchor_id": "3",
+      "text": "The youth court has jurisdiction of any violation of this section by a minor.",
+      "children": []
+    },
+    {
+      "counter": "(4)",
+      "anchor_id": "4",
+      "text": "As used in this section, the following definitions apply:",
+      "children": [
+        {
+          "counter": "(a)",
+          "anchor_id": "4-a",
+          "text": "\"Bodily fluid\" means any bodily secretion, including but not limited to feces, urine, blood, and saliva.",
+          "children": []
+        },
+        {
+          "counter": "(b)",
+          "anchor_id": "4-b",
+          "text": "\"Emergency responder\" means a licensed medical services provider, law enforcement officer, firefighter, volunteer firefighter or officer of a nonprofit volunteer fire company, emergency care provider, emergency nurse, ambulance operator, provider of civil defense services, or any other person who in good faith renders emergency care or assistance at a crime scene or the scene of an emergency or accident.",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

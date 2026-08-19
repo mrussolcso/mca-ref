@@ -3,8 +3,8 @@
   "title": "Partner Or Family Member Assault -- Penalty",
   "source_type": "MCA Statute",
   "official_url": "https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0060/0450-0050-0020-0060.html",
-  "last_updated": "2026-08-19T15:10:01.282Z",
-  "history": "History: En. Sec. 1, Ch. 700, L. 1985; amd. Sec. 1, Ch. 480, L. 1989; amd. Sec. 257, Ch. 800, L. 1991; amd. Sec. 2, Ch. 425, L. 1993; amd. Sec. 51, Ch. 18, L. 1995; amd. Sec. 10, Ch. 350, L. 1995; amd. Sec. 2, Ch. 245, L. 1997; amd. Sec. 5, Ch. 484, L. 1997; amd. Sec. 8, Ch. 432, L. 1999; amd. Sec. 6, Ch. 503, L. 2001; amd. Sec. 1, Ch. 438, L. 2003; amd. Sec. 1, Ch. 161, L. 2013; amd. Sec. 1, Ch. 228, L. 2013; amd. Sec. 3, Ch. 104, L. 2017; amd. Sec. 6, Ch. 394, L. 2017; amd. Sec. 1, Ch. 463, L. 2025.",
+  "last_updated": "2026-08-19T15:42:59.669Z",
+  "history": "En. Sec. 1, Ch. 700, L. 1985; amd. Sec. 1, Ch. 480, L. 1989; amd. Sec. 257, Ch. 800, L. 1991; amd. Sec. 2, Ch. 425, L. 1993; amd. Sec. 51, Ch. 18, L. 1995; amd. Sec. 10, Ch. 350, L. 1995; amd. Sec. 2, Ch. 245, L. 1997; amd. Sec. 5, Ch. 484, L. 1997; amd. Sec. 8, Ch. 432, L. 1999; amd. Sec. 6, Ch. 503, L. 2001; amd. Sec. 1, Ch. 438, L. 2003; amd. Sec. 1, Ch. 161, L. 2013; amd. Sec. 1, Ch. 228, L. 2013; amd. Sec. 3, Ch. 104, L. 2017; amd. Sec. 6, Ch. 394, L. 2017; amd. Sec. 1, Ch. 463, L. 2025.",
   "paragraphs": [
     {
       "counter": "(1)",
@@ -33,12 +33,12 @@
     },
     {
       "counter": "(a)",
-      "text": "\"Family member\" means mothers, fathers, children, brothers, sisters, and other past or present family members of a household. These relationships include relationships created by adoption and remarriage, including stepchildren, stepparents, in-laws, and adoptive children and parents. These relationships continue regardless of the ages of the parties and whether the parties reside in the same household.",
+      "text": "",
       "indent": 2
     },
     {
       "counter": "(b)",
-      "text": "\"Partners\" means spouses, former spouses, persons who have a child in common, and persons who have been or are currently in a dating or ongoing intimate relationship.",
+      "text": "",
       "indent": 2
     },
     {
@@ -85,12 +85,12 @@
       "children": [
         {
           "counter": "(a)",
-          "text": "\"Family member\" means mothers, fathers, children, brothers, sisters, and other past or present family members of a household. These relationships include relationships created by adoption and remarriage, including stepchildren, stepparents, in-laws, and adoptive children and parents. These relationships continue regardless of the ages of the parties and whether the parties reside in the same household.",
+          "text": "",
           "children": []
         },
         {
           "counter": "(b)",
-          "text": "\"Partners\" means spouses, former spouses, persons who have a child in common, and persons who have been or are currently in a dating or ongoing intimate relationship.",
+          "text": "",
           "children": []
         }
       ]

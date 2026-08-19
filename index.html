@@ -51,13 +51,13 @@
   .card-title { font-weight: bold; color: var(--primary); margin-bottom: 4px; }
   .card-subtitle { font-size: 0.85rem; color: #718096; }
 
-  .para-row { margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; line-height: 1.5; transition: background 0.3s; }
+  .para-row { margin-bottom: 8px; padding: 6px 8px; border-radius: 4px; line-height: 1.5; transition: background 0.3s; display: flex; align-items: flex-start; }
   .para-indent-1 { margin-left: 0px; }
   .para-indent-2 { margin-left: 20px; }
   .para-indent-3 { margin-left: 40px; }
   .para-indent-4 { margin-left: 60px; }
 
-  .para-counter { font-weight: bold; color: var(--primary); margin-right: 6px; }
+  .para-counter { font-weight: bold; color: var(--primary); margin-right: 8px; flex-shrink: 0; }
   
   .highlight-primary { background: var(--highlight-primary) !important; border-left: 4px solid #d69e2e; }
   .highlight-secondary { background: var(--highlight-secondary) !important; border-left: 4px solid #38a169; }
@@ -290,21 +290,17 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
     }
 
     html += `<div style="margin-top:12px;">`;
-    let pendingCounters = [];
 
     (law.paragraphs || []).forEach(p => {
-      // If a paragraph node has no text, collect its counter and skip rendering a blank row
-      if (!p.text || p.text.trim() === '') {
-        pendingCounters.push(p.counter);
+      const textContent = p.text ? p.text.trim() : '';
+      
+      // Skip rendering empty structural elements (e.g. empty parent headers)
+      if (!textContent) {
         return;
       }
 
       const indentClass = `para-indent-${p.indent || 1}`;
       const anchorId = p.anchor_id;
-
-      // Merge accumulated empty parent counters into the active paragraph counter
-      const fullCounter = [...pendingCounters, p.counter].join(' ');
-      pendingCounters = [];
 
       let highlightClass = '';
       if (primaryAnchors.includes(anchorId)) {
@@ -315,11 +311,12 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
       html += `
         <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-          <span class="para-counter">${fullCounter}</span>
-          <span>${p.text}</span>
+          <span class="para-counter">${p.counter}</span>
+          <span>${textContent}</span>
         </div>
       `;
     });
+
     html += `</div>`;
     container.innerHTML = html;
 

@@ -284,9 +284,9 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
       document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${law.title}`;
     }
 
-    let html = `<h4 style="margin-top:0; color:var(--primary);">MCA ${law.law_id}: ${law.title}</h4>`;
+    let html = '';
     if (law.official_url) {
-      html += `<p><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 View Official State Record</a></p>`;
+      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 View Official State Record</a></p>`;
     }
 
     html += `<div style="margin-top:12px;">`;

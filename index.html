@@ -18,28 +18,28 @@
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
   .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
-  /* App Header Bar */
+  /* Header Nav */
   .app-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
   .app-header h1 { margin: 0; font-size: 1.4rem; }
   .btn-admin { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
   .btn-admin:hover { background: rgba(255, 255, 255, 0.35); }
 
-  /* Top Control Box */
+  /* Top Control Card */
   .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
   .controls-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; }
   label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
   input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
 
-  /* 3-Column Grid Layout with Natural Vertical Alignment */
+  /* 3-Column Layout */
   .view-grid-3col { 
     display: grid; 
-    grid-template-columns: 300px 1fr 340px; 
+    grid-template-columns: 320px 1fr 300px; 
     gap: 20px; 
     align-items: start;
   }
 
-  /* Column Panels (Fixed heights removed to allow full page scrolling) */
-  .list-panel, .law-panel, .offense-panel { 
+  /* Structural Panels (Natural scrolling, no fixed heights) */
+  .list-panel, .center-panel, .related-panel { 
     background: white; 
     border: 1px solid var(--border); 
     border-radius: 8px; 
@@ -47,19 +47,37 @@
     box-sizing: border-box;
   }
 
-  /* Column 1: Index Search / Master Selection */
+  /* Shared Interactive Item Cards */
   .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
   .list-item:hover { background: #edf2f7; }
   .list-item.active { background: #ebf8ff; border-color: var(--primary-light); }
-  .item-tag { font-weight: bold; color: var(--primary); font-size: 0.92rem; }
+  .item-tag { font-weight: bold; color: var(--primary); font-size: 0.92rem; word-break: break-word; }
   .item-sub { font-size: 0.82rem; color: #4a5568; margin-top: 3px; }
 
-  /* Column 2: Law Text View */
-  .law-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
-  .law-header h2 { margin: 0; color: var(--primary); font-size: 1.35rem; }
+  /* Center Column: Offense Details Box */
+  .offense-details-box { 
+    background: #f7fafc; 
+    border: 1px solid var(--border); 
+    border-radius: 6px; 
+    padding: 18px; 
+    margin-bottom: 24px; 
+  }
+  .offense-details-box h2 { 
+    margin: 0 0 14px 0; 
+    font-size: 1.25rem; 
+    color: var(--primary); 
+    border-bottom: 2px solid var(--border); 
+    padding-bottom: 8px; 
+    word-break: break-word;
+  }
+  .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.88rem; }
+  .meta-item { overflow-wrap: anywhere; word-break: break-word; }
+  .meta-item strong { color: var(--primary); }
 
-  /* Subsection Yellow Highlighting */
-  .law-body { margin-top: 16px; line-height: 1.6; color: #2d3748; }
+  /* Law Text Display */
+  .law-header { border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
+  .law-header h3 { margin: 0; color: var(--primary); font-size: 1.15rem; }
+  .law-body { margin-top: 12px; line-height: 1.6; color: #2d3748; }
   .law-paragraph { padding: 6px 10px; border-radius: 4px; margin-bottom: 6px; transition: background 0.2s; }
   .law-paragraph.highlighted { background-color: var(--highlight); border-left: 4px solid var(--highlight-border); padding-left: 10px; font-weight: 500; }
 
@@ -68,13 +86,8 @@
   .indent-3 { margin-left: 40px; }
   .indent-4 { margin-left: 60px; }
 
-  /* Column 3: Offense Details View */
-  .offense-info-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
-  .offense-info-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
-  
-  .meta-list { display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; }
-  .meta-item { overflow-wrap: anywhere; word-break: break-word; }
-  .meta-item strong { color: var(--primary); display: block; margin-bottom: 2px; }
+  /* Right Column: Related Offenses */
+  .related-panel h3 { margin: 0 0 12px 0; font-size: 1.05rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 
   .empty-state { text-align: center; color: #a0aec0; margin: 60px 0; font-style: italic; }
 </style>
@@ -83,13 +96,13 @@
 
 <div class="container">
 
-  <!-- Header -->
+  <!-- Application Header -->
   <header class="app-header">
     <h1>🏛️ Montana Law & Bond Schedule Reference</h1>
     <a href="admin.html" class="btn-admin">⚙️ Admin Publisher</a>
   </header>
 
-  <!-- Search and Controls Bar -->
+  <!-- Control Controls -->
   <div class="card">
     <div class="controls-grid">
       <div>
@@ -106,22 +119,22 @@
     </div>
   </div>
 
-  <!-- Main 3-Column Layout -->
+  <!-- 3-Column Layout -->
   <div class="view-grid-3col">
     
-    <!-- Pane 1: Selection List -->
+    <!-- Column 1: Main Offense/Law Index List -->
     <div class="list-panel" id="listContainer">
       <div class="empty-state">Loading index data...</div>
     </div>
 
-    <!-- Pane 2: Primary Law Text -->
-    <div class="law-panel" id="lawContainer">
-      <div class="empty-state">Select an item from the left pane to view statute text.</div>
+    <!-- Column 2: Offense Details Box + Law Statute Text -->
+    <div class="center-panel" id="centerContainer">
+      <div class="empty-state">Select an item from the left panel to view details.</div>
     </div>
 
-    <!-- Pane 3: Offense Details -->
-    <div class="offense-panel" id="offenseContainer">
-      <div class="empty-state">Select an offense to view bond and charge details.</div>
+    <!-- Column 3: Related Offenses Box -->
+    <div class="related-panel" id="relatedContainer">
+      <div class="empty-state">No related offenses to show.</div>
     </div>
 
   </div>
@@ -156,8 +169,8 @@ async function loadIndexes() {
 function switchMode(mode) {
   currentMode = mode;
   activeItemId = null;
-  document.getElementById('lawContainer').innerHTML = '<div class="empty-state">Select an item from the left pane to view statute text.</div>';
-  document.getElementById('offenseContainer').innerHTML = '<div class="empty-state">Select an offense to view bond and charge details.</div>';
+  document.getElementById('centerContainer').innerHTML = '<div class="empty-state">Select an item from the left panel to view details.</div>';
+  document.getElementById('relatedContainer').innerHTML = '<div class="empty-state">No related offenses to show.</div>';
   renderList();
 }
 
@@ -234,11 +247,11 @@ async function loadOffenseDetail(offenseId) {
   activeItemId = offenseId;
   renderList();
 
-  const lawContainer = document.getElementById('lawContainer');
-  const offenseContainer = document.getElementById('offenseContainer');
+  const centerContainer = document.getElementById('centerContainer');
+  const relatedContainer = document.getElementById('relatedContainer');
 
-  lawContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
-  offenseContainer.innerHTML = '<div class="empty-state">Loading details...</div>';
+  centerContainer.innerHTML = '<div class="empty-state">Loading offense and statute data...</div>';
+  relatedContainer.innerHTML = '<div class="empty-state">Finding related offenses...</div>';
 
   try {
     const offRes = await fetch(`data/offenses/${offenseId}.json`);
@@ -251,31 +264,30 @@ async function loadOffenseDetail(offenseId) {
       if (lawRes && lawRes.ok) lawData = await lawRes.json();
     }
 
-    // Header Format: Title followed by Citable Section in Parentheses
+    // Title Format: Offense Name (Citable Tag)
     const titleDisplay = `${offense.name || 'Offense Record'} (${offense.display_tag || offense.offense_id})`;
 
-    // Pane 3 Content: "Offense Details" with all bond schedule input attributes
-    offenseContainer.innerHTML = `
-      <div class="offense-info-card">
-        <h3>Offense Details</h3>
-        <div class="meta-list">
-          <div class="meta-item"><strong>Title / Citation:</strong> ${titleDisplay}</div>
+    // Center Pane HTML: Offense Details Box placed directly above the Statute Text
+    let centerHtml = `
+      <div class="offense-details-box">
+        <h2>Offense Details</h2>
+        <div class="meta-grid">
+          <div class="meta-item" style="grid-column: span 2;"><strong>Title / Citation:</strong> ${titleDisplay}</div>
           <div class="meta-item"><strong>Occurrence / Sequence:</strong> ${formatOccurrence(offense.occurrence)}</div>
           <div class="meta-item"><strong>Severity:</strong> ${offense.severity || 'Unspecified'}</div>
           <div class="meta-item"><strong>Bond Amount:</strong> ${formatBondValue(offense)}</div>
           <div class="meta-item"><strong>Mandatory Appearance:</strong> ${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
-          <div class="meta-item"><strong>Associated Law ID:</strong> ${offense.law_id || 'None'}</div>
-          ${offense.conditions ? `<div class="meta-item"><strong>Special Conditions:</strong> ${offense.conditions}</div>` : ''}
-          ${offense.description ? `<div class="meta-item"><strong>Charge Overview:</strong> ${offense.description}</div>` : ''}
+          <div class="meta-item" style="grid-column: span 2;"><strong>Associated Law ID:</strong> ${offense.law_id || 'None'}</div>
+          ${offense.conditions ? `<div class="meta-item" style="grid-column: span 2;"><strong>Special Conditions:</strong> ${offense.conditions}</div>` : ''}
+          ${offense.description ? `<div class="meta-item" style="grid-column: span 2; margin-top: 4px;"><strong>Charge Overview:</strong> ${offense.description}</div>` : ''}
         </div>
       </div>
     `;
 
-    // Pane 2 Content: MCA Law with target anchor highlighting
     if (lawData) {
-      let lawHtml = `
+      centerHtml += `
         <div class="law-header">
-          <h2>${lawData.law_id} - ${lawData.title}</h2>
+          <h3>Statute Text: ${lawData.law_id} - ${lawData.title}</h3>
           ${lawData.official_url ? `<a href="${lawData.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">Official Publication 🔗</a>` : ''}
         </div>
         <div class="law-body">
@@ -288,33 +300,65 @@ async function loadOffenseDetail(offenseId) {
         const indentClass = `indent-${Math.min(p.indent || 1, 4)}`;
         const highlightClass = isHighlighted ? 'highlighted' : '';
 
-        lawHtml += `
+        centerHtml += `
           <div class="law-paragraph ${indentClass} ${highlightClass}" id="anchor-${p.anchor_id}">
             <strong>${p.counter}</strong> ${p.text}
           </div>
         `;
       });
 
-      lawHtml += `</div>`;
-      lawContainer.innerHTML = lawHtml;
-    } else {
-      lawContainer.innerHTML = `<div class="empty-state">No associated statute text found for this offense (${offense.law_id}).</div>`;
+      centerHtml += `</div>`;
+    } else if (offense.law_id) {
+      centerHtml += `<div style="color: #718096; font-style: italic;">Associated statute text (${offense.law_id}) could not be retrieved.</div>`;
     }
 
+    centerContainer.innerHTML = centerHtml;
+
+    // Render Right Pane: Related Offenses Sharing the Same Law ID
+    renderRelatedOffenses(offense.law_id, offense.offense_id);
+
   } catch (err) {
-    offenseContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    centerContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    relatedContainer.innerHTML = `<div class="empty-state">Unable to load related items.</div>`;
   }
+}
+
+function renderRelatedOffenses(lawId, currentOffenseId) {
+  const container = document.getElementById('relatedContainer');
+  if (!lawId) {
+    container.innerHTML = '<div class="empty-state">No linked law ID to find related charges.</div>';
+    return;
+  }
+
+  const related = offensesIndex.filter(o => o.law_id === lawId && o.id !== currentOffenseId);
+
+  let html = `<h3>Related Charges (${lawId})</h3>`;
+
+  if (related.length === 0) {
+    html += '<div style="color: #a0aec0; font-style: italic; font-size: 0.88rem;">No other charges linked to this statute.</div>';
+  } else {
+    related.forEach(rel => {
+      const tagDisplay = rel.display_tag || rel.id;
+      html += `
+        <div class="list-item" onclick="loadOffenseDetail('${rel.id}')">
+          <div class="item-tag">${tagDisplay}</div>
+          <div class="item-sub">${rel.name || 'Unnamed Offense'}</div>
+        </div>
+      `;
+    });
+  }
+
+  container.innerHTML = html;
 }
 
 async function loadLawDetail(lawId) {
   activeItemId = lawId;
   renderList();
 
-  const lawContainer = document.getElementById('lawContainer');
-  const offenseContainer = document.getElementById('offenseContainer');
+  const centerContainer = document.getElementById('centerContainer');
+  const relatedContainer = document.getElementById('relatedContainer');
 
-  lawContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
-  offenseContainer.innerHTML = '<div class="empty-state">Select an offense to view bond details.</div>';
+  centerContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
 
   try {
     const res = await fetch(`data/laws/${lawId}.json`);
@@ -324,7 +368,7 @@ async function loadLawDetail(lawId) {
     let html = `
       <div class="law-header">
         <h2>${law.law_id} - ${law.title}</h2>
-        ${law.official_url ? `<a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">Official Publication 🔗</a>` : ''}
+        ${law.official_url ? `<a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">View Official Publication 🔗</a>` : ''}
       </div>
       <div class="law-body">
     `;
@@ -339,10 +383,13 @@ async function loadLawDetail(lawId) {
     });
 
     html += `</div>`;
-    lawContainer.innerHTML = html;
+    centerContainer.innerHTML = html;
+
+    // In Law View, display all offenses associated with this statute on the right pane
+    renderRelatedOffenses(lawId, null);
 
   } catch (err) {
-    lawContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    centerContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
   }
 }
 </script>

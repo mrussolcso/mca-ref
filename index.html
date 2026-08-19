@@ -208,10 +208,10 @@ function renderLeftIndex(filteredList = null) {
         div.classList.add('active');
         selectLaw(item.id);
       };
-      const titleDisplay = item.short_title ? `${item.title} (${item.short_title})` : item.title;
+      const titleDisplay = item.short_title || item.title || 'Untitled Law';
       div.innerHTML = `
         <div class="card-title">MCA ${item.id}</div>
-        <div class="card-subtitle">${titleDisplay || 'Untitled Law'}</div>
+        <div class="card-subtitle">${titleDisplay}</div>
       `;
       container.appendChild(div);
     });
@@ -286,7 +286,7 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
     let html = '';
     if (law.official_url) {
-      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a></p>`;
+      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 View Official State Record</a></p>`;
     }
 
     html += `<div style="margin-top:12px;">`;

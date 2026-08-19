@@ -76,9 +76,17 @@
   .indent-4 { margin-left: 54px; }
   .mca-counter { font-weight: bold; margin-right: 6px; }
 
+  /* Separate History & Metadata Footer Box at Bottom of Middle Column */
+  .law-footer-meta { margin-top: 16px; padding: 12px; background: #f7fafc; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; color: #4a5568; line-height: 1.5; display: flex; flex-direction: column; gap: 8px; }
+  .law-footer-meta h4 { margin: 0; font-size: 0.85rem; color: var(--primary); font-weight: bold; }
+
   /* COLUMN 3: Associated Offenses */
   .col-associated { width: 300px; min-width: 300px; background: #fff; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
   .col-associated h3 { margin: 0; font-size: 0.95rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .assoc-item { padding: 8px 10px; background: #f7fafc; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  .assoc-item:hover { background: #ebf8ff; border-color: var(--primary-light); }
+  .assoc-tag { font-weight: bold; font-size: 0.82rem; color: var(--primary); }
+  .assoc-title { font-size: 0.78rem; color: #4a5568; line-height: 1.3; }
 
   .empty-state { color: #a0aec0; text-align: center; margin-top: 40px; font-size: 0.88rem; }
 </style>
@@ -223,6 +231,29 @@ function cleanAnchorSet(anchors) {
   return new Set(list.map(s => String(s).trim()).filter(Boolean));
 }
 
+function renderAssociatedOffenses(lawId) {
+  const container = document.getElementById('associatedList');
+  if (!lawId) {
+    container.innerHTML = '<div class="empty-state">No associated offenses currently linked.</div>';
+    return;
+  }
+
+  // Find all offenses referencing this MCA statute law_id
+  const matches = offensesIndex.filter(off => String(off.law_id || '').trim() === String(lawId).trim());
+
+  if (matches.length === 0) {
+    container.innerHTML = '<div class="empty-state">No associated offenses currently linked.</div>';
+    return;
+  }
+
+  container.innerHTML = matches.map(off => `
+    <div class="assoc-item" onclick="selectOffense('${off.id}')">
+      <div class="assoc-tag">${off.display_tag || off.id}</div>
+      <div class="assoc-title">${off.name || ''}</div>
+    </div>
+  `).join('');
+}
+
 async function renderMainView(lawId) {
   const colMain = document.getElementById('colMain');
   
@@ -230,6 +261,7 @@ async function renderMainView(lawId) {
     const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`);
     if (!res.ok) {
       colMain.innerHTML = `<div class="empty-state">Statute law data for MCA ${lawId} not found.</div>`;
+      renderAssociatedOffenses(null);
       return;
     }
 
@@ -309,16 +341,23 @@ async function renderMainView(lawId) {
           <div class="law-meta">
             <span>Source: ${selectedLaw.source_type || 'MCA Statute'}</span> | 
             ${selectedLaw.official_url ? `<a href="${selectedLaw.official_url}" target="_blank" rel="noopener">Official MCA Page</a>` : ''}
-            ${selectedLaw.history ? `<br><span>History: ${selectedLaw.history}</span>` : ''}
           </div>
         </div>
         <div class="mca-text-body">
           ${paragraphsHtml || '<p>No statute paragraph text available.</p>'}
         </div>
+        
+        <!-- Bottom Footer Meta & History Section -->
+        <div class="law-footer-meta">
+          <h4>History & Database Metadata</h4>
+          <div><strong>History:</strong> ${selectedLaw.history || 'No official statutory history record provided.'}</div>
+          <div><strong>Database Info:</strong> Last verified from <code>${REPO_CONFIG.owner}/${REPO_CONFIG.repo}</code> on branch <code>${REPO_CONFIG.branch}</code>.</div>
+        </div>
       </div>
     `;
 
     colMain.innerHTML = offenseCardHtml + lawReaderHtml;
+    renderAssociatedOffenses(selectedLaw.law_id);
 
     // Auto-scroll to highlighted section
     const targetElement = colMain.querySelector('.highlight-primary, .highlight-secondary');
@@ -328,6 +367,7 @@ async function renderMainView(lawId) {
 
   } catch (err) {
     colMain.innerHTML = `<div class="empty-state">Error rendering statutory text: ${err.message}</div>`;
+    renderAssociatedOffenses(null);
   }
 }
 
@@ -353,6 +393,8 @@ function renderOffenseOnlyView() {
     </div>
     <div class="empty-state">No linked statute found for this offense record.</div>
   `;
+
+  renderAssociatedOffenses(selectedOffense.law_id);
 }
 </script>
 

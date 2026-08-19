@@ -263,7 +263,6 @@ async function selectOffense(offenseId) {
 }
 
 async function selectLaw(lawId) {
-  document.getElementById('centerPanelHeader').textContent = '📜 Full Law Text';
   const center = document.getElementById('centerDisplayPanel');
   center.innerHTML = 'Loading full law text...';
 
@@ -280,6 +279,10 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
       return;
     }
     const law = await res.json();
+
+    if (currentSearchMode === 'laws') {
+      document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${law.title}`;
+    }
 
     let html = `<h4 style="margin-top:0; color:var(--primary);">MCA ${law.law_id}: ${law.title}</h4>`;
     if (law.official_url) {

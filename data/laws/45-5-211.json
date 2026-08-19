@@ -1,0 +1,92 @@
+{
+  "law_id": "45-5-211",
+  "title": "Assault Upon Sports Official",
+  "short_title": "Assault - Sports Official",
+  "source_type": "MCA Statute",
+  "official_url": "https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0110/0450-0050-0020-0110.html",
+  "last_updated": "2026-08-19T21:02:08.879Z",
+  "history": "En. Sec. 1, Ch. 408, L. 1993.",
+  "paragraphs": [
+    {
+      "counter": "(1)",
+      "path": "(1)",
+      "anchor_id": "1",
+      "text": "A person commits the offense of assault upon a sports official if, while a sports official is acting as an official at an athletic contest in any sport at any level of amateur or professional competition, the person:",
+      "indent": 1
+    },
+    {
+      "counter": "(a)",
+      "path": "(1)(a)",
+      "anchor_id": "1-a",
+      "text": "purposely or knowingly causes bodily injury to the sports official;",
+      "indent": 2
+    },
+    {
+      "counter": "(b)",
+      "path": "(1)(b)",
+      "anchor_id": "1-b",
+      "text": "negligently causes bodily injury to the sports official with a weapon;",
+      "indent": 2
+    },
+    {
+      "counter": "(c)",
+      "path": "(1)(c)",
+      "anchor_id": "1-c",
+      "text": "purposely or knowingly makes physical contact of an insulting or provoking nature with the sports official; or",
+      "indent": 2
+    },
+    {
+      "counter": "(d)",
+      "path": "(1)(d)",
+      "anchor_id": "1-d",
+      "text": "purposely or knowingly causes reasonable apprehension of bodily injury in the sports official.",
+      "indent": 2
+    },
+    {
+      "counter": "(2)",
+      "path": "(2)",
+      "anchor_id": "2",
+      "text": "A person convicted of assault upon a sports official shall be fined an amount not to exceed $1,000 or be imprisoned in the county jail for any term not to exceed 6 months, or both.",
+      "indent": 1
+    }
+  ],
+  "tree": [
+    {
+      "counter": "(1)",
+      "anchor_id": "1",
+      "text": "A person commits the offense of assault upon a sports official if, while a sports official is acting as an official at an athletic contest in any sport at any level of amateur or professional competition, the person:",
+      "children": [
+        {
+          "counter": "(a)",
+          "anchor_id": "1-a",
+          "text": "purposely or knowingly causes bodily injury to the sports official;",
+          "children": []
+        },
+        {
+          "counter": "(b)",
+          "anchor_id": "1-b",
+          "text": "negligently causes bodily injury to the sports official with a weapon;",
+          "children": []
+        },
+        {
+          "counter": "(c)",
+          "anchor_id": "1-c",
+          "text": "purposely or knowingly makes physical contact of an insulting or provoking nature with the sports official; or",
+          "children": []
+        },
+        {
+          "counter": "(d)",
+          "anchor_id": "1-d",
+          "text": "purposely or knowingly causes reasonable apprehension of bodily injury in the sports official.",
+          "children": []
+        }
+      ]
+    },
+    {
+      "counter": "(2)",
+      "anchor_id": "2",
+      "text": "A person convicted of assault upon a sports official shall be fined an amount not to exceed $1,000 or be imprisoned in the county jail for any term not to exceed 6 months, or both.",
+      "children": []
+    }
+  ]
+}

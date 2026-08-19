@@ -50,6 +50,9 @@
   .status-edit { background: #feebc8; color: #742a2a; border: 1px solid #fbd38d; }
   .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
+  /* Offense Display Preview Box */
+  .display-tag-preview { background: #ebf8ff; border: 1px solid #90cdf4; color: #2b6cb0; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-align: center; margin-top: 4px; }
+
   /* Tree Editor Styling */
   .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
   .tree-node { margin-top: 10px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
@@ -74,14 +77,11 @@
   <div class="card" id="sec1_card">
     <h3 style="margin-top:0;">1. Authentication</h3>
     
-    <!-- Password Manager compatible form structure -->
     <form id="authForm" onsubmit="event.preventDefault(); verifyToken();">
-      <!-- Hidden username input allows Chrome Password Manager to store credentials properly -->
       <input type="text" id="username" name="username" value="mrussolcso" autocomplete="username" style="display:none;">
       
       <label for="ghToken">Personal Access Token (PAT)</label>
       
-      <!-- PAT input wrapped with eye visibility button -->
       <div style="position: relative; display: flex; align-items: center;">
         <input type="password" id="ghToken" name="password" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required style="padding-right: 40px;">
         <button type="button" id="togglePatVisibility" onclick="togglePatTokenView()" title="Toggle Visibility" style="position: absolute; right: 8px; background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; color: #718096;">👁️</button>
@@ -120,7 +120,6 @@
         </select>
       </div>
 
-      <!-- Dynamic ID Inputs -->
       <div id="idFieldsContainer" class="full form-grid" style="padding:0;"></div>
 
       <div class="full">
@@ -162,8 +161,13 @@
     <div class="form-grid">
       <div class="span-2">
         <label>Offense Name / Title</label>
-        <input type="text" id="offense_name" placeholder="e.g. Partner or Family Member Assault - 1st Offense">
+        <input type="text" id="offense_name" placeholder="e.g. Partner or Family Member Assault">
       </div>
+      <div>
+        <label>Occurrence / Offense Sequence Number</label>
+        <input type="number" id="offense_occurrence" min="1" placeholder="1 (for 1st), 2 (for 2nd)..." oninput="updateOffenseDisplayTag()">
+      </div>
+
       <div>
         <label>Classification Severity</label>
         <select id="offense_severity">
@@ -173,15 +177,25 @@
         </select>
       </div>
 
+      <div class="span-2">
+        <label>Bond Type</label>
+        <select id="offense_bond_type" onchange="toggleBondInput()">
+          <option value="amount">Fixed Monetary Bond</option>
+          <option value="no_bond">No Bond (Hold Until Initial Appearance)</option>
+          <option value="schedule">Per Bond Schedule / Discretionary</option>
+        </select>
+      </div>
+
+      <div id="bond_amount_container" class="full">
+        <label>Standard Bond Amount ($)</label>
+        <input type="number" id="offense_bond" placeholder="500">
+      </div>
+
       <div class="full">
         <label>Short Description / Charge Overview</label>
         <textarea id="offense_description" rows="2" placeholder="Brief statement of the offense conditions..."></textarea>
       </div>
 
-      <div>
-        <label>Standard Bond Amount ($)</label>
-        <input type="number" id="offense_bond" placeholder="500">
-      </div>
       <div>
         <label>Mandatory Appearance</label>
         <select id="offense_mandatory">
@@ -189,19 +203,19 @@
           <option value="No">No</option>
         </select>
       </div>
-      <div>
-        <label>Local Enhancement / Conditions</label>
+      <div class="span-2">
+        <label>Local Enhancement / Special Conditions</label>
         <input type="text" id="offense_conditions" placeholder="e.g. No Contact Order required">
       </div>
 
       <!-- Statutory Linking Controls -->
       <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
-        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Citation Display Format</h4>
       </div>
 
       <div>
         <label>Linked Law ID</label>
-        <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206">
+        <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206" oninput="updateOffenseDisplayTag()">
       </div>
       <div class="span-2">
         <label>Target Subsections / Anchors</label>
@@ -214,7 +228,13 @@
       </div>
       <div class="full">
         <label>Selected Subsections Target (Comma-separated anchors)</label>
-        <input type="text" id="offense_target_anchors" placeholder="e.g. 1-a, 1-b">
+        <input type="text" id="offense_target_anchors" placeholder="e.g. 1-a, 1-b" oninput="updateOffenseDisplayTag()">
+      </div>
+
+      <!-- Live Display Tag Preview -->
+      <div class="full">
+        <label>Calculated Offense Citation Display Tag</label>
+        <div id="offenseDisplayTagPreview" class="display-tag-preview">--</div>
       </div>
 
       <div class="full">
@@ -301,7 +321,6 @@ async function verifyToken() {
     document.getElementById('authForm').style.display = 'none';
     document.getElementById('authSuccess').style.display = 'block';
 
-    // Unlock Section 2
     document.getElementById('sec2_card').style.display = 'block';
 
   } catch (err) {
@@ -394,6 +413,46 @@ function updateComputedId() {
   currentComputedLawId = computeLawId();
 }
 
+/* BOND INPUT DISPLAY TOGGLE */
+function toggleBondInput() {
+  const type = document.getElementById('offense_bond_type').value;
+  const container = document.getElementById('bond_amount_container');
+  if (type === 'amount') {
+    container.style.display = 'block';
+  } else {
+    container.style.display = 'none';
+    document.getElementById('offense_bond').value = '';
+  }
+}
+
+/* OFFENSE DISPLAY TAG CALCULATION */
+function getOrdinalSuffix(n) {
+  const num = parseInt(n, 10);
+  if (isNaN(num)) return '';
+  const s = ["th", "st", "nd", "rd"];
+  const v = num % 100;
+  return num + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function updateOffenseDisplayTag() {
+  const lawId = document.getElementById('offense_law_id').value.trim();
+  const anchorsRaw = document.getElementById('offense_target_anchors').value.trim();
+  const occurrence = document.getElementById('offense_occurrence').value.trim();
+
+  let formattedAnchors = '';
+  if (anchorsRaw) {
+    formattedAnchors = '(' + anchorsRaw.split(',').map(s => s.trim()).filter(Boolean).join(')(') + ')';
+  }
+
+  let occurrenceTag = '';
+  if (occurrence) {
+    occurrenceTag = ` [${getOrdinalSuffix(occurrence)}]`;
+  }
+
+  const result = (lawId || 'LAW_ID') + formattedAnchors + occurrenceTag;
+  document.getElementById('offenseDisplayTagPreview').textContent = result;
+}
+
 /* CHECK LAW ENTRY LOGIC */
 async function checkEntry() {
   currentComputedLawId = computeLawId();
@@ -481,9 +540,14 @@ async function checkOffenseEntry() {
       notice.textContent = `📝 Existing Offense Record Found for ID "${currentComputedOffenseId}". Loaded details for editing.`;
 
       document.getElementById('offense_name').value = content.name || '';
+      document.getElementById('offense_occurrence').value = content.occurrence || '';
       document.getElementById('offense_severity').value = content.severity || 'Misdemeanor';
       document.getElementById('offense_description').value = content.description || '';
+      
+      document.getElementById('offense_bond_type').value = content.bond_type || (content.no_bond ? 'no_bond' : 'amount');
+      toggleBondInput();
       document.getElementById('offense_bond').value = content.bond_amount || '';
+
       document.getElementById('offense_mandatory').value = content.mandatory_appearance ? 'Yes' : 'No';
       document.getElementById('offense_conditions').value = content.conditions || '';
       document.getElementById('offense_law_id').value = content.law_id || '';
@@ -493,8 +557,11 @@ async function checkOffenseEntry() {
       notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
 
       document.getElementById('offense_name').value = '';
+      document.getElementById('offense_occurrence').value = '';
       document.getElementById('offense_severity').value = 'Misdemeanor';
       document.getElementById('offense_description').value = '';
+      document.getElementById('offense_bond_type').value = 'amount';
+      toggleBondInput();
       document.getElementById('offense_bond').value = '';
       document.getElementById('offense_mandatory').value = 'No';
       document.getElementById('offense_conditions').value = '';
@@ -502,6 +569,7 @@ async function checkOffenseEntry() {
       document.getElementById('offense_target_anchors').value = '';
     }
 
+    updateOffenseDisplayTag();
     document.getElementById('sec4_offense_card').style.display = 'block';
 
   } catch (err) {
@@ -552,6 +620,7 @@ async function fetchAnchorsForLaw() {
         if (!existing.includes(this.value)) {
           existing.push(this.value);
           currentTargets.value = existing.join(', ');
+          updateOffenseDisplayTag();
         }
       };
 
@@ -757,13 +826,18 @@ async function saveOffense() {
 
   const targetAnchorsRaw = document.getElementById('offense_target_anchors').value;
   const targetAnchors = targetAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const bondType = document.getElementById('offense_bond_type').value;
+  const displayTag = document.getElementById('offenseDisplayTagPreview').textContent;
 
   const payload = {
     offense_id: currentComputedOffenseId,
+    display_tag: displayTag,
     name: document.getElementById('offense_name').value.trim(),
+    occurrence: parseInt(document.getElementById('offense_occurrence').value, 10) || null,
     severity: document.getElementById('offense_severity').value,
     description: document.getElementById('offense_description').value.trim(),
-    bond_amount: parseFloat(document.getElementById('offense_bond').value) || 0,
+    bond_type: bondType,
+    bond_amount: bondType === 'amount' ? (parseFloat(document.getElementById('offense_bond').value) || 0) : null,
     mandatory_appearance: document.getElementById('offense_mandatory').value === 'Yes',
     conditions: document.getElementById('offense_conditions').value.trim(),
     law_id: document.getElementById('offense_law_id').value.trim(),
@@ -774,7 +848,9 @@ async function saveOffense() {
   await commitFile(`data/offenses/${currentComputedOffenseId}.json`, payload, `Update Offense ${currentComputedOffenseId}`);
   await updateIndex('offenses-index.json', { 
     id: currentComputedOffenseId, 
+    display_tag: payload.display_tag,
     name: payload.name, 
+    occurrence: payload.occurrence,
     severity: payload.severity, 
     law_id: payload.law_id 
   });

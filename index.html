@@ -11,59 +11,62 @@
     --border: #cbd5e0; 
     --bg: #f7fafc; 
     --danger: #e53e3e; 
-    --success: #38a169;
     --highlight: #fefcbf;
     --highlight-border: #ecc94b;
   }
   
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-  .container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
-  /* Top Navigation / Header */
+  /* App Header Bar */
   .app-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
   .app-header h1 { margin: 0; font-size: 1.4rem; }
-  .btn-admin { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-admin { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
   .btn-admin:hover { background: rgba(255, 255, 255, 0.35); }
 
-  /* Control Card & Search Bar */
+  /* Top Control Box */
   .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
   .controls-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; }
   label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
   input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
 
-  /* Two-Column Split View Layout */
-  .view-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; }
+  /* 3-Column Grid Layout */
+  .view-grid-3col { 
+    display: grid; 
+    grid-template-columns: 300px 1fr 340px; 
+    gap: 20px; 
+  }
 
-  /* Left Master List Container */
-  .list-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 14px; height: 680px; overflow-y: auto; }
+  /* Column 1: Index Search / Master Selection */
+  .list-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 14px; height: 720px; overflow-y: auto; }
   .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
   .list-item:hover { background: #edf2f7; }
   .list-item.active { background: #ebf8ff; border-color: var(--primary-light); }
   .item-tag { font-weight: bold; color: var(--primary); font-size: 0.92rem; }
   .item-sub { font-size: 0.82rem; color: #4a5568; margin-top: 3px; }
 
-  /* Right Detail View Container */
-  .details-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 24px; height: 680px; overflow-y: auto; }
-  .details-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
-  .details-header h2 { margin: 0; color: var(--primary); font-size: 1.35rem; }
+  /* Column 2: Law Text View */
+  .law-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 24px; height: 720px; overflow-y: auto; }
+  .law-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
+  .law-header h2 { margin: 0; color: var(--primary); font-size: 1.35rem; }
 
-  /* Offense Details Box */
-  .offense-info-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 20px; }
-  .offense-info-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
-  .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.88rem; }
-  .meta-item strong { color: var(--primary); }
-
-  /* Law Text Display & Sub-Indents */
+  /* Subsection Yellow Highlighting */
   .law-body { margin-top: 16px; line-height: 1.6; color: #2d3748; }
   .law-paragraph { padding: 6px 10px; border-radius: 4px; margin-bottom: 6px; transition: background 0.2s; }
-  
-  /* Selected Target Section Highlighting */
   .law-paragraph.highlighted { background-color: var(--highlight); border-left: 4px solid var(--highlight-border); padding-left: 10px; font-weight: 500; }
 
   .indent-1 { margin-left: 0px; }
   .indent-2 { margin-left: 20px; }
   .indent-3 { margin-left: 40px; }
   .indent-4 { margin-left: 60px; }
+
+  /* Column 3: Offense Details View */
+  .offense-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; height: 720px; overflow-y: auto; }
+  .offense-info-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+  .offense-info-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
+  
+  .meta-list { display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; }
+  .meta-item strong { color: var(--primary); display: block; margin-bottom: 2px; }
 
   .empty-state { text-align: center; color: #a0aec0; margin-top: 120px; font-style: italic; }
 </style>
@@ -72,13 +75,13 @@
 
 <div class="container">
 
-  <!-- Application Header Navigation -->
+  <!-- Header -->
   <header class="app-header">
     <h1>🏛️ Montana Law & Bond Schedule Reference</h1>
     <a href="admin.html" class="btn-admin">⚙️ Admin Publisher</a>
   </header>
 
-  <!-- Global Filters & Search -->
+  <!-- Search and Controls Bar -->
   <div class="card">
     <div class="controls-grid">
       <div>
@@ -95,15 +98,24 @@
     </div>
   </div>
 
-  <!-- Main Dual-Pane Content View -->
-  <div class="view-grid">
+  <!-- Main 3-Column Layout -->
+  <div class="view-grid-3col">
+    
+    <!-- Pane 1: Selection List -->
     <div class="list-panel" id="listContainer">
       <div class="empty-state">Loading index data...</div>
     </div>
 
-    <div class="details-panel" id="detailsContainer">
-      <div class="empty-state">Select an item from the list to view full details.</div>
+    <!-- Pane 2: Primary Law Text -->
+    <div class="law-panel" id="lawContainer">
+      <div class="empty-state">Select an item from the left pane to view statute text.</div>
     </div>
+
+    <!-- Pane 3: Offense Details -->
+    <div class="offense-panel" id="offenseContainer">
+      <div class="empty-state">Select an offense to view bond and charge details.</div>
+    </div>
+
   </div>
 
 </div>
@@ -114,7 +126,6 @@ let lawsIndex = [];
 let currentMode = 'offense';
 let activeItemId = null;
 
-// Initialize indexes on load
 window.addEventListener('DOMContentLoaded', async () => {
   await loadIndexes();
   renderList();
@@ -137,7 +148,8 @@ async function loadIndexes() {
 function switchMode(mode) {
   currentMode = mode;
   activeItemId = null;
-  document.getElementById('detailsContainer').innerHTML = '<div class="empty-state">Select an item from the list to view full details.</div>';
+  document.getElementById('lawContainer').innerHTML = '<div class="empty-state">Select an item from the left pane to view statute text.</div>';
+  document.getElementById('offenseContainer').innerHTML = '<div class="empty-state">Select an offense to view bond and charge details.</div>';
   renderList();
 }
 
@@ -214,8 +226,11 @@ async function loadOffenseDetail(offenseId) {
   activeItemId = offenseId;
   renderList();
 
-  const container = document.getElementById('detailsContainer');
-  container.innerHTML = '<div class="empty-state">Loading offense details...</div>';
+  const lawContainer = document.getElementById('lawContainer');
+  const offenseContainer = document.getElementById('offenseContainer');
+
+  lawContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
+  offenseContainer.innerHTML = '<div class="empty-state">Loading details...</div>';
 
   try {
     const offRes = await fetch(`data/offenses/${offenseId}.json`);
@@ -228,59 +243,58 @@ async function loadOffenseDetail(offenseId) {
       if (lawRes && lawRes.ok) lawData = await lawRes.json();
     }
 
-    // Title formatted as Title (Display Citation Tag)
+    // Header Format: Title followed by Citable Section in Parentheses
     const titleDisplay = `${offense.name || 'Offense Record'} (${offense.display_tag || offense.offense_id})`;
 
-    let html = `
-      <div class="details-header">
-        <h2>${titleDisplay}</h2>
-      </div>
-
-      <!-- Offense Details Card displaying all Bond Schedule input fields -->
+    // Pane 3 Content: "Offense Details" with all bond schedule input attributes
+    offenseContainer.innerHTML = `
       <div class="offense-info-card">
         <h3>Offense Details</h3>
-        <div class="meta-grid">
+        <div class="meta-list">
+          <div class="meta-item"><strong>Title / Citation:</strong> ${titleDisplay}</div>
           <div class="meta-item"><strong>Occurrence / Sequence:</strong> ${formatOccurrence(offense.occurrence)}</div>
-          <div class="meta-item"><strong>Severity Classification:</strong> ${offense.severity || 'Unspecified'}</div>
-          <div class="meta-item"><strong>Bond Schedule Status:</strong> ${formatBondValue(offense)}</div>
+          <div class="meta-item"><strong>Severity:</strong> ${offense.severity || 'Unspecified'}</div>
+          <div class="meta-item"><strong>Bond Amount:</strong> ${formatBondValue(offense)}</div>
           <div class="meta-item"><strong>Mandatory Appearance:</strong> ${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
-          <div class="meta-item" style="grid-column: span 2;"><strong>Linked Law Citation ID:</strong> ${offense.law_id || 'None'}</div>
-          ${offense.conditions ? `<div class="meta-item" style="grid-column: span 2;"><strong>Special Conditions / Enhancements:</strong> ${offense.conditions}</div>` : ''}
-          ${offense.description ? `<div class="meta-item" style="grid-column: span 2; margin-top: 4px;"><strong>Charge Overview:</strong> ${offense.description}</div>` : ''}
+          <div class="meta-item"><strong>Associated Law ID:</strong> ${offense.law_id || 'None'}</div>
+          ${offense.conditions ? `<div class="meta-item"><strong>Special Conditions:</strong> ${offense.conditions}</div>` : ''}
+          ${offense.description ? `<div class="meta-item"><strong>Charge Overview:</strong> ${offense.description}</div>` : ''}
         </div>
       </div>
     `;
 
+    // Pane 2 Content: MCA Law with target anchor highlighting
     if (lawData) {
-      html += `
-        <h3 style="color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px; margin-top: 24px;">Associated Law: ${lawData.law_id} - ${lawData.title}</h3>
+      let lawHtml = `
+        <div class="law-header">
+          <h2>${lawData.law_id} - ${lawData.title}</h2>
+          ${lawData.official_url ? `<a href="${lawData.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">Official Publication 🔗</a>` : ''}
+        </div>
         <div class="law-body">
       `;
 
       const targetAnchors = (offense.target_anchors || []).map(a => a.toLowerCase().trim());
 
-      const paragraphs = lawData.paragraphs || [];
-      paragraphs.forEach(p => {
+      (lawData.paragraphs || []).forEach(p => {
         const isHighlighted = targetAnchors.includes((p.anchor_id || '').toLowerCase());
         const indentClass = `indent-${Math.min(p.indent || 1, 4)}`;
         const highlightClass = isHighlighted ? 'highlighted' : '';
 
-        html += `
+        lawHtml += `
           <div class="law-paragraph ${indentClass} ${highlightClass}" id="anchor-${p.anchor_id}">
             <strong>${p.counter}</strong> ${p.text}
           </div>
         `;
       });
 
-      html += `</div>`;
-    } else if (offense.law_id) {
-      html += `<div style="color: #718096; font-style: italic; margin-top: 20px;">Associated law record (${offense.law_id}) could not be retrieved.</div>`;
+      lawHtml += `</div>`;
+      lawContainer.innerHTML = lawHtml;
+    } else {
+      lawContainer.innerHTML = `<div class="empty-state">No associated statute text found for this offense (${offense.law_id}).</div>`;
     }
 
-    container.innerHTML = html;
-
   } catch (err) {
-    container.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    offenseContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
   }
 }
 
@@ -288,8 +302,11 @@ async function loadLawDetail(lawId) {
   activeItemId = lawId;
   renderList();
 
-  const container = document.getElementById('detailsContainer');
-  container.innerHTML = '<div class="empty-state">Loading statute text...</div>';
+  const lawContainer = document.getElementById('lawContainer');
+  const offenseContainer = document.getElementById('offenseContainer');
+
+  lawContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
+  offenseContainer.innerHTML = '<div class="empty-state">Select an offense to view bond details.</div>';
 
   try {
     const res = await fetch(`data/laws/${lawId}.json`);
@@ -297,15 +314,14 @@ async function loadLawDetail(lawId) {
     const law = await res.json();
 
     let html = `
-      <div class="details-header">
+      <div class="law-header">
         <h2>${law.law_id} - ${law.title}</h2>
-        ${law.official_url ? `<a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">View Official Publication 🔗</a>` : ''}
+        ${law.official_url ? `<a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">Official Publication 🔗</a>` : ''}
       </div>
       <div class="law-body">
     `;
 
-    const paragraphs = law.paragraphs || [];
-    paragraphs.forEach(p => {
+    (law.paragraphs || []).forEach(p => {
       const indentClass = `indent-${Math.min(p.indent || 1, 4)}`;
       html += `
         <div class="law-paragraph ${indentClass}" id="anchor-${p.anchor_id}">
@@ -315,10 +331,10 @@ async function loadLawDetail(lawId) {
     });
 
     html += `</div>`;
-    container.innerHTML = html;
+    lawContainer.innerHTML = html;
 
   } catch (err) {
-    container.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    lawContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
   }
 }
 </script>

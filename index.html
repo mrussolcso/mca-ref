@@ -96,7 +96,35 @@
     margin-bottom: 12px;
   }
 
-  /* Left Column: Law List */
+  /* Mode Switcher Toggle */
+  .mode-toggle {
+    display: flex;
+    background: #e2e8f0;
+    border-radius: 6px;
+    padding: 3px;
+    margin-bottom: 12px;
+  }
+
+  .mode-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .mode-btn.active {
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Left Column: Law/Offense List */
   .law-list { 
     list-style: none; 
     padding: 0; 
@@ -162,6 +190,10 @@
     display: inline-block;
   }
 
+  .badge-offense {
+    background: #805ad5;
+  }
+
   .btn-official { 
     background: var(--primary-light); 
     color: white; 
@@ -187,6 +219,43 @@
 
   .tree-node-view { 
     margin-bottom: 8px; 
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+  }
+
+  /* Highlighting class for relevant offense section */
+  .tree-node-view.highlighted-section {
+    background-color: #fefcbf;
+    border-left: 4px solid #d69e2e;
+    padding-left: 8px;
+  }
+
+  /* Offense Details Banner */
+  .offense-meta-banner {
+    background: #faf5ff;
+    border: 1px solid #e9d8fd;
+    border-left: 4px solid #805ad5;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+
+  .offense-meta-title {
+    font-size: 0.82rem;
+    font-weight: bold;
+    color: #44337a;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .offense-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #4a5568;
   }
 
   /* Footer History Box inside Middle Column */
@@ -220,6 +289,17 @@
     margin-bottom: 10px;
     background: #faf5ff;
     border-left: 3px solid #805ad5;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+
+  .offense-card:hover {
+    background: #f3e8ff;
+  }
+
+  .offense-card.active {
+    background: #e9d8fd;
+    border-left-color: #553c9a;
   }
 
   .offense-title {
@@ -256,20 +336,27 @@
   <!-- Main 3-Column Layout -->
   <div class="three-column-layout">
     
-    <!-- LEFT COLUMN: Select Law -->
+    <!-- LEFT COLUMN: Select Law / Offense -->
     <div class="card">
-      <h3 style="margin-top:0; font-size:1rem; color:var(--primary);">Select Law</h3>
-      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search laws..." oninput="filterLaws()">
+      <h3 style="margin-top:0; font-size:1rem; color:var(--primary);" id="leftColumnTitle">Select Law</h3>
+      
+      <!-- Mode Toggle Switcher -->
+      <div class="mode-toggle">
+        <button id="btnModeLaws" class="mode-btn active" onclick="switchViewMode('laws')">Laws</button>
+        <button id="btnModeOffenses" class="mode-btn" onclick="switchViewMode('offenses')">Offenses</button>
+      </div>
+
+      <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search laws..." oninput="filterList()">
       <ul class="law-list" id="lawListContainer">
-        <li class="empty-msg">Loading laws...</li>
+        <li class="empty-msg">Loading records...</li>
       </ul>
     </div>
 
-    <!-- MIDDLE COLUMN: Law Detail Pane -->
+    <!-- MIDDLE COLUMN: Detail Pane -->
     <div class="card detail-pane" id="lawDetailCard">
       
       <div id="detailPlaceholder" class="empty-msg">
-        Select a law from the left list to view details.
+        Select an item from the left list to view details.
       </div>
 
       <div id="detailContent" style="display: none; height: 100%; flex-direction: column; justify-content: space-between;">
@@ -291,6 +378,9 @@
               </div>
             </div>
           </header>
+
+          <!-- Dynamic Offense Metadata View (Shown when an offense is selected) -->
+          <div id="offenseMetaContainer" style="display: none;"></div>
 
           <!-- Middle Body: Text Content / Tree -->
           <main class="detail-body" id="view_law_content">
@@ -323,7 +413,7 @@
     <div class="card offenses-column">
       <h3 style="margin-top:0; font-size:1rem; color:#44337a;">Associated Offenses</h3>
       <div id="offensesPlaceholder" class="empty-msg">
-        No law selected.
+        No selection made.
       </div>
       <ul class="offense-list" id="offensesContainer" style="display: none;">
         <!-- Dynamic offense items append here -->
@@ -341,60 +431,126 @@ const REPO_CONFIG = {
   branch: 'main'
 };
 
+let viewMode = 'laws'; // 'laws' or 'offenses'
 let allLaws = [];
+let allOffenses = [];
 let currentSelectedId = null;
+let currentSelectedOffenseId = null;
 
 window.addEventListener('DOMContentLoaded', loadIndex);
 
 async function loadIndex() {
   const container = document.getElementById('lawListContainer');
-  const url = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws-index.json`;
+  const lawsUrl = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws-index.json`;
+  const offensesUrl = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/offenses-index.json`;
 
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('Failed to fetch index.');
+    const resLaws = await fetch(lawsUrl);
+    if (!resLaws.ok) throw new Error('Failed to fetch laws index.');
+    allLaws = await resLaws.json();
 
-    allLaws = await res.json();
-    renderList(allLaws);
+    try {
+      const resOffenses = await fetch(offensesUrl);
+      if (resOffenses.ok) {
+        allOffenses = await resOffenses.json();
+      }
+    } catch (e) {
+      console.warn('Offenses index not found or unreadable:', e);
+    }
+
+    renderList();
   } catch (err) {
-    container.innerHTML = `<li class="empty-msg" style="color:#e53e3e;">Failed to load laws index.</li>`;
+    container.innerHTML = `<li class="empty-msg" style="color:#e53e3e;">Failed to load data index.</li>`;
   }
 }
 
-function renderList(laws) {
+function switchViewMode(mode) {
+  if (viewMode === mode) return;
+  viewMode = mode;
+
+  document.getElementById('btnModeLaws').classList.toggle('active', mode === 'laws');
+  document.getElementById('btnModeOffenses').classList.toggle('active', mode === 'offenses');
+  
+  const searchInput = document.getElementById('searchInput');
+  const leftTitle = document.getElementById('leftColumnTitle');
+
+  if (mode === 'laws') {
+    leftTitle.textContent = 'Select Law';
+    searchInput.placeholder = '🔍 Search laws...';
+  } else {
+    leftTitle.textContent = 'Select Offense';
+    searchInput.placeholder = '🔍 Search offenses...';
+  }
+
+  searchInput.value = '';
+  renderList();
+}
+
+function renderList() {
   const container = document.getElementById('lawListContainer');
+  const q = document.getElementById('searchInput').value.toLowerCase();
   container.innerHTML = '';
 
-  if (laws.length === 0) {
-    container.innerHTML = `<li class="empty-msg">No matching laws found.</li>`;
-    return;
+  if (viewMode === 'laws') {
+    const filtered = allLaws.filter(l => 
+      (l.title && l.title.toLowerCase().includes(q)) || 
+      (l.id && l.id.toLowerCase().includes(q))
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<li class="empty-msg">No matching laws found.</li>`;
+      return;
+    }
+
+    filtered.forEach(law => {
+      const li = document.createElement('li');
+      li.className = `law-item ${law.id === currentSelectedId && currentSelectedOffenseId === null ? 'active' : ''}`;
+      li.onclick = () => selectLaw(law.id, li);
+
+      li.innerHTML = `
+        <div class="law-item-title">${law.title || 'Untitled Record'}</div>
+        <div class="law-item-id">ID: ${law.id}</div>
+      `;
+
+      container.appendChild(li);
+    });
+
+  } else {
+    const filtered = allOffenses.filter(o => 
+      (o.title && o.title.toLowerCase().includes(q)) || 
+      (o.name && o.name.toLowerCase().includes(q)) ||
+      (o.id && o.id.toLowerCase().includes(q)) ||
+      (o.law_id && o.law_id.toLowerCase().includes(q))
+    );
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<li class="empty-msg">No matching offenses found.</li>`;
+      return;
+    }
+
+    filtered.forEach(offense => {
+      const li = document.createElement('li');
+      const offenseId = offense.id || offense.offense_id;
+      li.className = `law-item ${offenseId === currentSelectedOffenseId ? 'active' : ''}`;
+      li.onclick = () => selectOffense(offense, li);
+
+      li.innerHTML = `
+        <div class="law-item-title">${offense.title || offense.name || 'Untitled Offense'}</div>
+        <div class="law-item-id">Law: ${offense.law_id || 'Unlinked'} ${offense.severity ? '| ' + offense.severity : ''}</div>
+      `;
+
+      container.appendChild(li);
+    });
   }
-
-  laws.forEach(law => {
-    const li = document.createElement('li');
-    li.className = `law-item ${law.id === currentSelectedId ? 'active' : ''}`;
-    li.onclick = () => selectLaw(law.id, li);
-
-    li.innerHTML = `
-      <div class="law-item-title">${law.title || 'Untitled Record'}</div>
-      <div class="law-item-id">ID: ${law.id}</div>
-    `;
-
-    container.appendChild(li);
-  });
 }
 
-function filterLaws() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const filtered = allLaws.filter(l => 
-    (l.title && l.title.toLowerCase().includes(q)) || 
-    (l.id && l.id.toLowerCase().includes(q))
-  );
-  renderList(filtered);
+function filterList() {
+  renderList();
 }
 
 async function selectLaw(lawId, element) {
   currentSelectedId = lawId;
+  currentSelectedOffenseId = null;
 
   document.querySelectorAll('.law-item').forEach(el => el.classList.remove('active'));
   if (element) element.classList.add('active');
@@ -403,7 +559,7 @@ async function selectLaw(lawId, element) {
   const content = document.getElementById('detailContent');
 
   placeholder.style.display = 'block';
-  placeholder.textContent = 'Loading record details...';
+  placeholder.textContent = 'Loading law details...';
   content.style.display = 'none';
 
   const fileUrl = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`;
@@ -413,6 +569,8 @@ async function selectLaw(lawId, element) {
     if (!res.ok) throw new Error('Law record not found.');
 
     const lawData = await res.json();
+    document.getElementById('offenseMetaContainer').style.display = 'none';
+    
     renderDetail(lawData);
     renderOffenses(lawData.offenses || []);
 
@@ -424,9 +582,78 @@ async function selectLaw(lawId, element) {
   }
 }
 
-function renderDetail(lawData) {
+async function selectOffense(offenseObj, element) {
+  const lawId = offenseObj.law_id;
+  const offenseId = offenseObj.id || offenseObj.offense_id;
+  currentSelectedId = lawId;
+  currentSelectedOffenseId = offenseId;
+
+  document.querySelectorAll('.law-item').forEach(el => el.classList.remove('active'));
+  if (element) element.classList.add('active');
+
+  const placeholder = document.getElementById('detailPlaceholder');
+  const content = document.getElementById('detailContent');
+
+  placeholder.style.display = 'block';
+  placeholder.textContent = 'Loading law and offense details...';
+  content.style.display = 'none';
+
+  if (!lawId) {
+    placeholder.textContent = 'Error: Selected offense is not linked to any law ID.';
+    renderOffenses([]);
+    return;
+  }
+
+  const fileUrl = `https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`;
+
+  try {
+    const res = await fetch(fileUrl);
+    if (!res.ok) throw new Error('Linked law record not found.');
+
+    const lawData = await res.json();
+    
+    // Locate specific offense object details
+    const foundOffense = (lawData.offenses || []).find(o => (o.id || o.offense_id) === offenseId) || offenseObj;
+    
+    renderOffenseMetaBanner(foundOffense);
+    renderDetail(lawData, foundOffense.relevant_section || foundOffense.section);
+    renderOffenses(lawData.offenses || []);
+
+    placeholder.style.display = 'none';
+    content.style.display = 'flex';
+  } catch (err) {
+    placeholder.textContent = `Error loading details: ${err.message}`;
+    renderOffenses([]);
+  }
+}
+
+function renderOffenseMetaBanner(offense) {
+  const container = document.getElementById('offenseMetaContainer');
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div class="offense-meta-banner">
+      <div class="offense-meta-title">Selected Offense Details</div>
+      <div class="offense-meta-grid">
+        <div><strong>Title:</strong> ${offense.title || offense.name || 'N/A'}</div>
+        <div><strong>Severity:</strong> ${offense.severity || offense.classification || 'Unclassified'}</div>
+        ${offense.relevant_section || offense.section ? `<div><strong>Relevant Section:</strong> ${offense.relevant_section || offense.section}</div>` : ''}
+        ${offense.fine ? `<div><strong>Fine:</strong> ${offense.fine}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderDetail(lawData, highlightedSection = null) {
   // 1. Header Elements
-  document.getElementById('view_source_type').textContent = lawData.source_type || 'MCA Statute';
+  const badge = document.getElementById('view_source_type');
+  if (currentSelectedOffenseId) {
+    badge.textContent = 'Offense View';
+    badge.classList.add('badge-offense');
+  } else {
+    badge.textContent = lawData.source_type || 'MCA Statute';
+    badge.classList.remove('badge-offense');
+  }
+
   document.getElementById('view_law_title').textContent = lawData.title || 'Untitled Record';
   document.getElementById('view_law_id').innerHTML = `<strong>ID:</strong> ${lawData.law_id || lawData.id}`;
 
@@ -443,11 +670,19 @@ function renderDetail(lawData) {
   // 2. Middle Content Body
   const contentContainer = document.getElementById('view_law_content');
   if (lawData.tree && lawData.tree.length > 0) {
-    contentContainer.innerHTML = renderTreeToHTML(lawData.tree);
+    contentContainer.innerHTML = renderTreeToHTML(lawData.tree, 0, highlightedSection);
   } else if (lawData.paragraphs && lawData.paragraphs.length > 0) {
-    contentContainer.innerHTML = renderParagraphsToHTML(lawData.paragraphs);
+    contentContainer.innerHTML = renderParagraphsToHTML(lawData.paragraphs, highlightedSection);
   } else {
     contentContainer.innerHTML = '<p style="color: #a0aec0; font-style: italic;">No text content recorded for this entry.</p>';
+  }
+
+  // Auto-scroll highlighted section into view if applicable
+  if (highlightedSection) {
+    setTimeout(() => {
+      const el = document.querySelector('.highlighted-section');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   }
 
   // 3. Bottom Footer Metadata
@@ -482,8 +717,15 @@ function renderOffenses(offenses) {
   container.style.display = 'block';
 
   offenses.forEach(offense => {
+    const offenseId = offense.id || offense.offense_id;
+    const isSelected = offenseId === currentSelectedOffenseId;
+
     const li = document.createElement('li');
-    li.className = 'offense-card';
+    li.className = `offense-card ${isSelected ? 'active' : ''}`;
+    
+    // Clicking an offense in the right column triggers offense focus mode
+    li.onclick = () => selectOffense(offense);
+
     li.innerHTML = `
       <div class="offense-title">${offense.title || offense.name || 'Offense Entry'}</div>
       <div class="offense-severity">${offense.severity || offense.classification || 'Unclassified'}</div>
@@ -492,14 +734,17 @@ function renderOffenses(offenses) {
   });
 }
 
-function renderTreeToHTML(nodes, level = 0) {
+function renderTreeToHTML(nodes, level = 0, highlightedSection = null) {
   let html = '<div>';
   nodes.forEach(node => {
     const indent = level * 16;
+    const counterText = (node.counter || '').trim();
+    const isHighlighted = highlightedSection && counterText && counterText.replace(/[()]/g, '') === highlightedSection.replace(/[()]/g, '');
+
     html += `
-      <div class="tree-node-view" style="margin-left: ${indent}px;">
+      <div class="tree-node-view ${isHighlighted ? 'highlighted-section' : ''}" style="margin-left: ${indent}px;">
         <strong>${node.counter || ''}</strong> ${node.text || ''}
-        ${node.children && node.children.length > 0 ? renderTreeToHTML(node.children, level + 1) : ''}
+        ${node.children && node.children.length > 0 ? renderTreeToHTML(node.children, level + 1, highlightedSection) : ''}
       </div>
     `;
   });
@@ -507,12 +752,17 @@ function renderTreeToHTML(nodes, level = 0) {
   return html;
 }
 
-function renderParagraphsToHTML(paragraphs) {
-  return paragraphs.map(p => `
-    <div style="margin-bottom: 8px; margin-left: ${(p.indent || 1) * 12}px;">
-      <strong>${p.counter || ''}</strong> ${p.text || ''}
-    </div>
-  `).join('');
+function renderParagraphsToHTML(paragraphs, highlightedSection = null) {
+  return paragraphs.map(p => {
+    const counterText = (p.counter || '').trim();
+    const isHighlighted = highlightedSection && counterText && counterText.replace(/[()]/g, '') === highlightedSection.replace(/[()]/g, '');
+
+    return `
+      <div class="tree-node-view ${isHighlighted ? 'highlighted-section' : ''}" style="margin-bottom: 8px; margin-left: ${(p.indent || 1) * 12}px;">
+        <strong>${p.counter || ''}</strong> ${p.text || ''}
+      </div>
+    `;
+  }).join('');
 }
 </script>
 

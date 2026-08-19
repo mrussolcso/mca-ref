@@ -3,394 +3,327 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Montana Code Annotated & Bond Schedule Reference</title>
+<title>Montana Law & Offense Reference Platform</title>
 <style>
-  :root { 
-    --primary: #1a365d; 
-    --primary-light: #2b6cb0; 
-    --border: #cbd5e0; 
-    --bg: #f7fafc; 
-    --danger: #e53e3e; 
-    --highlight: #fefcbf;
-    --highlight-border: #ecc94b;
+  :root {
+    --primary: #1a365d;
+    --primary-light: #2b6cb0;
+    --border: #cbd5e0;
+    --bg: #f7fafc;
+    --text: #2d3748;
+    --highlight-yellow-bg: #fefcbf;
+    --highlight-yellow-border: #d69e2e;
+    --highlight-green-bg: #f0fff4;
+    --highlight-green-border: #38a169;
   }
+
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; }
+
+  /* Header Bar */
+  header { background: var(--primary); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+  header h1 { margin: 0; font-size: 1.2rem; }
+  .btn-admin { background: rgba(255,255,255,0.15); color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 0.85rem; transition: background 0.2s; }
+  .btn-admin:hover { background: rgba(255,255,255,0.3); }
+
+  /* Three-Pane App Layout */
+  .app-container { display: flex; flex: 1; overflow: hidden; }
+
+  /* Pane 1: Search & Filter Index List */
+  .pane-index { width: 320px; background: white; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .search-header { padding: 12px; border-bottom: 1px solid var(--border); background: #edf2f7; display: flex; flex-direction: column; gap: 8px; }
+  .search-header input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+  .tab-group { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .tab-btn { flex: 1; padding: 6px; background: white; border: none; font-weight: 600; font-size: 0.8rem; cursor: pointer; color: #4a5568; }
+  .tab-btn.active { background: var(--primary-light); color: white; }
+  .index-list { flex: 1; overflow-y: auto; list-style: none; margin: 0; padding: 0; }
+  .index-item { padding: 12px; border-bottom: 1px solid #edf2f7; cursor: pointer; transition: background 0.15s; }
+  .index-item:hover { background: #ebf8ff; }
+  .index-item.active { background: #ebf8ff; border-left: 4px solid var(--primary-light); }
+  .index-item .item-title { font-weight: bold; font-size: 0.9rem; color: var(--primary); }
+  .index-item .item-sub { font-size: 0.78rem; color: #718096; margin-top: 2px; }
+
+  /* Pane 2: Offense Record Details */
+  .pane-offense { width: 340px; background: white; border-right: 1px solid var(--border); padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+  .offense-card-header { background: #f7fafc; border: 1px solid var(--border); padding: 12px; border-radius: 6px; }
+  .offense-tag { display: inline-block; background: #feebc8; color: #742a2a; font-weight: bold; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 6px; }
+  .detail-row { font-size: 0.88rem; display: flex; justify-content: space-between; border-bottom: 1px solid #edf2f7; padding: 6px 0; }
+  .detail-label { font-weight: bold; color: #4a5568; }
+
+  /* Pane 3: Statutory Law Text Reader */
+  .pane-law { flex: 1; background: white; padding: 20px 30px; overflow-y: auto; }
+  .law-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
+  .law-header h2 { margin: 0 0 6px 0; color: var(--primary); }
+  .law-meta { font-size: 0.82rem; color: #718096; }
+
+  /* MCA Nested Ordered List Styling */
+  .mca-text-body { font-size: 0.95rem; line-height: 1.6; }
+  .mca-paragraph { margin-bottom: 8px; padding: 4px 8px; border-radius: 4px; transition: background 0.2s, border-left 0.2s; }
   
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-  .container { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-  
-  /* Header Nav */
-  .app-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
-  .app-header h1 { margin: 0; font-size: 1.4rem; }
-  .btn-admin { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
-  .btn-admin:hover { background: rgba(255, 255, 255, 0.35); }
+  /* Dual-Category Highlighting Styles */
+  .mca-paragraph.highlight-primary { background-color: var(--highlight-yellow-bg); border-left: 4px solid var(--highlight-yellow-border); }
+  .mca-paragraph.highlight-secondary { background-color: var(--highlight-green-bg); border-left: 4px solid var(--highlight-green-border); }
 
-  /* Top Control Card */
-  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
-  .controls-grid { display: grid; grid-template-columns: 220px 1fr; gap: 16px; }
-  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
-  input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
-
-  /* 3-Column Layout */
-  .view-grid-3col { 
-    display: grid; 
-    grid-template-columns: 320px 1fr 300px; 
-    gap: 20px; 
-    align-items: start;
-  }
-
-  /* Structural Panels (Natural scrolling, no fixed heights) */
-  .list-panel, .center-panel, .related-panel { 
-    background: white; 
-    border: 1px solid var(--border); 
-    border-radius: 8px; 
-    padding: 20px; 
-    box-sizing: border-box;
-  }
-
-  /* Shared Interactive Item Cards */
-  .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-  .list-item:hover { background: #edf2f7; }
-  .list-item.active { background: #ebf8ff; border-color: var(--primary-light); }
-  .item-tag { font-weight: bold; color: var(--primary); font-size: 0.92rem; word-break: break-word; }
-  .item-sub { font-size: 0.82rem; color: #4a5568; margin-top: 3px; }
-
-  /* Center Column: Offense Details Box */
-  .offense-details-box { 
-    background: #f7fafc; 
-    border: 1px solid var(--border); 
-    border-radius: 6px; 
-    padding: 18px; 
-    margin-bottom: 24px; 
-  }
-  .offense-details-box h2 { 
-    margin: 0 0 14px 0; 
-    font-size: 1.25rem; 
-    color: var(--primary); 
-    border-bottom: 2px solid var(--border); 
-    padding-bottom: 8px; 
-    word-break: break-word;
-  }
-  .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 16px; font-size: 0.88rem; }
-  .meta-item { overflow-wrap: anywhere; word-break: break-word; }
-  .meta-item strong { color: var(--primary); }
-
-  /* Law Text Display */
-  .law-header { border-bottom: 2px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
-  .law-header h3 { margin: 0; color: var(--primary); font-size: 1.15rem; }
-  .law-body { margin-top: 12px; line-height: 1.6; color: #2d3748; }
-  .law-paragraph { padding: 6px 10px; border-radius: 4px; margin-bottom: 6px; transition: background 0.2s; }
-  .law-paragraph.highlighted { background-color: var(--highlight); border-left: 4px solid var(--highlight-border); padding-left: 10px; font-weight: 500; }
-
+  /* Custom Hanging Indents for Subsection Levels */
   .indent-1 { margin-left: 0px; }
   .indent-2 { margin-left: 20px; }
   .indent-3 { margin-left: 40px; }
   .indent-4 { margin-left: 60px; }
+  .mca-counter { font-weight: bold; margin-right: 6px; }
 
-  /* Right Column: Related Offenses */
-  .related-panel h3 { margin: 0 0 12px 0; font-size: 1.05rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-
-  .empty-state { text-align: center; color: #a0aec0; margin: 60px 0; font-style: italic; }
+  .empty-state { color: #a0aec0; text-align: center; padding-top: 40px; font-size: 0.95rem; }
 </style>
 </head>
 <body>
 
-<div class="container">
+<header>
+  <h1>📜 Montana Law & Offense Reference Platform</h1>
+  <a href="admin.html" class="btn-admin">⚙️ Admin Publisher</a>
+</header>
 
-  <!-- Application Header -->
-  <header class="app-header">
-    <h1>🏛️ Montana Law & Bond Schedule Reference</h1>
-    <a href="admin.html" class="btn-admin">⚙️ Admin Publisher</a>
-  </header>
+<div class="app-container">
 
-  <!-- Control Controls -->
-  <div class="card">
-    <div class="controls-grid">
-      <div>
-        <label for="modeSelect">Browse Mode</label>
-        <select id="modeSelect" onchange="switchMode(this.value)">
-          <option value="offense">🚨 Offenses / Bond Book</option>
-          <option value="law">📜 MCA Laws & Statutes</option>
-        </select>
+  <!-- Pane 1: Search & Index Selection -->
+  <div class="pane-index">
+    <div class="search-header">
+      <div class="tab-group">
+        <button id="tabOffenses" class="tab-btn active" onclick="switchTab('offenses')">🚨 Offenses</button>
+        <button id="tabLaws" class="tab-btn" onclick="switchTab('laws')">📜 Laws</button>
       </div>
-      <div>
-        <label for="searchInput">Search Filter</label>
-        <input type="text" id="searchInput" placeholder="Search by title, charge code, section number, or keyword..." oninput="filterList()">
-      </div>
+      <input type="text" id="searchInput" placeholder="Search by ID, title, statute..." oninput="filterIndex()">
     </div>
+    <ul id="indexList" class="index-list"></ul>
   </div>
 
-  <!-- 3-Column Layout -->
-  <div class="view-grid-3col">
-    
-    <!-- Column 1: Main Offense/Law Index List -->
-    <div class="list-panel" id="listContainer">
-      <div class="empty-state">Loading index data...</div>
-    </div>
+  <!-- Pane 2: Offense Record Details Schedule -->
+  <div class="pane-offense" id="paneOffense">
+    <div class="empty-state">Select an offense from the list to view bond details and statutory links.</div>
+  </div>
 
-    <!-- Column 2: Offense Details Box + Law Statute Text -->
-    <div class="center-panel" id="centerContainer">
-      <div class="empty-state">Select an item from the left panel to view details.</div>
-    </div>
-
-    <!-- Column 3: Related Offenses Box -->
-    <div class="related-panel" id="relatedContainer">
-      <div class="empty-state">No related offenses to show.</div>
-    </div>
-
+  <!-- Pane 3: Statutory Text View with Dual-Category Highlighting -->
+  <div class="pane-law" id="paneLaw">
+    <div class="empty-state">Select a record to read statutory text.</div>
   </div>
 
 </div>
 
 <script>
+const REPO_CONFIG = {
+  owner: 'mrussolcso',
+  repo: 'mca-ref',
+  branch: 'main'
+};
+
+let activeTab = 'offenses';
 let offensesIndex = [];
 let lawsIndex = [];
-let currentMode = 'offense';
-let activeItemId = null;
+let selectedOffense = null;
+let selectedLaw = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   await loadIndexes();
-  renderList();
 });
 
+/* FETCH INDEX FILES FROM GITHUB */
 async function loadIndexes() {
   try {
-    const [offRes, lawRes] = await Promise.all([
-      fetch('data/offenses-index.json').catch(() => null),
-      fetch('data/laws-index.json').catch(() => null)
-    ]);
+    const offensesRes = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/offenses-index.json`);
+    if (offensesRes.ok) offensesIndex = await offensesRes.json();
 
-    if (offRes && offRes.ok) offensesIndex = await offRes.json();
-    if (lawRes && lawRes.ok) lawsIndex = await lawRes.json();
+    const lawsRes = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws-index.json`);
+    if (lawsRes.ok) lawsIndex = await lawsRes.json();
+
+    renderIndexList();
   } catch (err) {
-    console.error('Error loading index files:', err);
+    console.error("Error loading repository indices:", err);
   }
 }
 
-function switchMode(mode) {
-  currentMode = mode;
-  activeItemId = null;
-  document.getElementById('centerContainer').innerHTML = '<div class="empty-state">Select an item from the left panel to view details.</div>';
-  document.getElementById('relatedContainer').innerHTML = '<div class="empty-state">No related offenses to show.</div>';
-  renderList();
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('tabOffenses').classList.toggle('active', tab === 'offenses');
+  document.getElementById('tabLaws').classList.toggle('active', tab === 'laws');
+  renderIndexList();
 }
 
-function filterList() {
-  renderList();
+function filterIndex() {
+  renderIndexList();
 }
 
-function renderList() {
-  const container = document.getElementById('listContainer');
+/* RENDER PANE 1 INDEX */
+function renderIndexList() {
   const query = document.getElementById('searchInput').value.toLowerCase().trim();
-  container.innerHTML = '';
+  const listEl = document.getElementById('indexList');
+  listEl.innerHTML = '';
 
-  const indexData = currentMode === 'offense' ? offensesIndex : lawsIndex;
-
-  const filtered = indexData.filter(item => {
-    if (!query) return true;
-    if (currentMode === 'offense') {
-      return (item.name || '').toLowerCase().includes(query) || 
-             (item.id || '').toLowerCase().includes(query) || 
-             (item.display_tag || '').toLowerCase().includes(query) ||
-             (item.law_id || '').toLowerCase().includes(query);
-    } else {
-      return (item.title || '').toLowerCase().includes(query) || 
-             (item.id || '').toLowerCase().includes(query);
-    }
+  const sourceData = activeTab === 'offenses' ? offensesIndex : lawsIndex;
+  const filtered = sourceData.filter(item => {
+    const idMatch = item.id && item.id.toLowerCase().includes(query);
+    const nameMatch = item.name && item.name.toLowerCase().includes(query);
+    const titleMatch = item.title && item.title.toLowerCase().includes(query);
+    const tagMatch = item.display_tag && item.display_tag.toLowerCase().includes(query);
+    return idMatch || nameMatch || titleMatch || tagMatch;
   });
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty-state">No matching records found.</div>';
-    return;
-  }
 
   filtered.forEach(item => {
-    const div = document.createElement('div');
-    div.className = `list-item ${item.id === activeItemId ? 'active' : ''}`;
+    const li = document.createElement('li');
+    li.className = 'index-item';
     
-    if (currentMode === 'offense') {
-      const tagDisplay = item.display_tag || item.id;
-      div.innerHTML = `
-        <div class="item-tag">${tagDisplay}</div>
+    if (activeTab === 'offenses') {
+      if (selectedOffense && selectedOffense.offense_id === item.id) li.classList.add('active');
+      li.innerHTML = `
+        <div class="item-title">${item.display_tag || item.id}</div>
         <div class="item-sub">${item.name || 'Unnamed Offense'}</div>
       `;
-      div.onclick = () => loadOffenseDetail(item.id);
+      li.onclick = () => selectOffense(item.id);
     } else {
-      div.innerHTML = `
-        <div class="item-tag">${item.id}</div>
-        <div class="item-sub">${item.title || 'Untitled Law'}</div>
+      if (selectedLaw && selectedLaw.law_id === item.id) li.classList.add('active');
+      li.innerHTML = `
+        <div class="item-title">MCA ${item.id}</div>
+        <div class="item-sub">${item.title || 'Untitled Statute'}</div>
       `;
-      div.onclick = () => loadLawDetail(item.id);
+      li.onclick = () => selectLaw(item.id);
     }
 
-    container.appendChild(div);
+    listEl.appendChild(li);
   });
 }
 
-function formatBondValue(offense) {
-  if (offense.bond_type === 'no_bond') return 'No Bond (Hold Until Appearance)';
-  if (offense.bond_type === 'schedule') return 'Discretionary / Per Bond Schedule';
-  if (offense.bond_amount !== null && offense.bond_amount !== undefined) {
-    return `$${Number(offense.bond_amount).toLocaleString()}`;
-  }
-  return 'N/A';
-}
-
-function formatOccurrence(occ) {
-  if (!occ) return 'Standard / First Instance';
-  const s = ["th", "st", "nd", "rd"];
-  const v = occ % 100;
-  const suffix = s[(v - 20) % 10] || s[v] || s[0];
-  return `${occ}${suffix} Offense`;
-}
-
-async function loadOffenseDetail(offenseId) {
-  activeItemId = offenseId;
-  renderList();
-
-  const centerContainer = document.getElementById('centerContainer');
-  const relatedContainer = document.getElementById('relatedContainer');
-
-  centerContainer.innerHTML = '<div class="empty-state">Loading offense and statute data...</div>';
-  relatedContainer.innerHTML = '<div class="empty-state">Finding related offenses...</div>';
-
+/* SELECT AND LOAD OFFENSE */
+async function selectOffense(offenseId) {
   try {
-    const offRes = await fetch(`data/offenses/${offenseId}.json`);
-    if (!offRes.ok) throw new Error('Offense record not found.');
-    const offense = await offRes.json();
+    const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/offenses/${offenseId}.json`);
+    if (!res.ok) return;
 
-    let lawData = null;
-    if (offense.law_id) {
-      const lawRes = await fetch(`data/laws/${offense.law_id}.json`).catch(() => null);
-      if (lawRes && lawRes.ok) lawData = await lawRes.json();
+    selectedOffense = await res.json();
+    renderOffenseDetails();
+    renderIndexList();
+
+    if (selectedOffense.law_id) {
+      await loadAndDisplayLaw(selectedOffense.law_id);
+    } else {
+      document.getElementById('paneLaw').innerHTML = '<div class="empty-state">No statutory law linked to this offense.</div>';
     }
+  } catch (err) {
+    console.error(`Error loading offense ${offenseId}:`, err);
+  }
+}
 
-    // Method 1 Header Logic: Display clean display_tag (e.g., 45-5-206(1)(a) [1st]) + Name
-    const chargeTag = offense.display_tag || (offense.law_id ? `${offense.law_id} [${formatOccurrence(offense.occurrence)}]` : offense.offense_id);
-    const offenseTitle = offense.name || 'Offense Record';
-    const headerDisplay = `${chargeTag} ${offenseTitle}`;
+/* RENDER PANE 2 DETAILS */
+function renderOffenseDetails() {
+  const pane = document.getElementById('paneOffense');
+  if (!selectedOffense) return;
 
-    // Center Pane HTML
-    let centerHtml = `
-      <div class="offense-details-box">
-        <h2>${headerDisplay}</h2>
-        <div class="meta-grid">
-          <div class="meta-item"><strong>Occurrence / Sequence:</strong> ${formatOccurrence(offense.occurrence)}</div>
-          <div class="meta-item"><strong>Severity:</strong> ${offense.severity || 'Unspecified'}</div>
-          <div class="meta-item"><strong>Bond Amount:</strong> ${formatBondValue(offense)}</div>
-          <div class="meta-item"><strong>Mandatory Appearance:</strong> ${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
-          <div class="meta-item" style="grid-column: span 2;"><strong>Associated Law ID:</strong> ${offense.law_id || 'None'}</div>
-          ${offense.conditions ? `<div class="meta-item" style="grid-column: span 2;"><strong>Special Conditions:</strong> ${offense.conditions}</div>` : ''}
-          ${offense.description ? `<div class="meta-item" style="grid-column: span 2; margin-top: 4px;"><strong>Charge Overview:</strong> ${offense.description}</div>` : ''}
+  const bondDisplay = selectedOffense.bond_type === 'amount' 
+    ? `$${selectedOffense.bond_amount}` 
+    : (selectedOffense.bond_type === 'no_bond' ? 'No Bond (Hold)' : 'Per Schedule / Discretionary');
+
+  const primaryAnchorsStr = (selectedOffense.primary_anchors || selectedOffense.target_anchors || []).join(', ') || 'None';
+  const secondaryAnchorsStr = (selectedOffense.secondary_anchors || []).join(', ') || 'None';
+
+  pane.innerHTML = `
+    <div class="offense-card-header">
+      <div class="offense-tag">${selectedOffense.display_tag || selectedOffense.offense_id}</div>
+      <h3 style="margin:0 0 4px 0; color: var(--primary);">${selectedOffense.name}</h3>
+      <div style="font-size:0.8rem; color:#718096;">Severity: <strong>${selectedOffense.severity || 'N/A'}</strong></div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <div class="detail-row"><span class="detail-label">Bond Schedule</span><span>${bondDisplay}</span></div>
+      <div class="detail-row"><span class="detail-label">Mandatory Appearance</span><span>${selectedOffense.mandatory_appearance ? 'Yes' : 'No'}</span></div>
+      <div class="detail-row"><span class="detail-label">Occurrence / Sequence</span><span>${selectedOffense.occurrence || 'Standard'}</span></div>
+      <div class="detail-row"><span class="detail-label">Linked Statute</span><span>MCA ${selectedOffense.law_id || 'None'}</span></div>
+    </div>
+
+    <div>
+      <div class="detail-label" style="margin-bottom:4px;">Description / Conditions</div>
+      <div style="font-size:0.85rem; background:#edf2f7; padding:8px; border-radius:4px;">
+        ${selectedOffense.description || 'No overview provided.'}
+        ${selectedOffense.conditions ? `<br><br><strong>Conditions:</strong> ${selectedOffense.conditions}` : ''}
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border); padding-top:10px;">
+      <div class="detail-label" style="margin-bottom:6px;">Categorized Section Links</div>
+      <div style="font-size:0.8rem; display:flex; flex-direction:column; gap:6px;">
+        <div style="background:var(--highlight-yellow-bg); padding:6px; border-radius:4px; border-left:3px solid var(--highlight-yellow-border);">
+          <strong>🟨 Primary Sections:</strong> ${primaryAnchorsStr}
+        </div>
+        <div style="background:var(--highlight-green-bg); padding:6px; border-radius:4px; border-left:3px solid var(--highlight-green-border);">
+          <strong>🟩 Secondary Sections:</strong> ${secondaryAnchorsStr}
         </div>
       </div>
-    `;
-
-    if (lawData) {
-      centerHtml += `
-        <div class="law-header">
-          <h3>Statute Text: ${lawData.law_id} - ${lawData.title}</h3>
-          ${lawData.official_url ? `<a href="${lawData.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">Official Publication 🔗</a>` : ''}
-        </div>
-        <div class="law-body">
-      `;
-
-      // Highlights are strictly driven by target_anchors array
-      const targetAnchors = (offense.target_anchors || []).map(a => a.toLowerCase().trim());
-
-      (lawData.paragraphs || []).forEach(p => {
-        const isHighlighted = targetAnchors.includes((p.anchor_id || '').toLowerCase());
-        const indentClass = `indent-${Math.min(p.indent || 1, 4)}`;
-        const highlightClass = isHighlighted ? 'highlighted' : '';
-
-        centerHtml += `
-          <div class="law-paragraph ${indentClass} ${highlightClass}" id="anchor-${p.anchor_id}">
-            <strong>${p.counter}</strong> ${p.text}
-          </div>
-        `;
-      });
-
-      centerHtml += `</div>`;
-    } else if (offense.law_id) {
-      centerHtml += `<div style="color: #718096; font-style: italic;">Associated statute text (${offense.law_id}) could not be retrieved.</div>`;
-    }
-
-    centerContainer.innerHTML = centerHtml;
-
-    // Render Right Pane
-    renderRelatedOffenses(offense.law_id, offense.offense_id);
-
-  } catch (err) {
-    centerContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
-    relatedContainer.innerHTML = `<div class="empty-state">Unable to load related items.</div>`;
-  }
+    </div>
+  `;
 }
 
-function renderRelatedOffenses(lawId, currentOffenseId) {
-  const container = document.getElementById('relatedContainer');
-  if (!lawId) {
-    container.innerHTML = '<div class="empty-state">No linked law ID to find related charges.</div>';
-    return;
-  }
+/* SELECT AND LOAD LAW DIRECTLY */
+async function selectLaw(lawId) {
+  selectedOffense = null;
+  renderOffenseDetails();
+  document.getElementById('paneOffense').innerHTML = '<div class="empty-state">Law statute selected directly. No specific offense parameters applied.</div>';
+  await loadAndDisplayLaw(lawId);
+  renderIndexList();
+}
 
-  const related = offensesIndex.filter(o => o.law_id === lawId && o.id !== currentOffenseId);
+/* LOAD AND RENDER PANE 3 LAW TEXT WITH CATEGORIZED HIGHLIGHTS */
+async function loadAndDisplayLaw(lawId) {
+  const pane = document.getElementById('paneLaw');
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`);
+    if (!res.ok) {
+      pane.innerHTML = `<div class="empty-state">Statute law data for "MCA ${lawId}" not found.</div>`;
+      return;
+    }
 
-  let html = `<h3>Related Charges (${lawId})</h3>`;
+    selectedLaw = await res.json();
 
-  if (related.length === 0) {
-    html += '<div style="color: #a0aec0; font-style: italic; font-size: 0.88rem;">No other charges linked to this statute.</div>';
-  } else {
-    related.forEach(rel => {
-      const tagDisplay = rel.display_tag || rel.id;
-      html += `
-        <div class="list-item" onclick="loadOffenseDetail('${rel.id}')">
-          <div class="item-tag">${tagDisplay}</div>
-          <div class="item-sub">${rel.name || 'Unnamed Offense'}</div>
+    let paragraphsHtml = '';
+    
+    // Sets for fast lookup
+    const primarySet = new Set(selectedOffense ? (selectedOffense.primary_anchors || selectedOffense.target_anchors || []) : []);
+    const secondarySet = new Set(selectedOffense ? (selectedOffense.secondary_anchors || []) : []);
+
+    (selectedLaw.paragraphs || []).forEach(p => {
+      const indentClass = `indent-${p.indent || 1}`;
+      let highlightClass = '';
+
+      if (primarySet.has(p.anchor_id)) {
+        highlightClass = 'highlight-primary';
+      } else if (secondarySet.has(p.anchor_id)) {
+        highlightClass = 'highlight-secondary';
+      }
+
+      paragraphsHtml += `
+        <div id="anchor-${p.anchor_id}" class="mca-paragraph ${indentClass} ${highlightClass}">
+          <span class="mca-counter">${p.counter}</span>
+          <span class="mca-text">${p.text}</span>
         </div>
       `;
     });
-  }
 
-  container.innerHTML = html;
-}
-
-async function loadLawDetail(lawId) {
-  activeItemId = lawId;
-  renderList();
-
-  const centerContainer = document.getElementById('centerContainer');
-  const relatedContainer = document.getElementById('relatedContainer');
-
-  centerContainer.innerHTML = '<div class="empty-state">Loading statute text...</div>';
-
-  try {
-    const res = await fetch(`data/laws/${lawId}.json`);
-    if (!res.ok) throw new Error('Law record not found.');
-    const law = await res.json();
-
-    let html = `
+    pane.innerHTML = `
       <div class="law-header">
-        <h2>${law.law_id} - ${law.title}</h2>
-        ${law.official_url ? `<a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">View Official Publication 🔗</a>` : ''}
+        <h2>MCA ${selectedLaw.law_id}: ${selectedLaw.title}</h2>
+        <div class="law-meta">
+          <span>Source: ${selectedLaw.source_type || 'MCA Statute'}</span> | 
+          ${selectedLaw.official_url ? `<a href="${selectedLaw.official_url}" target="_blank" rel="noopener">Official MCA Page 🔗</a>` : ''}
+          ${selectedLaw.history ? `<br><span>History: ${selectedLaw.history}</span>` : ''}
+        </div>
       </div>
-      <div class="law-body">
+      <div class="mca-text-body">
+        ${paragraphsHtml || '<p>No statute text content available.</p>'}
+      </div>
     `;
 
-    (law.paragraphs || []).forEach(p => {
-      const indentClass = `indent-${Math.min(p.indent || 1, 4)}`;
-      html += `
-        <div class="law-paragraph ${indentClass}" id="anchor-${p.anchor_id}">
-          <strong>${p.counter}</strong> ${p.text}
-        </div>
-      `;
-    });
-
-    html += `</div>`;
-    centerContainer.innerHTML = html;
-
-    renderRelatedOffenses(lawId, null);
+    // Scroll first primary highlight into view if present
+    const firstHighlight = pane.querySelector('.highlight-primary, .highlight-secondary');
+    if (firstHighlight) {
+      firstHighlight.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
   } catch (err) {
-    centerContainer.innerHTML = `<div class="empty-state" style="color: var(--danger);">Error: ${err.message}</div>`;
+    pane.innerHTML = `<div class="empty-state">Error loading statutory text: ${err.message}</div>`;
   }
 }
 </script>

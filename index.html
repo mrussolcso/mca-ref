@@ -286,14 +286,26 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
     let html = '';
     if (law.official_url) {
-      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a></p>`;
+      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 View Official State Record</a></p>`;
     }
 
     html += `<div style="margin-top:12px;">`;
+    let pendingCounters = [];
+
     (law.paragraphs || []).forEach(p => {
+      // If a paragraph node has no text, collect its counter and skip rendering a blank row
+      if (!p.text || p.text.trim() === '') {
+        pendingCounters.push(p.counter);
+        return;
+      }
+
       const indentClass = `para-indent-${p.indent || 1}`;
       const anchorId = p.anchor_id;
-      
+
+      // Merge accumulated empty parent counters into the active paragraph counter
+      const fullCounter = [...pendingCounters, p.counter].join(' ');
+      pendingCounters = [];
+
       let highlightClass = '';
       if (primaryAnchors.includes(anchorId)) {
         highlightClass = 'highlight-primary';
@@ -303,7 +315,7 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
       html += `
         <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-          <span class="para-counter">${p.counter}</span>
+          <span class="para-counter">${fullCounter}</span>
           <span>${p.text}</span>
         </div>
       `;

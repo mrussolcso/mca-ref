@@ -30,7 +30,7 @@
   
   .btn { background: var(--primary-light); color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; }
   .btn:hover { opacity: 0.9; }
-  .btn-sm { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   .btn-add-peer { background: #319795; color: white; }
   .btn-add-child { background: #3182ce; color: white; }
   .btn-del { background: var(--danger); color: white; }
@@ -42,11 +42,12 @@
 
   /* Tree Editor Styling */
   .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
-  .tree-node { margin-top: 8px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
-  .node-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .tree-node { margin-top: 10px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
+  .node-box { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .node-header-row { display: flex; gap: 8px; }
   .node-counter { width: 80px; flex-shrink: 0; font-weight: bold; }
   .node-text { flex-grow: 1; }
-  .node-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .node-toolbar { display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f0f4f8; justify-content: flex-start; }
 </style>
 </head>
 <body>
@@ -94,7 +95,7 @@
           <label>Law Structured Sections & Subsections</label>
           <div class="tree-container">
             <div id="treeRoot"></div>
-            <button type="button" class="btn btn-sm btn-add-peer" style="margin-top:10px;" onclick="addTopLevelSection()">➕ Add Top-Level Section</button>
+            <button type="button" class="btn btn-sm btn-add-peer" style="margin-top:12px;" onclick="addTopLevelSection()">➕ Add Top-Level Section</button>
           </div>
         </div>
       </div>
@@ -136,7 +137,34 @@ function setMode(m) {
   document.getElementById('formTitle').textContent = m === 'law' ? '2. Law Record Editor' : '2. Offense Record Editor';
 }
 
-/* TREE EDITOR LOGIC */
+/* TREE STATE SYNCING */
+function syncTreeDOMToState() {
+  const root = document.getElementById('treeRoot');
+  if (!root) return;
+
+  function processContainer(containerNode) {
+    const nodes = [];
+    const childDivs = Array.from(containerNode.children).filter(el => el.classList.contains('tree-node'));
+
+    childDivs.forEach(div => {
+      const counterInput = div.querySelector(':scope > .node-box > .node-header-row > .node-counter');
+      const textInput = div.querySelector(':scope > .node-box > .node-header-row > .node-text');
+      const childrenContainer = div.querySelector(':scope > .node-children');
+
+      nodes.push({
+        counter: counterInput ? counterInput.value : '',
+        text: textInput ? textInput.value : '',
+        children: childrenContainer ? processContainer(childrenContainer) : []
+      });
+    });
+
+    return nodes;
+  }
+
+  treeData = processContainer(root);
+}
+
+/* TREE EDITOR RENDER */
 function renderTree() {
   const container = document.getElementById('treeRoot');
   container.innerHTML = '';
@@ -149,14 +177,18 @@ function buildNodeDOM(node, path) {
   const div = document.createElement('div');
   div.className = 'tree-node';
 
+  const pathStr = path.join('-');
+
   div.innerHTML = `
-    <div class="node-row">
-      <input type="text" class="node-counter" value="${node.counter}" placeholder="(1)" oninput="updateNode('${path.join('-')}', 'counter', this.value)">
-      <input type="text" class="node-text" value="${node.text}" placeholder="Section text content..." oninput="updateNode('${path.join('-')}', 'text', this.value)">
-      <div class="node-actions">
-        <button type="button" class="btn-sm btn-add-child" title="Add Subsection" onclick="addChildNode('${path.join('-')}')">➕ Subsection</button>
-        <button type="button" class="btn-sm btn-add-peer" title="Add Peer Section" onclick="addPeerNode('${path.join('-')}')">➕ Peer</button>
-        <button type="button" class="btn-sm btn-del" title="Delete Section" onclick="deleteNode('${path.join('-')}')">🗑️</button>
+    <div class="node-box">
+      <div class="node-header-row">
+        <input type="text" class="node-counter" value="${node.counter || ''}" placeholder="(1)">
+        <input type="text" class="node-text" value="${node.text || ''}" placeholder="Section text content...">
+      </div>
+      <div class="node-toolbar">
+        <button type="button" class="btn-sm btn-add-child" onclick="addChildNode('${pathStr}')">➕ Add Subsection</button>
+        <button type="button" class="btn-sm btn-add-peer" onclick="addPeerNode('${pathStr}')">➕ Add Peer Section</button>
+        <button type="button" class="btn-sm btn-del" onclick="deleteNode('${pathStr}')">🗑️ Delete</button>
       </div>
     </div>
     <div class="node-children"></div>
@@ -179,12 +211,8 @@ function getNodeByPath(pathStr) {
   return { node: current, indices };
 }
 
-function updateNode(pathStr, key, value) {
-  const { node } = getNodeByPath(pathStr);
-  node[key] = value;
-}
-
 function addTopLevelSection() {
+  syncTreeDOMToState();
   const num = treeData.length + 1;
   treeData.push({
     counter: `(${num})`,
@@ -195,6 +223,7 @@ function addTopLevelSection() {
 }
 
 function addPeerNode(pathStr) {
+  syncTreeDOMToState();
   const indices = pathStr.split('-').map(Number);
   const parentIndices = indices.slice(0, -1);
   const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
@@ -214,6 +243,7 @@ function addPeerNode(pathStr) {
 }
 
 function addChildNode(pathStr) {
+  syncTreeDOMToState();
   const { node, indices } = getNodeByPath(pathStr);
   const depth = indices.length + 1;
   
@@ -230,6 +260,7 @@ function addChildNode(pathStr) {
 }
 
 function deleteNode(pathStr) {
+  syncTreeDOMToState();
   const indices = pathStr.split('-').map(Number);
   const parentIndices = indices.slice(0, -1);
   const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
@@ -265,6 +296,8 @@ function getCreds() {
 
 async function saveLaw(e) {
   e.preventDefault();
+  syncTreeDOMToState();
+  
   const c = getCreds();
   const id = document.getElementById('law_id').value.trim();
 

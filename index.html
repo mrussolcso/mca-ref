@@ -28,7 +28,7 @@
     display: flex; 
     flex-direction: column; 
     gap: 20px; 
-  }
+  } 
   
   /* Navigation Bar */
   .app-header { 
@@ -200,6 +200,12 @@
     margin-top: 15px; 
   }
 
+  .detail-footer-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   /* Right Column: Offenses */
   .offense-list {
     list-style: none;
@@ -294,10 +300,10 @@
 
         <!-- Bottom Section: History & Metadata Footer -->
         <footer class="detail-footer">
-          <h4 style="margin: 0 0 6px 0; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
-            📜 History & Metadata
+          <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;">
+            HISTORY & METADATA
           </h4>
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div class="detail-footer-content">
             <div>
               <strong>Revision History:</strong>
               <div id="view_law_history" style="margin-top: 2px; color: #4a5568;">--</div>

@@ -51,7 +51,7 @@
   .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
   /* Offense Display Preview Box */
-  .display-tag-preview { background: #ebf8ff; border: 1px solid #90cdf4; color: #2b6cb0; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-align: center; margin-top: 4px; }
+  .display-tag-preview { background: #fefcbf; border: 1px solid #d69e2e; color: #744210; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-align: center; margin-top: 4px; }
 
   /* Tree Editor Styling */
   .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
@@ -210,31 +210,45 @@
 
       <!-- Statutory Linking Controls -->
       <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
-        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Citation Display Format</h4>
+        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Categorized Law Sections</h4>
       </div>
 
-      <div>
+      <div class="span-2">
         <label>Linked Law ID</label>
         <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206" oninput="updateOffenseDisplayTag()">
       </div>
-      <div class="span-2">
-        <label>Target Subsections / Anchors</label>
-        <div style="display: flex; gap: 8px;">
-          <select id="offense_anchor_select" class="span-2">
-            <option value="">-- Load anchors by fetching Law ID --</option>
-          </select>
-          <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap;" onclick="fetchAnchorsForLaw()">Fetch Anchors</button>
-        </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap; width: 100%; height: 35px;" onclick="fetchAnchorsForLaw()">Fetch Law Anchors</button>
       </div>
-      <div class="full">
-        <label>Selected Subsections Target (Comma-separated anchors)</label>
-        <input type="text" id="offense_target_anchors" placeholder="e.g. 1-a, 1-b" oninput="updateOffenseDisplayTag()">
+
+      <!-- Primary Charge Section Category (Yellow Highlight) -->
+      <div class="full" style="background: #fefcbf; padding: 12px; border-radius: 6px; border: 1px solid #f6e05e;">
+        <label style="color: #744210;">🟨 Primary Offense Law Sections (Charge Text Category)</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="primary_anchor_select" style="background: white;">
+            <option value="">-- Load anchors using Fetch Law Anchors --</option>
+          </select>
+        </div>
+        <label style="color: #744210; font-size: 0.75rem;">Selected Primary Section Anchors (Comma-separated)</label>
+        <input type="text" id="offense_primary_anchors" placeholder="e.g. 1-a" oninput="updateOffenseDisplayTag()" style="background: white;">
+      </div>
+
+      <!-- Secondary Related Section Category (Green Highlight) -->
+      <div class="full" style="background: #f0fff4; padding: 12px; border-radius: 6px; border: 1px solid #9ae6b4;">
+        <label style="color: #22543d;">🟩 Secondary Related Law Sections (Context / Penalties Category)</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="secondary_anchor_select" style="background: white;">
+            <option value="">-- Load anchors using Fetch Law Anchors --</option>
+          </select>
+        </div>
+        <label style="color: #22543d; font-size: 0.75rem;">Selected Secondary Section Anchors (Comma-separated)</label>
+        <input type="text" id="offense_secondary_anchors" placeholder="e.g. 2, 3-a" style="background: white;">
       </div>
 
       <!-- Live Display Tag Preview -->
       <div class="full">
-        <label>Primary Citation Tag</label>
-        <div id="offenseDisplayTagPreview" class="display-tag-preview" placeholder="e.g., 45-5-206(1)(a) [1st]">--</div>
+        <label>Primary Citation Tag Preview</label>
+        <div id="offenseDisplayTagPreview" class="display-tag-preview">--</div>
       </div>
 
       <div class="full">
@@ -436,12 +450,12 @@ function getOrdinalSuffix(n) {
 
 function updateOffenseDisplayTag() {
   const lawId = document.getElementById('offense_law_id').value.trim();
-  const anchorsRaw = document.getElementById('offense_target_anchors').value.trim();
+  const primaryAnchorsRaw = document.getElementById('offense_primary_anchors').value.trim();
   const occurrence = document.getElementById('offense_occurrence').value.trim();
 
   let formattedAnchors = '';
-  if (anchorsRaw) {
-    formattedAnchors = '(' + anchorsRaw.split(',').map(s => s.trim()).filter(Boolean).join(')(') + ')';
+  if (primaryAnchorsRaw) {
+    formattedAnchors = '(' + primaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean).join(')(') + ')';
   }
 
   let occurrenceTag = '';
@@ -551,7 +565,8 @@ async function checkOffenseEntry() {
       document.getElementById('offense_mandatory').value = content.mandatory_appearance ? 'Yes' : 'No';
       document.getElementById('offense_conditions').value = content.conditions || '';
       document.getElementById('offense_law_id').value = content.law_id || '';
-      document.getElementById('offense_target_anchors').value = (content.target_anchors || []).join(', ');
+      document.getElementById('offense_primary_anchors').value = (content.primary_anchors || content.target_anchors || []).join(', ');
+      document.getElementById('offense_secondary_anchors').value = (content.secondary_anchors || []).join(', ');
     } else {
       notice.className = "status-notice status-new";
       notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
@@ -566,7 +581,8 @@ async function checkOffenseEntry() {
       document.getElementById('offense_mandatory').value = 'No';
       document.getElementById('offense_conditions').value = '';
       document.getElementById('offense_law_id').value = '';
-      document.getElementById('offense_target_anchors').value = '';
+      document.getElementById('offense_primary_anchors').value = '';
+      document.getElementById('offense_secondary_anchors').value = '';
     }
 
     updateOffenseDisplayTag();
@@ -602,25 +618,44 @@ async function fetchAnchorsForLaw() {
 
     const data = await res.json();
     const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
-    const select = document.getElementById('offense_anchor_select');
-    select.innerHTML = '<option value="">-- Select anchor to append --</option>';
+    
+    const primarySelect = document.getElementById('primary_anchor_select');
+    const secondarySelect = document.getElementById('secondary_anchor_select');
+    
+    primarySelect.innerHTML = '<option value="">-- Select primary anchor to append --</option>';
+    secondarySelect.innerHTML = '<option value="">-- Select secondary anchor to append --</option>';
 
     if (content.paragraphs && content.paragraphs.length > 0) {
       content.paragraphs.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.anchor_id;
-        opt.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
-        select.appendChild(opt);
+        const optPrimary = document.createElement('option');
+        optPrimary.value = p.anchor_id;
+        optPrimary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        primarySelect.appendChild(optPrimary);
+
+        const optSecondary = document.createElement('option');
+        optSecondary.value = p.anchor_id;
+        optSecondary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        secondarySelect.appendChild(optSecondary);
       });
 
-      select.onchange = function() {
+      primarySelect.onchange = function() {
         if (!this.value) return;
-        const currentTargets = document.getElementById('offense_target_anchors');
+        const currentTargets = document.getElementById('offense_primary_anchors');
         const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
         if (!existing.includes(this.value)) {
           existing.push(this.value);
           currentTargets.value = existing.join(', ');
           updateOffenseDisplayTag();
+        }
+      };
+
+      secondarySelect.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_secondary_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
         }
       };
 
@@ -824,8 +859,12 @@ async function saveOffense() {
     return;
   }
 
-  const targetAnchorsRaw = document.getElementById('offense_target_anchors').value;
-  const targetAnchors = targetAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+  const primaryAnchorsRaw = document.getElementById('offense_primary_anchors').value;
+  const primaryAnchors = primaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const secondaryAnchorsRaw = document.getElementById('offense_secondary_anchors').value;
+  const secondaryAnchors = secondaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
   const bondType = document.getElementById('offense_bond_type').value;
   const displayTag = document.getElementById('offenseDisplayTagPreview').textContent;
 
@@ -841,7 +880,8 @@ async function saveOffense() {
     mandatory_appearance: document.getElementById('offense_mandatory').value === 'Yes',
     conditions: document.getElementById('offense_conditions').value.trim(),
     law_id: document.getElementById('offense_law_id').value.trim(),
-    target_anchors: targetAnchors,
+    primary_anchors: primaryAnchors,
+    secondary_anchors: secondaryAnchors,
     last_updated: new Date().toISOString()
   };
 

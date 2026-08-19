@@ -164,21 +164,20 @@ function renderIdFields() {
     container.innerHTML = `
       <div><label>Title #</label><input type="text" id="id_mca_title" placeholder="45" oninput="updateComputedId()"></div>
       <div><label>Chapter #</label><input type="text" id="id_mca_chapter" placeholder="5" oninput="updateComputedId()"></div>
-      <div><label>Section #</label><input type="text" id="id_mca_section" placeholder="206" oninput="updateComputedId()"></div>
+      <div><label>Statute #</label><input type="text" id="id_mca_section" placeholder="206" oninput="updateComputedId()"></div>
     `;
   } else if (sourceType === 'County Ordinance') {
     container.innerHTML = `
-      <div><label>County Code / Identifier</label><input type="text" id="id_ord_county" placeholder="LC" oninput="updateComputedId()"></div>
+      <div><label>County Identifier</label><input type="text" id="id_ord_county" placeholder="LC" oninput="updateComputedId()"></div>
       <div class="span-2"><label>Ordinance Number</label><input type="text" id="id_ord_num" placeholder="2021-04" oninput="updateComputedId()"></div>
     `;
-  } else { // City Code
+  } else {
     container.innerHTML = `
-      <div><label>City Code / Identifier</label><input type="text" id="id_city_code" placeholder="HELENA" oninput="updateComputedId()"></div>
+      <div><label>City Identifier</label><input type="text" id="id_city_code" placeholder="HELENA" oninput="updateComputedId()"></div>
       <div class="span-2"><label>Code Section</label><input type="text" id="id_city_sec" placeholder="8-4-1" oninput="updateComputedId()"></div>
     `;
   }
 
-  // Reset downstream sections on dynamic structural change
   document.getElementById('sec4_card').style.display = 'none';
   document.getElementById('sec5_card').style.display = 'none';
 }
@@ -189,6 +188,7 @@ function computeLawId() {
     const t = document.getElementById('id_mca_title')?.value.trim() || '';
     const c = document.getElementById('id_mca_chapter')?.value.trim() || '';
     const s = document.getElementById('id_mca_section')?.value.trim() || '';
+    // Format strictly as Title-Chapter-Section (e.g., 45-5-206 or 45-5-999)
     return (t && c && s) ? `${t}-${c}-${s}` : '';
   } else if (sourceType === 'County Ordinance') {
     const county = document.getElementById('id_ord_county')?.value.trim() || '';
@@ -219,16 +219,19 @@ async function checkEntry() {
   const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
 
   try {
-    const res = await fetch(`${url}?ref=${c.branch}`, {
-      headers: { 'Authorization': `token ${c.token}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
+    const headers = { 'Accept': 'application/vnd.github.v3+json' };
+    if (c.token) headers['Authorization'] = `token ${c.token}`;
 
+    const res = await fetch(`${url}?ref=${c.branch}`, { headers });
     const notice = document.getElementById('entryStatusNotice');
 
     if (res.ok) {
       // Existing record found
       const data = await res.json();
-      const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\n/g, '')))));
+      
+      // Safe UTF-8 decoding
+      const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+      const content = JSON.parse(rawText);
       
       notice.className = "status-notice status-edit";
       notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded existing details for editing.`;
@@ -239,7 +242,7 @@ async function checkEntry() {
       
       treeData = content.tree || [];
       if (treeData.length === 0 && content.paragraphs) {
-        // Fallback reconstruction if treeData wasn't stored
+        // Fallback reconstruction if treeData wasn't stored in older files
         treeData = content.paragraphs.map(p => ({ counter: p.counter, text: p.text, children: [] }));
       }
     } else {
@@ -259,7 +262,7 @@ async function checkEntry() {
     document.getElementById('sec5_card').style.display = 'block';
 
   } catch (err) {
-    alert(`Error checking entry: ${err.message}`);
+    alert(`Error checking entry (${currentComputedLawId}): ${err.message}`);
   }
 }
 
@@ -477,7 +480,7 @@ async function updateIndex(c, indexPath, entry) {
   if (res.ok) {
     const d = await res.json();
     sha = d.sha;
-    index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g, '')))));
+    index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\s/g, '')))));
   }
 
   const idx = index.findIndex(i => i.id === entry.id);

@@ -3,7 +3,7 @@
   "name": "PFMA - Causing Bodily Injury With Weapon [1st Offense]",
   "occurrence": 1,
   "severity": "Misdemeanor",
-  "description": "",
+  "description": "A person commits the offense of partner or family member assault if the person negligently causes bodily injury to a partner or family member with a weapon.",
   "bond_type": "no_bond",
   "bond_amount": null,
   "mandatory_appearance": true,
@@ -13,14 +13,6 @@
     "1",
     "1-b"
   ],
-  "secondary_anchors": [
-    "2",
-    "2-a",
-    "2-b",
-    "3-a-ii",
-    "3-a-iii",
-    "3-a-iv",
-    "3-a-v"
-  ],
-  "last_updated": "2026-08-19T20:36:48.581Z"
+  "secondary_anchors": [],
+  "last_updated": "2026-08-19T20:37:56.764Z"
 }

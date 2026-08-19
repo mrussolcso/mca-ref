@@ -390,7 +390,7 @@ function selectAction(action) {
 async function loadLawsIndexCache() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/laws-index.json`;
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: { 'Authorization': `token ${validatedToken}` }
     });
     if (res.ok) {
@@ -454,7 +454,7 @@ async function selectLaw(lawId) {
   const path = `data/laws/${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: { 'Authorization': `token ${validatedToken}` }
     });
     if (res.ok) {
@@ -520,7 +520,7 @@ function updateOffenseId() {
 async function loadOffenseIndexCache() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/offenses-index.json`;
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: { 'Authorization': `token ${validatedToken}` }
     });
     if (res.ok) {
@@ -648,7 +648,7 @@ async function checkEntry() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: {
         'Authorization': `token ${validatedToken}`,
         'Accept': 'application/vnd.github.v3+json'
@@ -706,7 +706,7 @@ async function checkOffenseEntry() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: {
         'Authorization': `token ${validatedToken}`,
         'Accept': 'application/vnd.github.v3+json'
@@ -773,7 +773,7 @@ async function fetchAnchorsForLaw() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
       headers: {
         'Authorization': `token ${validatedToken}`,
         'Accept': 'application/vnd.github.v3+json'
@@ -957,7 +957,6 @@ function slugifyCounter(counter) {
   return (counter || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
 }
 
-/* RECURSIVE CUMULATIVE PATH & ANCHOR TRAVERSAL */
 function processTreeWithFullPaths(nodes, parentPath = '', parentAnchor = '', depth = 1) {
   let flatList = [];
 
@@ -1022,15 +1021,6 @@ async function saveLaw() {
   };
 
   await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
-  
-  await updateIndex('laws-index.json', { 
-    id: currentComputedLawId,
-    law_id: currentComputedLawId,
-    title: payload.title,
-    short_title: payload.short_title
-  });
-
-  await loadLawsIndexCache();
 }
 
 async function saveOffense() {
@@ -1064,25 +1054,17 @@ async function saveOffense() {
   };
 
   await commitFile(`data/offenses/${currentComputedOffenseId}.json`, payload, `Update Offense ${currentComputedOffenseId}`);
-  await updateIndex('offenses-index.json', { 
-    id: currentComputedOffenseId, 
-    name: payload.name, 
-    occurrence: payload.occurrence,
-    severity: payload.severity, 
-    law_id: payload.law_id 
-  });
-
-  await loadOffenseIndexCache();
 }
 
-async function commitFile(path, data, msg) {
+async function commitFile(path, data, msg, retryCount = 0) {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   let sha = null;
 
   try {
-    const resCheck = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { 
+    const resCheck = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, { 
       headers: { 'Authorization': `token ${validatedToken}`, 'Accept': 'application/vnd.github.v3+json' } 
     });
+    
     if (resCheck.ok) { 
       const d = await resCheck.json(); 
       sha = d.sha; 
@@ -1105,74 +1087,21 @@ async function commitFile(path, data, msg) {
       body: JSON.stringify(body) 
     });
 
+    if (res.status === 409 && retryCount < 3) {
+      console.warn(`409 Conflict encountered for ${path}. Retrying (${retryCount + 1}/3)...`);
+      await new Promise(r => setTimeout(r, 1000));
+      return await commitFile(path, data, msg, retryCount + 1);
+    }
+
     if (!res.ok) {
       const errData = await res.json();
       throw new Error(`[${res.status}] ${errData.message || res.statusText}`);
     }
     
-    alert(`Successfully committed ${path}!`);
+    alert(`Successfully committed ${path}! Index rebuild triggered.`);
   } catch (err) {
     console.error(err);
     alert(`GitHub Error (${path}): ${err.message}`);
-  }
-}
-
-async function updateIndex(indexPath, entry) {
-  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/${indexPath}`;
-  let index = [];
-  let sha = null;
-
-  try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { 
-      headers: { 'Authorization': `token ${validatedToken}` } 
-    });
-    
-    if (res.ok) {
-      const d = await res.json();
-      sha = d.sha;
-      const rawText = decodeURIComponent(escape(atob(d.content.replace(/\s/g, '')))).trim();
-      
-      if (rawText) {
-        try {
-          index = JSON.parse(rawText);
-          if (!Array.isArray(index)) index = [];
-        } catch (e) {
-          console.warn(`Failed to parse existing ${indexPath}, resetting to array:`, e);
-          index = [];
-        }
-      }
-    }
-  } catch (err) {
-    console.warn(`Unable to retrieve existing index file (${indexPath}), initializing new one:`, err);
-  }
-
-  const idx = index.findIndex(i => (i.id && i.id === entry.id) || (i.law_id && i.law_id === entry.law_id));
-  if (idx >= 0) {
-    index[idx] = entry; 
-  } else {
-    index.push(entry);
-  }
-
-  const body = { 
-    message: `Sync ${indexPath}`, 
-    content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), 
-    branch: REPO_CONFIG.branch 
-  };
-  if (sha) body.sha = sha;
-
-  const resPut = await fetch(url, {
-    method: 'PUT',
-    headers: { 
-      'Authorization': `token ${validatedToken}`, 
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    body: JSON.stringify(body)
-  });
-
-  if (!resPut.ok) {
-    const errData = await resPut.json();
-    throw new Error(`Failed to update index ${indexPath}: ${errData.message || resPut.statusText}`);
   }
 }
 </script>

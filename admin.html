@@ -3,494 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MCA Admin Publisher</title>
+<title>Admin Relational Publisher</title>
 <style>
-  :root {
-    --primary: #1a365d;
-    --primary-light: #2b6cb0;
-    --border: #cbd5e0;
-    --bg-main: #f7fafc;
-    --bg-card: #ffffff;
-    --text: #2d3748;
-    --highlight-bg: #fefcbf;
-    --highlight-border: #d69e2e;
-  }
-
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg-main); margin: 0; padding: 20px; color: var(--text); }
-
-  header { max-width: 900px; margin: 0 auto 20px auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
-  header h1 { margin: 0; color: var(--primary); font-size: 1.5rem; }
-  header a { color: var(--primary-light); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
-
+  :root { --primary: #1a365d; --primary-light: #2b6cb0; --border: #cbd5e0; --bg: #f7fafc; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
   .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .card h3 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-
-  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-  .full-width { grid-column: span 2; }
-
-  label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: #4a5568; }
-  input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
-  textarea { resize: vertical; min-height: 180px; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(43,108,176,0.15); }
-
+  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .full { grid-column: span 2; }
+  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+  textarea { min-height: 120px; }
+  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
   .pat-input { -webkit-text-security: disc; }
-
-  .btn-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
-  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
-  .btn:hover { background: var(--primary); }
-  .btn-secondary { background: #e2e8f0; color: #2d3748; }
-  .btn-secondary:hover { background: #cbd5e0; }
-  .btn:disabled { background: #a0aec0; cursor: not-allowed; }
-
-  .status-banner { padding: 12px 16px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; display: none; margin-top: 15px; }
-  .status-success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
-  .status-error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
-  .status-info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
-
-  /* Preview Panel */
-  .preview-box { margin-top: 15px; padding: 15px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; display: none; }
-  .p-item { margin-bottom: 8px; line-height: 1.5; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
-  .indent-level-1 { margin-left: 0px; }
-  .indent-level-2 { margin-left: 20px; }
-  .indent-level-3 { margin-left: 40px; }
-  .p-item.highlighted-subsection { background-color: var(--highlight-bg); border-left: 4px solid var(--highlight-border); font-weight: 600; }
+  .mode-selector { display: flex; gap: 10px; margin-bottom: 10px; }
+  .mode-btn { flex: 1; padding: 10px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; }
+  .mode-btn.active { background: var(--primary); color: white; }
+  .status { padding: 10px; border-radius: 6px; display: none; margin-top: 10px; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>⚙️ MCA Statute & Bond Publisher</h1>
-  <a href="index.html">← Back to Index Reader</a>
-</header>
-
 <div class="container">
+  <h2>⚙️ Relational Admin Publisher</h2>
 
-  <!-- 1. GitHub Configuration -->
+  <!-- Credentials -->
   <div class="card">
-    <h3>1. GitHub Credentials</h3>
+    <h3>1. GitHub Configuration</h3>
     <div class="form-grid">
-      <div>
-        <label for="ghOwner">Repository Owner</label>
-        <input type="text" id="ghOwner" value="mrussolcso" placeholder="mrussolcso">
-      </div>
-      <div>
-        <label for="ghRepo">Repository Name</label>
-        <input type="text" id="ghRepo" value="mca-ref" placeholder="mca-ref">
-      </div>
-      <div>
-        <label for="ghBranch">Target Branch</label>
-        <input type="text" id="ghBranch" value="main">
-      </div>
-      <div>
-        <label for="ghToken">Personal Access Token (PAT with 'repo' scope)</label>
-        <input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" onpaste="true">
-      </div>
-    </div>
-    <div class="btn-group">
-      <button type="button" class="btn btn-secondary" onclick="verifyPAT()">🔑 Verify PAT & Access</button>
+      <div><label>Owner</label><input type="text" id="ghOwner" value="mrussolcso"></div>
+      <div><label>Repo</label><input type="text" id="ghRepo" value="mca-ref"></div>
+      <div><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
+      <div><label>PAT Token</label><input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxx"></div>
     </div>
   </div>
 
-  <!-- 2. Lookup Section -->
+  <!-- Mode Switcher -->
+  <div class="mode-selector">
+    <button class="mode-btn active" id="btnModeLaw" onclick="setMode('law')">📜 Edit Law / Code</button>
+    <button class="mode-btn" id="btnModeOffense" onclick="setMode('offense')">🚨 Edit Offense Charge</button>
+  </div>
+
+  <!-- Entity Editor Form -->
   <div class="card">
-    <h3>2. Statute Check & Load</h3>
-    <form onsubmit="event.preventDefault(); checkAndLoadStatute();">
+    <h3 id="formTitle">2. Law Record Editor</h3>
+    
+    <!-- LAW FORM -->
+    <form id="lawForm" onsubmit="saveLaw(event)">
       <div class="form-grid">
-        <div class="full-width">
-          <label for="statuteId">Statute ID (e.g. 45-5-507)</label>
-          <input type="text" id="statuteId" placeholder="45-5-507" required>
-        </div>
+        <div><label>Law ID (e.g. 45-5-206)</label><input type="text" id="law_id" required></div>
+        <div><label>Source Type</label><select id="source_type"><option>MCA Statute</option><option>County Ordinance</option><option>City Code</option></select></div>
+        <div class="full"><label>Title</label><input type="text" id="law_title" required></div>
+        <div class="full"><label>Official Publication URL</label><input type="url" id="official_url"></div>
+        <div class="full"><label>Raw Text (Auto Parsed)</label><textarea id="law_text" required></textarea></div>
+        <div class="full"><label>Revision History</label><input type="text" id="law_history"></div>
       </div>
-
-      <div class="btn-group" style="margin-top: 15px;">
-        <button type="button" class="btn" onclick="checkAndLoadStatute()">🔍 Check & Edit Content</button>
-      </div>
+      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Law to GitHub</button>
     </form>
 
-    <div id="statusBanner" class="status-banner"></div>
-  </div>
-
-  <!-- 3. Dynamic Editor Section (Shown after check) -->
-  <div class="card" id="editorCard" style="display: none;">
-    <h3>3. Statute Editor</h3>
-    <form id="statuteForm" onsubmit="publishStatute(event)">
+    <!-- OFFENSE FORM -->
+    <form id="offenseForm" onsubmit="saveOffense(event)" style="display:none;">
       <div class="form-grid">
-        <div class="full-width">
-          <label for="statuteTitle">Statute Title</label>
-          <input type="text" id="statuteTitle" placeholder="Incest" required>
-        </div>
-        
-        <div>
-          <label for="subsectionTag">Bond Subsection Ref (e.g. (1)(a) or (2))</label>
-          <input type="text" id="subsectionTag" placeholder="(1)(a)">
-        </div>
-        <div>
-          <label for="offenseDegree">Offense Degree</label>
-          <select id="offenseDegree">
-            <option value="Felony">Felony</option>
-            <option value="Misdemeanor">Misdemeanor</option>
-          </select>
-        </div>
-
-        <div>
-          <label for="recommendedBond">Recommended Bond</label>
-          <input type="text" id="recommendedBond" placeholder="Court Appearance Required">
-        </div>
-        <div>
-          <label for="maxFine">Max Fine</label>
-          <input type="text" id="maxFine" placeholder="$50,000">
-        </div>
-
-        <div class="full-width">
-          <label for="keywords">Search Keywords (comma separated)</label>
-          <input type="text" id="keywords" placeholder="incest, family, sexual offense">
-        </div>
-
-        <div class="full-width">
-          <label for="statuteText">Raw MCA Statute Text</label>
-          <textarea id="statuteText" placeholder="(1) A person commits the offense of incest if...&#10;(2) (a) Consent is a defense to incest..." required></textarea>
-        </div>
-
-        <div class="full-width">
-          <label for="statuteHistory">Statutory History Text</label>
-          <input type="text" id="statuteHistory" placeholder="History: En. 94-5-606 by Sec. 1, Ch. 513, L. 1973...">
-        </div>
+        <div><label>Offense ID (e.g. 45-5-206_1a)</label><input type="text" id="off_id" required></div>
+        <div><label>Parent Law ID (FK)</label><input type="text" id="off_law_id" placeholder="45-5-206" required></div>
+        <div><label>Subsection Ref</label><input type="text" id="off_sub" placeholder="(1)(a)"></div>
+        <div><label>Degree</label><select id="off_degree"><option>Misdemeanor</option><option>Felony</option><option>Civil</option></select></div>
+        <div class="full"><label>Charge Title</label><input type="text" id="off_title" required></div>
+        <div><label>Rec Bond</label><input type="text" id="off_bond"></div>
+        <div><label>Min / Max Fine</label><input type="text" id="off_fines" placeholder="$0 / $500"></div>
+        <div><label>Min / Max Jail</label><input type="text" id="off_jail" placeholder="None / 1 Year"></div>
+        <div><label>Must Appear</label><select id="off_appear"><option>REQUIRED</option><option>OPTIONAL</option></select></div>
       </div>
-
-      <div class="btn-group" style="margin-top: 20px;">
-        <button type="button" class="btn btn-secondary" onclick="previewStatute()">👁️ Preview Highlight</button>
-        <button type="submit" class="btn" id="publishBtn">🚀 Save & Push to GitHub</button>
-      </div>
+      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Offense to GitHub</button>
     </form>
 
-    <!-- Preview Box -->
-    <div id="previewContainer" class="preview-box">
-      <h4 style="margin-top:0; color:var(--primary);">Parsed Paragraph Preview</h4>
-      <div id="previewBody"></div>
-    </div>
+    <div id="status" class="status"></div>
   </div>
-
 </div>
 
 <script>
-let currentFileSha = null;
+let mode = 'law';
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('ghOwner').value = localStorage.getItem('ghOwner') || 'mrussolcso';
-  document.getElementById('ghRepo').value = localStorage.getItem('ghRepo') || 'mca-ref';
-  if (localStorage.getItem('ghBranch')) document.getElementById('ghBranch').value = localStorage.getItem('ghBranch');
-  if (localStorage.getItem('ghToken')) document.getElementById('ghToken').value = localStorage.getItem('ghToken');
-});
-
-function saveConfig() {
-  localStorage.setItem('ghOwner', document.getElementById('ghOwner').value.trim());
-  localStorage.setItem('ghRepo', document.getElementById('ghRepo').value.trim());
-  localStorage.setItem('ghBranch', document.getElementById('ghBranch').value.trim());
-  localStorage.setItem('ghToken', document.getElementById('ghToken').value.trim());
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnModeLaw').classList.toggle('active', m === 'law');
+  document.getElementById('btnModeOffense').classList.toggle('active', m === 'offense');
+  document.getElementById('lawForm').style.display = m === 'law' ? 'grid' : 'none';
+  document.getElementById('offenseForm').style.display = m === 'offense' ? 'grid' : 'none';
+  document.getElementById('formTitle').textContent = m === 'law' ? '2. Law Record Editor' : '2. Offense Record Editor';
 }
 
-function getCredentials() {
-  saveConfig();
+function getCreds() {
   return {
-    owner: document.getElementById('ghOwner').value.trim() || 'mrussolcso',
-    repo: document.getElementById('ghRepo').value.trim() || 'mca-ref',
-    branch: document.getElementById('ghBranch').value.trim() || 'main',
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    branch: document.getElementById('ghBranch').value.trim(),
     token: document.getElementById('ghToken').value.trim()
   };
 }
 
-// Verify GitHub PAT
-async function verifyPAT() {
-  const { token } = getCredentials();
-  if (!token) return showStatus("Please enter a Personal Access Token first.", false, true);
-
-  showStatus("Verifying PAT credentials with GitHub...", false, false, true);
-
-  try {
-    const res = await fetch(`https://api.github.com/user`, {
-      headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
-    });
-
-    if (!res.ok) throw new Error("Invalid Personal Access Token or expired credentials.");
-    
-    const user = await res.json();
-    showStatus(`Success! Authenticated as GitHub user: ${user.login}`, true);
-  } catch (err) {
-    showStatus(`Verification Failed: ${err.message}`, false, true);
-  }
-}
-
-// Check and Load File Content directly into the Form Editor
-async function checkAndLoadStatute() {
-  const { owner, repo, branch, token } = getCredentials();
-  const statuteId = document.getElementById('statuteId').value.trim();
-  const editorCard = document.getElementById('editorCard');
-
-  if (!statuteId) return showStatus("Please enter a Statute ID (e.g. 45-5-507).", false, true);
-
-  const path = `data/statutes/${statuteId}.json`;
-  showStatus(`Fetching ${path} from ${owner}/${repo}...`, false, false, true);
-
-  try {
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-    const headers = token ? { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } : {};
-    const res = await fetch(url, { headers });
-
-    if (res.status === 200) {
-      const fileData = await res.json();
-      currentFileSha = fileData.sha;
-      const jsonContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, '')))));
-      
-      populateEditorForm(jsonContent);
-      editorCard.style.display = 'block';
-      showStatus(`File data/statutes/${statuteId}.json loaded into editor below!`, true);
-    } else if (res.status === 404) {
-      currentFileSha = null;
-      resetEditorForm(statuteId);
-      editorCard.style.display = 'block';
-      showStatus(`File data/statutes/${statuteId}.json DOES NOT exist yet. New template created for editor below.`, false, false, true);
-    } else {
-      throw new Error(`GitHub returned status code ${res.status}`);
-    }
-  } catch (err) {
-    showStatus(`Error checking file: ${err.message}`, false, true);
-  }
-}
-
-function populateEditorForm(data) {
-  document.getElementById('statuteTitle').value = data.title || '';
-  
-  const offense = (data.offenses && data.offenses[0]) ? data.offenses[0] : {};
-  document.getElementById('subsectionTag').value = offense.subsection || '';
-  document.getElementById('offenseDegree').value = offense.degree || 'Felony';
-  document.getElementById('recommendedBond').value = offense.recommended_bond || 'Court Appearance Required';
-  document.getElementById('maxFine').value = offense.max_fine || '$50,000';
-  
-  document.getElementById('keywords').value = data.keywords || '';
-  document.getElementById('statuteHistory').value = data.history || '';
-
-  if (data.paragraphs && data.paragraphs.length > 0) {
-    document.getElementById('statuteText').value = data.paragraphs
-      .map(p => p.counter ? `${p.counter} ${p.text}` : p.text)
-      .join('\n');
-  } else {
-    document.getElementById('statuteText').value = '';
-  }
-}
-
-function resetEditorForm(statuteId) {
-  document.getElementById('statuteTitle').value = '';
-  document.getElementById('subsectionTag').value = '';
-  document.getElementById('offenseDegree').value = 'Felony';
-  document.getElementById('recommendedBond').value = 'Court Appearance Required';
-  document.getElementById('maxFine').value = '$50,000';
-  document.getElementById('keywords').value = '';
-  document.getElementById('statuteHistory').value = '';
-  document.getElementById('statuteText').value = '';
-}
-
-function previewStatute() {
-  const rawText = document.getElementById('statuteText').value.trim();
-  const targetTag = document.getElementById('subsectionTag').value.trim().toLowerCase().replace(/\s+/g, '');
-  const previewBox = document.getElementById('previewContainer');
-  const previewBody = document.getElementById('previewBody');
-
-  if (!rawText) return showStatus("Enter statute text to review.", false, true);
-
-  const paragraphs = parseStatuteParagraphs(rawText);
-  let html = '';
-  let currentLevel1 = '';
-  let currentLevel2 = '';
-
-  paragraphs.forEach(p => {
-    const counter = (p.counter || '').replace(/\s+/g, '').toLowerCase();
-
-    if (/^\([0-9]+\)$/.test(counter)) {
-      currentLevel1 = counter;
-      currentLevel2 = '';
-    } else if (/^\([a-z]+\)$/.test(counter)) {
-      currentLevel2 = counter;
-    } else if (/^\([0-9]+\)\([a-z]+\)$/.test(counter)) {
-      const match = counter.match(/^(\([0-9]+\))(\([a-z]+\))$/);
-      currentLevel1 = match[1];
-      currentLevel2 = match[2];
-    }
-
-    const fullPath = counter.startsWith('(') && counter.includes(')(') 
-      ? counter 
-      : `${currentLevel1}${currentLevel2}`;
-
-    const isHighlighted = targetTag && (
-      fullPath === targetTag || 
-      counter === targetTag || 
-      fullPath.startsWith(targetTag)
-    );
-
-    const indent = getIndentClass(p.counter);
-    const highlightClass = isHighlighted ? 'highlighted-subsection' : '';
-
-    html += `<div class="p-item ${indent} ${highlightClass}"><strong>${p.counter}</strong> ${p.text}</div>`;
-  });
-
-  previewBody.innerHTML = html;
-  previewBox.style.display = 'block';
-}
-
-function parseStatuteParagraphs(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const paragraphs = [];
-
-  lines.forEach(line => {
-    const match = line.match(/^(\((?:[0-9]+|[a-z]+|[ivx]+)\))\s*(.*)/i);
-    if (match) {
-      paragraphs.push({ counter: match[1], text: match[2] });
-    } else {
-      paragraphs.push({ counter: "", text: line });
-    }
-  });
-
-  return paragraphs;
-}
-
-function getIndentClass(counter) {
-  if (!counter) return "indent-level-1";
-  if (/^\([0-9]+\)(\([a-z]+\))?$/.test(counter)) return "indent-level-1";
-  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2";
-  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3";
-  return "indent-level-1";
-}
-
-async function publishStatute(e) {
+async function saveLaw(e) {
   e.preventDefault();
-  const { owner, repo, branch, token } = getCredentials();
-
-  const statuteId = document.getElementById('statuteId').value.trim();
-  const title = document.getElementById('statuteTitle').value.trim();
-  const subsectionTag = document.getElementById('subsectionTag').value.trim();
-  const degree = document.getElementById('offenseDegree').value;
-  const keywords = document.getElementById('keywords').value.trim();
-  const recommendedBond = document.getElementById('recommendedBond').value.trim() || 'Court Appearance Required';
-  const maxFine = document.getElementById('maxFine').value.trim() || '$50,000';
-  const rawText = document.getElementById('statuteText').value.trim();
-  const history = document.getElementById('statuteHistory').value.trim();
-
-  const btn = document.getElementById('publishBtn');
-  showStatus("Saving changes and updating GitHub...", false, false, true);
-  btn.disabled = true;
-
-  try {
-    if (!token) throw new Error("Missing PAT token in Section 1.");
-
-    const titleNum = parseInt(statuteId.split('-')[0], 10) || 45;
-    const fullCitation = subsectionTag ? `${statuteId}${subsectionTag}` : statuteId;
-
-    const statuteData = {
-      id: statuteId,
-      title: title,
-      title_num: titleNum,
-      paragraphs: parseStatuteParagraphs(rawText),
-      offenses: [{
-        subsection: subsectionTag || null,
-        charge_name: `${fullCitation}. ${title}`,
-        degree: degree,
-        recommended_bond: recommendedBond,
-        min_fine: "$0",
-        max_fine: maxFine,
-        surcharges: "Standard",
-        must_appear: "REQUIRED",
-        jail: degree === 'Felony' ? "Up to Life / State Prison" : "County Jail"
-      }],
-      history: history
-    };
-
-    const path = `data/statutes/${statuteId}.json`;
-    await commitToGitHub(owner, repo, branch, token, path, JSON.stringify(statuteData, null, 2), `Update statute ${statuteId}`, currentFileSha);
-
-    await syncSearchIndex(owner, repo, branch, token, {
-      id: statuteId,
-      title: title,
-      title_num: titleNum,
-      degrees: [degree],
-      keywords: `${fullCitation} ${keywords} ${title.toLowerCase()}`.trim()
-    });
-
-    showStatus(`Success! Saved ${statuteId} to repository and synced search index.`, true);
-
-  } catch (err) {
-    showStatus(`Publish Error: ${err.message}`, false, true);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-async function syncSearchIndex(owner, repo, branch, token, newEntry) {
-  const indexPath = 'search-index.json';
-  let searchIndex = [];
-  let sha = null;
-
-  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${indexPath}?ref=${branch}`;
-  const getRes = await fetch(getUrl, {
-    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
-  });
-
-  if (getRes.ok) {
-    const fileInfo = await getRes.json();
-    sha = fileInfo.sha;
-    const contentStr = decodeURIComponent(escape(atob(fileInfo.content.replace(/\n/g, ''))));
-    searchIndex = JSON.parse(contentStr);
-  }
-
-  const existingIndex = searchIndex.findIndex(item => item.id === newEntry.id);
-  if (existingIndex >= 0) {
-    searchIndex[existingIndex] = newEntry;
-  } else {
-    searchIndex.push(newEntry);
-  }
-
-  searchIndex.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
-
-  await commitToGitHub(owner, repo, branch, token, indexPath, JSON.stringify(searchIndex, null, 2), `Sync search-index.json for ${newEntry.id}`, sha);
-}
-
-async function commitToGitHub(owner, repo, branch, token, path, contentStr, commitMessage, existingSha = null) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-
-  const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
+  const c = getCreds();
+  const id = document.getElementById('law_id').value.trim();
+  const text = document.getElementById('law_text').value.trim();
 
   const payload = {
-    message: commitMessage,
-    content: encodedContent,
-    branch: branch
+    law_id: id,
+    title: document.getElementById('law_title').value.trim(),
+    source_type: document.getElementById('source_type').value,
+    official_url: document.getElementById('official_url').value.trim(),
+    last_updated: new Date().toISOString(),
+    history: document.getElementById('law_history').value.trim(),
+    paragraphs: text.split('\n').map(l => {
+      const m = l.match(/^(\([a-z0-9]+\))\s*(.*)/i);
+      return m ? { counter: m[1], text: m[2] } : { counter: '', text: l };
+    })
   };
-  if (existingSha) payload.sha = existingSha;
 
-  const putRes = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `token ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/vnd.github.v3+json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!putRes.ok) {
-    const errData = await putRes.json();
-    throw new Error(`GitHub API Error (${path}): ${errData.message || putRes.statusText}`);
-  }
+  await commitFile(c, `data/laws/${id}.json`, payload, `Update Law ${id}`);
+  await updateIndex(c, 'laws-index.json', { id: id, title: payload.title });
 }
 
-function showStatus(msg, isSuccess = false, isError = false, isInfo = false) {
-  const banner = document.getElementById('statusBanner');
-  banner.textContent = msg;
-  banner.style.display = 'block';
+async function saveOffense(e) {
+  e.preventDefault();
+  const c = getCreds();
+  const id = document.getElementById('off_id').value.trim();
 
-  banner.className = 'status-banner';
-  if (isSuccess) banner.classList.add('status-success');
-  if (isError) banner.classList.add('status-error');
-  if (isInfo) banner.classList.add('status-info');
+  const payload = {
+    offense_id: id,
+    law_id: document.getElementById('off_law_id').value.trim(),
+    subsection_ref: document.getElementById('off_sub').value.trim(),
+    charge_title: document.getElementById('off_title').value.trim(),
+    degree: document.getElementById('off_degree').value,
+    rec_bond: document.getElementById('off_bond').value.trim(),
+    max_fine: document.getElementById('off_fines').value.trim(),
+    max_jail: document.getElementById('off_jail').value.trim(),
+    must_appear: document.getElementById('off_appear').value
+  };
+
+  await commitFile(c, `data/offenses/${id}.json`, payload, `Update Offense ${id}`);
+  await updateIndex(c, 'offenses-index.json', { id: id, law_id: payload.law_id, title: payload.charge_title, degree: payload.degree });
+}
+
+async function commitFile(c, path, data, msg) {
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
+  let sha = null;
+
+  const resCheck = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
+  if (resCheck.ok) { const d = await resCheck.json(); sha = d.sha; }
+
+  const body = { message: msg, content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), branch: c.branch };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) alert("Error committing to GitHub");
+  else alert("Saved successfully!");
+}
+
+async function updateIndex(c, indexPath, entry) {
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/data/${indexPath}`;
+  let index = [];
+  let sha = null;
+
+  const res = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
+  if (res.ok) {
+    const d = await res.json();
+    sha = d.sha;
+    index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g, '')))));
+  }
+
+  const idx = index.findIndex(i => i.id === entry.id);
+  if (idx >= 0) index[idx] = entry; else index.push(entry);
+
+  await fetch(url, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `Sync ${indexPath}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), branch: c.branch, sha: sha })
+  });
 }
 </script>
 

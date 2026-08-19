@@ -103,31 +103,49 @@
     </div>
   </div>
 
-  <!-- Section 3: Law Identifier -->
+  <!-- Section 3: Law Unified Search & Identifier -->
   <div class="card" id="sec3_card" style="display: none;">
-    <h3 style="margin-top:0;">3. Law Identifier & Source</h3>
+    <h3 style="margin-top:0;">3. Law Unified Search & Identifier</h3>
     <div class="form-grid">
-      <div class="full">
-        <label>Source Type</label>
-        <select id="source_type" onchange="renderIdFields()">
-          <option value="MCA Statute">MCA Statute</option>
-          <option value="County Ordinance">County Ordinance</option>
-          <option value="City Code">City Code</option>
-        </select>
+      <div class="full autocomplete-container">
+        <label>Search Existing Law or Enter New ID</label>
+        <input type="text" id="unifiedLawSearch" autocomplete="off" placeholder="Search by ID or Title (e.g., 45-5-206)..." oninput="searchLawsUnified(this.value)">
+        <div id="unifiedLawSearchResults" class="autocomplete-list"></div>
       </div>
-      <div id="idFieldsContainer" class="full form-grid" style="padding:0;"></div>
+
+      <div class="full" id="newLawFieldsContainer" style="display: none; border-top: 1px dashed var(--border); padding-top: 14px; margin-top: 6px;">
+        <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #4a5568; font-weight: 600;">✨ No existing law found with this ID. Provide details to add a new law:</p>
+        <div class="form-grid">
+          <div class="full">
+            <label>Source Type</label>
+            <select id="source_type" onchange="renderIdFields()">
+              <option value="MCA Statute">MCA Statute</option>
+              <option value="County Ordinance">County Ordinance</option>
+              <option value="City Code">City Code</option>
+            </select>
+          </div>
+          <div id="idFieldsContainer" class="full form-grid" style="padding:0;"></div>
+        </div>
+      </div>
+
       <div class="full">
-        <button type="button" class="btn btn-check" onclick="checkEntry()">🔍 Check Entry</button>
+        <button type="button" class="btn btn-check" style="width:100%; margin-top:6px;" onclick="checkEntry()">🔍 Check / Load Law Entry</button>
       </div>
     </div>
   </div>
 
-  <!-- Section 3-Offense: Source & Search -->
+  <!-- Section 3-Offense: Offense Unified Search -->
   <div class="card" id="sec3_offense_card" style="display: none;">
-    <h3 style="margin-top:0;">3. Offense Source & ID Configuration</h3>
+    <h3 style="margin-top:0;">3. Offense Search & Configuration</h3>
     <div class="form-grid">
+      <div class="full autocomplete-container">
+        <label>Search Existing Offense or Enter Target ID</label>
+        <input type="text" id="offense_id_input" autocomplete="off" placeholder="Search by Offense ID, Name, or Law ID..." oninput="handleOffenseIdInput(this.value)">
+        <div id="offense_autocomplete_list" class="autocomplete-list"></div>
+      </div>
+
       <div class="autocomplete-container">
-        <label>Law ID (Search Statutes)</label>
+        <label>Filter / Link Law ID (Optional)</label>
         <input type="text" id="lawIdSearch" autocomplete="off" placeholder="Type MCA number (e.g., 45-5-206)..." oninput="searchLaws()">
         <div id="lawSearchResults" class="autocomplete-list"></div>
       </div>
@@ -138,14 +156,8 @@
         <div id="subsectionSearchResults" class="autocomplete-list"></div>
       </div>
 
-      <div class="autocomplete-container">
-        <label>Target Offense ID / Charge Code</label>
-        <input type="text" id="offense_id_input" autocomplete="off" placeholder="Generated Offense ID..." oninput="handleOffenseIdInput(this.value)">
-        <div id="offense_autocomplete_list" class="autocomplete-list"></div>
-      </div>
-
       <div class="full">
-        <button type="button" class="btn btn-check" style="width:100%; margin-top:6px;" onclick="checkOffenseEntry()">🔍 Check Offense Record</button>
+        <button type="button" class="btn btn-check" style="width:100%; margin-top:6px;" onclick="checkOffenseEntry()">🔍 Check / Load Offense Record</button>
       </div>
     </div>
   </div>
@@ -403,6 +415,56 @@ async function loadLawsIndexCache() {
   }
 }
 
+function searchLawsUnified(query) {
+  const list = document.getElementById('unifiedLawSearchResults');
+  const newFields = document.getElementById('newLawFieldsContainer');
+  list.innerHTML = '';
+  const trimmed = query.trim();
+
+  currentComputedLawId = trimmed;
+
+  if (!trimmed) {
+    list.style.display = 'none';
+    newFields.style.display = 'none';
+    return;
+  }
+
+  const matches = lawsIndexCache.filter(l => 
+    String(l.id || l.law_id || '').toLowerCase().includes(trimmed.toLowerCase()) || 
+    String(l.title || '').toLowerCase().includes(trimmed.toLowerCase()) ||
+    String(l.short_title || '').toLowerCase().includes(trimmed.toLowerCase())
+  );
+
+  const exactMatch = lawsIndexCache.find(l => String(l.id || l.law_id || '').toLowerCase() === trimmed.toLowerCase());
+
+  if (matches.length > 0) {
+    matches.slice(0, 8).forEach(m => {
+      const idVal = m.law_id || m.id;
+      const div = document.createElement('div');
+      div.className = 'autocomplete-item';
+      const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
+      div.innerHTML = `<strong>${idVal}</strong> - ${displayTitle}`;
+      div.onclick = () => {
+        document.getElementById('unifiedLawSearch').value = idVal;
+        currentComputedLawId = idVal;
+        list.style.display = 'none';
+        newFields.style.display = 'none';
+        checkEntry();
+      };
+      list.appendChild(div);
+    });
+    list.style.display = 'block';
+  } else {
+    list.style.display = 'none';
+  }
+
+  if (!exactMatch && trimmed.length > 0) {
+    newFields.style.display = 'block';
+  } else {
+    newFields.style.display = 'none';
+  }
+}
+
 function searchLaws() {
   const query = document.getElementById('lawIdSearch').value.trim().toLowerCase();
   const list = document.getElementById('lawSearchResults');
@@ -604,21 +666,28 @@ function renderIdFields() {
 }
 
 function computeLawId() {
-  const sourceType = document.getElementById('source_type').value;
-  if (sourceType === 'MCA Statute') {
-    const t = document.getElementById('id_mca_title')?.value.trim() || '';
-    const c = document.getElementById('id_mca_chapter')?.value.trim() || '';
-    const s = document.getElementById('id_mca_section')?.value.trim() || '';
-    return (t && c && s) ? `${t}-${c}-${s}` : '';
-  } else if (sourceType === 'County Ordinance') {
-    const county = document.getElementById('id_ord_county')?.value.trim() || '';
-    const num = document.getElementById('id_ord_num')?.value.trim() || '';
-    return (county && num) ? `ORD-${county}-${num}` : '';
-  } else {
-    const city = document.getElementById('id_city_code')?.value.trim() || '';
-    const sec = document.getElementById('id_city_sec')?.value.trim() || '';
-    return (city && sec) ? `CITY-${city}-${sec}` : '';
+  const unifiedVal = document.getElementById('unifiedLawSearch')?.value.trim();
+  const newFieldsVisible = document.getElementById('newLawFieldsContainer')?.style.display !== 'none';
+
+  if (newFieldsVisible) {
+    const sourceType = document.getElementById('source_type').value;
+    if (sourceType === 'MCA Statute') {
+      const t = document.getElementById('id_mca_title')?.value.trim() || '';
+      const c = document.getElementById('id_mca_chapter')?.value.trim() || '';
+      const s = document.getElementById('id_mca_section')?.value.trim() || '';
+      return (t && c && s) ? `${t}-${c}-${s}` : unifiedVal;
+    } else if (sourceType === 'County Ordinance') {
+      const county = document.getElementById('id_ord_county')?.value.trim() || '';
+      const num = document.getElementById('id_ord_num')?.value.trim() || '';
+      return (county && num) ? `ORD-${county}-${num}` : unifiedVal;
+    } else {
+      const city = document.getElementById('id_city_code')?.value.trim() || '';
+      const sec = document.getElementById('id_city_sec')?.value.trim() || '';
+      return (city && sec) ? `CITY-${city}-${sec}` : unifiedVal;
+    }
   }
+
+  return unifiedVal;
 }
 
 function updateComputedId() {
@@ -637,10 +706,11 @@ function toggleBondInput() {
 }
 
 async function checkEntry() {
+  closeAutocompleteList();
   currentComputedLawId = computeLawId();
 
   if (!currentComputedLawId) {
-    alert('Please fill out all ID fields for the selected source type.');
+    alert('Please select or enter a Law ID.');
     return;
   }
 
@@ -1008,11 +1078,13 @@ async function saveLaw() {
   const processedTree = processTreeAnchors(treeData);
   const flattenedParagraphs = processTreeWithFullPaths(treeData);
 
+  const sourceTypeElem = document.getElementById('source_type');
+
   const payload = {
     law_id: currentComputedLawId,
     title: document.getElementById('law_title').value.trim(),
     short_title: document.getElementById('law_short_title').value.trim(),
-    source_type: document.getElementById('source_type').value,
+    source_type: sourceTypeElem ? sourceTypeElem.value : 'MCA Statute',
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
     history: document.getElementById('law_history').value.trim(),

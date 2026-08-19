@@ -155,7 +155,8 @@
     <h3 style="margin-top:0;">4. Law Details</h3>
     <div id="entryStatusNotice" class="status-notice"></div>
     <div class="form-grid">
-      <div class="full"><label>Title</label><input type="text" id="law_title" placeholder="e.g. Partner or Family Member Assault" required></div>
+      <div class="span-2"><label>Title</label><input type="text" id="law_title" placeholder="e.g. Partner or Family Member Assault" required></div>
+      <div><label>Short Title</label><input type="text" id="law_short_title" placeholder="e.g. PFMA"></div>
       <div class="full"><label>Official Publication URL</label><input type="url" id="official_url" placeholder="https://leg.mt.gov/statutes/..."></div>
       <div class="full"><label>Revision History</label><input type="text" id="law_history" placeholder="e.g. Enacted 1995, last amended 2023"></div>
     </div>
@@ -413,7 +414,8 @@ function searchLaws() {
 
   const matches = lawsIndexCache.filter(l => 
     String(l.id || '').toLowerCase().includes(query) || 
-    String(l.title || '').toLowerCase().includes(query)
+    String(l.title || '').toLowerCase().includes(query) ||
+    String(l.short_title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
@@ -424,7 +426,8 @@ function searchLaws() {
   matches.slice(0, 8).forEach(m => {
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    div.innerHTML = `<strong>MCA ${m.id}</strong> - ${m.title || ''}`;
+    const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
+    div.innerHTML = `<strong>MCA ${m.id}</strong> - ${displayTitle}`;
     div.onclick = () => selectLaw(m.id);
     list.appendChild(div);
   });
@@ -660,6 +663,7 @@ async function checkEntry() {
       notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded details for editing.`;
 
       document.getElementById('law_title').value = content.title || '';
+      document.getElementById('law_short_title').value = content.short_title || '';
       document.getElementById('official_url').value = content.official_url || '';
       document.getElementById('law_history').value = content.history || '';
       
@@ -672,6 +676,7 @@ async function checkEntry() {
       notice.textContent = `✨ No existing record found for ID "${currentComputedLawId}". Creating a new law entry.`;
 
       document.getElementById('law_title').value = '';
+      document.getElementById('law_short_title').value = '';
       document.getElementById('official_url').value = '';
       document.getElementById('law_history').value = '';
       treeData = [];
@@ -1004,6 +1009,7 @@ async function saveLaw() {
   const payload = {
     law_id: currentComputedLawId,
     title: document.getElementById('law_title').value.trim(),
+    short_title: document.getElementById('law_short_title').value.trim(),
     source_type: document.getElementById('source_type').value,
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
@@ -1013,7 +1019,11 @@ async function saveLaw() {
   };
 
   await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
-  await updateIndex('laws-index.json', { id: currentComputedLawId, title: payload.title });
+  await updateIndex('laws-index.json', { 
+    id: currentComputedLawId, 
+    title: payload.title,
+    short_title: payload.short_title
+  });
 }
 
 async function saveOffense() {

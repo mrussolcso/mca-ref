@@ -107,7 +107,7 @@
     </div>
   </div>
 
-  <!-- Section 3: Source & ID Configuration -->
+  <!-- Section 3: Source & ID Configuration (Law Mode) -->
   <div class="card" id="sec3_card" style="display: none;">
     <h3 style="margin-top:0;">3. Law Identifier & Source</h3>
     <div class="form-grid">
@@ -129,7 +129,21 @@
     </div>
   </div>
 
-  <!-- Section 4: Metadata Details -->
+  <!-- Section 3-Offense: Offense Lookup Configuration (Offense Mode) -->
+  <div class="card" id="sec3_offense_card" style="display: none;">
+    <h3 style="margin-top:0;">3. Offense Identifier & Source</h3>
+    <div class="form-grid">
+      <div class="span-2">
+        <label>Offense ID / Local Charge Code</label>
+        <input type="text" id="offense_id_input" placeholder="e.g. PFMA-1ST or MCA-45-5-206-1A" oninput="currentComputedOffenseId = this.value.trim()">
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button type="button" class="btn btn-check" style="width:100%; margin-top:0;" onclick="checkOffenseEntry()">🔍 Check Offense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Metadata Details (Law Mode) -->
   <div class="card" id="sec4_card" style="display: none;">
     <h3 style="margin-top:0;">4. Law Details</h3>
     <div id="entryStatusNotice" class="status-notice"></div>
@@ -140,7 +154,76 @@
     </div>
   </div>
 
-  <!-- Section 5: Structure & Text Editor -->
+  <!-- Section 4-Offense: Offense Data Entry Form (Offense Mode) -->
+  <div class="card" id="sec4_offense_card" style="display: none;">
+    <h3 style="margin-top:0;">4. Offense Details</h3>
+    <div id="offenseStatusNotice" class="status-notice"></div>
+    
+    <div class="form-grid">
+      <div class="span-2">
+        <label>Offense Name / Title</label>
+        <input type="text" id="offense_name" placeholder="e.g. Partner or Family Member Assault - 1st Offense">
+      </div>
+      <div>
+        <label>Classification Severity</label>
+        <select id="offense_severity">
+          <option value="Misdemeanor">Misdemeanor</option>
+          <option value="Felony">Felony</option>
+          <option value="Violation / Civil">Violation / Civil</option>
+        </select>
+      </div>
+
+      <div class="full">
+        <label>Short Description / Charge Overview</label>
+        <textarea id="offense_description" rows="2" placeholder="Brief statement of the offense conditions..."></textarea>
+      </div>
+
+      <div>
+        <label>Standard Bond Amount ($)</label>
+        <input type="number" id="offense_bond" placeholder="500">
+      </div>
+      <div>
+        <label>Mandatory Appearance</label>
+        <select id="offense_mandatory">
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <div>
+        <label>Local Enhancement / Conditions</label>
+        <input type="text" id="offense_conditions" placeholder="e.g. No Contact Order required">
+      </div>
+
+      <!-- Statutory Linking Controls -->
+      <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
+        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage</h4>
+      </div>
+
+      <div>
+        <label>Linked Law ID</label>
+        <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206">
+      </div>
+      <div class="span-2">
+        <label>Target Subsections / Anchors</label>
+        <div style="display: flex; gap: 8px;">
+          <select id="offense_anchor_select" class="span-2">
+            <option value="">-- Load anchors by fetching Law ID --</option>
+          </select>
+          <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap;" onclick="fetchAnchorsForLaw()">Fetch Anchors</button>
+        </div>
+      </div>
+      <div class="full">
+        <label>Selected Subsections Target (Comma-separated anchors)</label>
+        <input type="text" id="offense_target_anchors" placeholder="e.g. 1-a, 1-b">
+      </div>
+
+      <div class="full">
+        <button type="button" class="btn" style="margin-top:10px; width:100%; font-size:1.05rem;" onclick="saveOffense()">🚀 Save Offense Record to GitHub</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 5: Structure & Text Editor (Law Mode) -->
   <div class="card" id="sec5_card" style="display: none;">
     <h3 style="margin-top:0;">5. Law Text Editor (Sections & Subsections)</h3>
     <div class="tree-container">
@@ -163,6 +246,7 @@ const REPO_CONFIG = {
 let validatedToken = '';
 let activeAction = null;
 let currentComputedLawId = '';
+let currentComputedOffenseId = '';
 let treeData = [];
 
 // Auto-check stored session on load
@@ -235,7 +319,9 @@ function logout() {
 
   document.getElementById('sec2_card').style.display = 'none';
   document.getElementById('sec3_card').style.display = 'none';
+  document.getElementById('sec3_offense_card').style.display = 'none';
   document.getElementById('sec4_card').style.display = 'none';
+  document.getElementById('sec4_offense_card').style.display = 'none';
   document.getElementById('sec5_card').style.display = 'none';
 }
 
@@ -247,16 +333,18 @@ function selectAction(action) {
 
   if (action === 'law') {
     document.getElementById('sec3_card').style.display = 'block';
+    document.getElementById('sec3_offense_card').style.display = 'none';
+    document.getElementById('sec4_offense_card').style.display = 'none';
     renderIdFields();
   } else {
-    alert('Offense editor focus: Law Editor active for now.');
     document.getElementById('sec3_card').style.display = 'none';
     document.getElementById('sec4_card').style.display = 'none';
     document.getElementById('sec5_card').style.display = 'none';
+    document.getElementById('sec3_offense_card').style.display = 'block';
   }
 }
 
-/* DYNAMIC ID FIELDS */
+/* DYNAMIC ID FIELDS (LAW MODE) */
 function renderIdFields() {
   const sourceType = document.getElementById('source_type').value;
   const container = document.getElementById('idFieldsContainer');
@@ -306,7 +394,7 @@ function updateComputedId() {
   currentComputedLawId = computeLawId();
 }
 
-/* CHECK ENTRY LOGIC */
+/* CHECK LAW ENTRY LOGIC */
 async function checkEntry() {
   currentComputedLawId = computeLawId();
 
@@ -364,7 +452,120 @@ async function checkEntry() {
   }
 }
 
-/* TREE STATE SYNCING & RENDERING */
+/* CHECK OFFENSE ENTRY LOGIC */
+async function checkOffenseEntry() {
+  if (!currentComputedOffenseId) {
+    alert('Please provide an Offense ID / Charge Code.');
+    return;
+  }
+
+  const path = `data/offenses/${currentComputedOffenseId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const notice = document.getElementById('offenseStatusNotice');
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+      const content = JSON.parse(rawText);
+
+      notice.className = "status-notice status-edit";
+      notice.textContent = `📝 Existing Offense Record Found for ID "${currentComputedOffenseId}". Loaded details for editing.`;
+
+      document.getElementById('offense_name').value = content.name || '';
+      document.getElementById('offense_severity').value = content.severity || 'Misdemeanor';
+      document.getElementById('offense_description').value = content.description || '';
+      document.getElementById('offense_bond').value = content.bond_amount || '';
+      document.getElementById('offense_mandatory').value = content.mandatory_appearance ? 'Yes' : 'No';
+      document.getElementById('offense_conditions').value = content.conditions || '';
+      document.getElementById('offense_law_id').value = content.law_id || '';
+      document.getElementById('offense_target_anchors').value = (content.target_anchors || []).join(', ');
+    } else {
+      notice.className = "status-notice status-new";
+      notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
+
+      document.getElementById('offense_name').value = '';
+      document.getElementById('offense_severity').value = 'Misdemeanor';
+      document.getElementById('offense_description').value = '';
+      document.getElementById('offense_bond').value = '';
+      document.getElementById('offense_mandatory').value = 'No';
+      document.getElementById('offense_conditions').value = '';
+      document.getElementById('offense_law_id').value = '';
+      document.getElementById('offense_target_anchors').value = '';
+    }
+
+    document.getElementById('sec4_offense_card').style.display = 'block';
+
+  } catch (err) {
+    alert(`Error checking offense (${currentComputedOffenseId}): ${err.message}`);
+  }
+}
+
+/* FETCH ANCHORS FROM LINKED LAW */
+async function fetchAnchorsForLaw() {
+  const lawId = document.getElementById('offense_law_id').value.trim();
+  if (!lawId) {
+    alert('Please enter a Linked Law ID first.');
+    return;
+  }
+
+  const path = `data/laws/${lawId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Law JSON for "${lawId}" not found.`);
+    }
+
+    const data = await res.json();
+    const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+    const select = document.getElementById('offense_anchor_select');
+    select.innerHTML = '<option value="">-- Select anchor to append --</option>';
+
+    if (content.paragraphs && content.paragraphs.length > 0) {
+      content.paragraphs.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.anchor_id;
+        opt.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        select.appendChild(opt);
+      });
+
+      select.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_target_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
+        }
+      };
+
+      alert(`Successfully loaded ${content.paragraphs.length} anchors from Law ID "${lawId}".`);
+    } else {
+      alert('Law record found, but contains no paragraph anchors.');
+    }
+
+  } catch (err) {
+    alert(`Error fetching anchors: ${err.message}`);
+  }
+}
+
+/* TREE STATE SYNCING & RENDERING (LAW MODE) */
 function syncTreeDOMToState() {
   const root = document.getElementById('treeRoot');
   if (!root) return;
@@ -521,7 +722,7 @@ function flattenTree(nodes, parentAnchor = '', indentLevel = 1) {
   return flat;
 }
 
-/* SAVE TO GITHUB */
+/* SAVE LAW TO GITHUB */
 async function saveLaw() {
   syncTreeDOMToState();
   
@@ -547,6 +748,39 @@ async function saveLaw() {
   await updateIndex('laws-index.json', { id: currentComputedLawId, title: payload.title });
 }
 
+/* SAVE OFFENSE TO GITHUB */
+async function saveOffense() {
+  if (!currentComputedOffenseId) {
+    alert('Offense ID is missing.');
+    return;
+  }
+
+  const targetAnchorsRaw = document.getElementById('offense_target_anchors').value;
+  const targetAnchors = targetAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const payload = {
+    offense_id: currentComputedOffenseId,
+    name: document.getElementById('offense_name').value.trim(),
+    severity: document.getElementById('offense_severity').value,
+    description: document.getElementById('offense_description').value.trim(),
+    bond_amount: parseFloat(document.getElementById('offense_bond').value) || 0,
+    mandatory_appearance: document.getElementById('offense_mandatory').value === 'Yes',
+    conditions: document.getElementById('offense_conditions').value.trim(),
+    law_id: document.getElementById('offense_law_id').value.trim(),
+    target_anchors: targetAnchors,
+    last_updated: new Date().toISOString()
+  };
+
+  await commitFile(`data/offenses/${currentComputedOffenseId}.json`, payload, `Update Offense ${currentComputedOffenseId}`);
+  await updateIndex('offenses-index.json', { 
+    id: currentComputedOffenseId, 
+    name: payload.name, 
+    severity: payload.severity, 
+    law_id: payload.law_id 
+  });
+}
+
+/* COMMITS & INDEX UPDATES VIA GITHUB API */
 async function commitFile(path, data, msg) {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   let sha = null;

@@ -264,15 +264,16 @@ async function loadOffenseDetail(offenseId) {
       if (lawRes && lawRes.ok) lawData = await lawRes.json();
     }
 
-    // Title Format: Offense Name (Citable Tag)
-    const titleDisplay = `${offense.name || 'Offense Record'} (${offense.display_tag || offense.offense_id})`;
+    // Dynamic Header: Charge ID (e.g. 45-5-206(1)(a) [1st]) followed by Offense Title
+    const chargeTag = offense.display_tag || offense.offense_id;
+    const offenseTitle = offense.name || 'Offense Record';
+    const headerDisplay = `${chargeTag} ${offenseTitle}`;
 
-    // Center Pane HTML: Offense Details Box placed directly above the Statute Text
+    // Center Pane HTML: Offense Box with dynamic charge header placed above Statute Text
     let centerHtml = `
       <div class="offense-details-box">
-        <h2>Offense Details</h2>
+        <h2>${headerDisplay}</h2>
         <div class="meta-grid">
-          <div class="meta-item" style="grid-column: span 2;"><strong>Title / Citation:</strong> ${titleDisplay}</div>
           <div class="meta-item"><strong>Occurrence / Sequence:</strong> ${formatOccurrence(offense.occurrence)}</div>
           <div class="meta-item"><strong>Severity:</strong> ${offense.severity || 'Unspecified'}</div>
           <div class="meta-item"><strong>Bond Amount:</strong> ${formatBondValue(offense)}</div>

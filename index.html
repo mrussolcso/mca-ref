@@ -3,442 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Montana Code Annotated (MCA) Direct</title>
+<title>Admin Relational Publisher</title>
 <style>
-  :root {
-    --primary: #1a365d;
-    --primary-light: #2b6cb0;
-    --border: #e2e8f0;
-    --bg-sidebar: #ffffff;
-    --bg-main: #f8fafc;
-    --text: #2d3748;
-    --text-muted: #718096;
-    --badge-misd: #2b6cb0;
-    --badge-felony: #c53030;
-    --active-item-bg: #ebf8ff;
-    --active-item-border: #3182ce;
-    --highlight-bg: #fefcbf;
-    --highlight-border: #d69e2e;
-  }
-
-  * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg-main); overflow: hidden; }
-
-  /* Master Layout */
-  .app-layout { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
-
-  /* Left Sidebar Navigation */
-  .sidebar { width: 380px; min-width: 320px; max-width: 440px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; z-index: 10; flex-shrink: 0; }
-
-  .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; }
-  .sidebar-header h1 { margin: 0; font-size: 1.15rem; font-weight: 700; color: white; }
-  .admin-link { color: #bee3f8; text-decoration: none; font-size: 0.85rem; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.12); transition: background 0.15s ease; }
-  .admin-link:hover { background: rgba(255,255,255,0.25); color: white; }
-
-  .search-box { padding: 12px 16px; border-bottom: 1px solid var(--border); background: #f7fafc; }
-  .search-input-wrapper { display: flex; gap: 6px; margin-bottom: 8px; }
-  .search-input-wrapper input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; }
-  .search-input-wrapper input:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(43,108,176,0.15); }
-  .clear-btn { background: var(--border); border: none; padding: 0 10px; border-radius: 6px; cursor: pointer; color: #4a5568; font-size: 0.85rem; font-weight: 600; }
-  .clear-btn:hover { background: #cbd5e0; }
-
-  .filter-pills { display: flex; gap: 6px; margin-bottom: 6px; }
-  .pill { flex: 1; background: white; border: 1px solid var(--border); padding: 4px 0; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); cursor: pointer; text-align: center; }
-  .pill.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-  .result-count { font-size: 0.75rem; color: var(--text-muted); text-align: right; }
-
-  .sidebar-list { flex: 1; overflow-y: auto; }
-  .statute-item { padding: 12px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease; position: relative; }
-  .statute-item:hover { background: #f7fafc; }
-  .statute-item.active { background: var(--active-item-bg); border-left: 4px solid var(--active-item-border); padding-left: 12px; }
-  .statute-item h4 { margin: 0 0 4px 0; font-size: 0.92rem; color: var(--primary); }
-  .statute-item p { margin: 0; font-size: 0.78rem; color: var(--text-muted); }
-
-  .badge-container { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
-  .badge { font-size: 0.65rem; font-weight: 700; padding: 2px 6px; border-radius: 3px; color: white; text-transform: uppercase; }
-  .badge-misdemeanor { background: var(--badge-misd); }
-  .badge-felony { background: var(--badge-felony); }
-
-  /* Right Main Reader Content Panel */
-  .main-panel { flex: 1; height: 100%; overflow-y: auto; background: var(--bg-main); display: flex; flex-direction: column; }
-
-  .empty-state { margin: auto; text-align: center; color: var(--text-muted); padding: 40px 20px; }
-  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
-  .empty-state h2 { margin: 0 0 8px 0; color: var(--primary); font-size: 1.4rem; }
-
-  .statute-detail { padding: 28px 36px; max-width: 900px; margin: 0 auto; width: 100%; }
-  .detail-header { padding-bottom: 16px; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
-  .detail-header h2 { margin: 0 0 10px 0; font-size: 1.45rem; color: var(--primary); }
-
-  /* Interactive Bond Table Rows */
-  .bond-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 0.88rem; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-  .bond-table th, .bond-table td { border: 1px solid var(--border); padding: 10px 12px; text-align: left; }
-  .bond-table th { background: #edf2f7; color: var(--primary); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
-  
-  .bond-table tbody tr.charge-row { cursor: pointer; transition: background-color 0.15s ease; }
-  .bond-table tbody tr.charge-row:hover { background-color: #edf2f7; }
-  .bond-table tbody tr.charge-row.selected-charge { background-color: #ebf8ff; outline: 2px solid var(--primary-light); }
-
-  .section-title { margin: 20px 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-
-  /* Hierarchy Indentation Classes */
-  .p-item { margin-bottom: 10px; line-height: 1.6; font-size: 0.95rem; border-radius: 4px; padding: 4px 8px; transition: background 0.2s ease, border-color 0.2s ease; }
-  .indent-level-1 { margin-left: 0px; }
-  .indent-level-2 { margin-left: 24px; }
-  .indent-level-3 { margin-left: 48px; }
-  .indent-level-4 { margin-left: 72px; }
-
-  /* Subsection Highlight Style */
-  .p-item.highlighted-subsection {
-    background-color: var(--highlight-bg) !important;
-    border-left: 4px solid var(--highlight-border) !important;
-    font-weight: 600;
-  }
-
-  .history-box { margin-top: 28px; padding: 14px 16px; background: #edf2f7; border-radius: 6px; font-size: 0.82rem; color: #4a5568; line-height: 1.5; border: 1px solid var(--border); }
-  .loading-state, .error-state { text-align: center; padding: 30px; font-size: 0.9rem; color: var(--text-muted); }
+  :root { --primary: #1a365d; --primary-light: #2b6cb0; --border: #cbd5e0; --bg: #f7fafc; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+  .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .full { grid-column: span 2; }
+  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+  textarea { min-height: 120px; }
+  .btn { background: var(--primary-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+  .pat-input { -webkit-text-security: disc; }
+  .mode-selector { display: flex; gap: 10px; margin-bottom: 10px; }
+  .mode-btn { flex: 1; padding: 10px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; }
+  .mode-btn.active { background: var(--primary); color: white; }
+  .status { padding: 10px; border-radius: 6px; display: none; margin-top: 10px; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<div class="app-layout">
+<div class="container">
+  <h2>⚙️ Relational Admin Publisher</h2>
 
-  <!-- Left Sidebar Search & Navigation -->
-  <aside class="sidebar">
-    <header class="sidebar-header">
-      <h1>MCA Direct</h1>
-      <a href="admin.html" class="admin-link">⚙️ Admin Publisher</a>
-    </header>
-
-    <div class="search-box">
-      <div class="search-input-wrapper">
-        <input type="text" id="searchInput" placeholder="Search ID, title, keyword..." oninput="handleSearch()">
-        <button class="clear-btn" onclick="clearSearch()">Clear</button>
-      </div>
-      
-      <div class="filter-pills">
-        <button class="pill active" id="btn-all" onclick="setDegreeFilter('ALL')">All</button>
-        <button class="pill" id="btn-misd" onclick="setDegreeFilter('Misdemeanor')">Misdemeanor</button>
-        <button class="pill" id="btn-felony" onclick="setDegreeFilter('Felony')">Felony</button>
-      </div>
-      
-      <div class="result-count" id="resultCount">Loading search index...</div>
+  <!-- Credentials -->
+  <div class="card">
+    <h3>1. GitHub Configuration</h3>
+    <div class="form-grid">
+      <div><label>Owner</label><input type="text" id="ghOwner" value="mrussolcso"></div>
+      <div><label>Repo</label><input type="text" id="ghRepo" value="mca-ref"></div>
+      <div><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
+      <div><label>PAT Token</label><input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxx"></div>
     </div>
+  </div>
 
-    <div class="sidebar-list" id="sidebarList">
-      <div class="loading-state">Loading statutes index...</div>
-    </div>
-  </aside>
+  <!-- Mode Switcher -->
+  <div class="mode-selector">
+    <button class="mode-btn active" id="btnModeLaw" onclick="setMode('law')">📜 Edit Law / Code</button>
+    <button class="mode-btn" id="btnModeOffense" onclick="setMode('offense')">🚨 Edit Offense Charge</button>
+  </div>
 
-  <!-- Right Main Content Panel -->
-  <main class="main-panel" id="mainPanel">
-    <div class="empty-state" id="emptyState">
-      <div class="empty-icon">📖</div>
-      <h2>Montana Code Annotated & Bond Book</h2>
-      <p>Select a statute from the sidebar on the left to view details.</p>
-    </div>
-
-    <div class="statute-detail" id="statuteDetail" style="display: none;">
-      <div class="detail-header">
-        <h2 id="detailTitle">Statute Title</h2>
-        <div class="badge-container" id="detailBadges"></div>
+  <!-- Entity Editor Form -->
+  <div class="card">
+    <h3 id="formTitle">2. Law Record Editor</h3>
+    
+    <!-- LAW FORM -->
+    <form id="lawForm" onsubmit="saveLaw(event)">
+      <div class="form-grid">
+        <div><label>Law ID (e.g. 45-5-206)</label><input type="text" id="law_id" required></div>
+        <div><label>Source Type</label><select id="source_type"><option>MCA Statute</option><option>County Ordinance</option><option>City Code</option></select></div>
+        <div class="full"><label>Title</label><input type="text" id="law_title" required></div>
+        <div class="full"><label>Official Publication URL</label><input type="url" id="official_url"></div>
+        <div class="full"><label>Raw Text (Auto Parsed)</label><textarea id="law_text" required></textarea></div>
+        <div class="full"><label>Revision History</label><input type="text" id="law_history"></div>
       </div>
+      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Law to GitHub</button>
+    </form>
 
-      <div class="detail-content" id="detailContent">
-        <!-- Dynamic Bond Schedule Table and Statute Text -->
+    <!-- OFFENSE FORM -->
+    <form id="offenseForm" onsubmit="saveOffense(event)" style="display:none;">
+      <div class="form-grid">
+        <div><label>Offense ID (e.g. 45-5-206_1a)</label><input type="text" id="off_id" required></div>
+        <div><label>Parent Law ID (FK)</label><input type="text" id="off_law_id" placeholder="45-5-206" required></div>
+        <div><label>Subsection Ref</label><input type="text" id="off_sub" placeholder="(1)(a)"></div>
+        <div><label>Degree</label><select id="off_degree"><option>Misdemeanor</option><option>Felony</option><option>Civil</option></select></div>
+        <div class="full"><label>Charge Title</label><input type="text" id="off_title" required></div>
+        <div><label>Rec Bond</label><input type="text" id="off_bond"></div>
+        <div><label>Min / Max Fine</label><input type="text" id="off_fines" placeholder="$0 / $500"></div>
+        <div><label>Min / Max Jail</label><input type="text" id="off_jail" placeholder="None / 1 Year"></div>
+        <div><label>Must Appear</label><select id="off_appear"><option>REQUIRED</option><option>OPTIONAL</option></select></div>
       </div>
-    </div>
-  </main>
+      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Offense to GitHub</button>
+    </form>
 
+    <div id="status" class="status"></div>
+  </div>
 </div>
 
 <script>
-let searchIndex = [];
-let activeDegreeFilter = 'ALL';
-let currentActiveId = null;
-let currentStatuteData = null;
-let selectedChargeIndex = 0;
+let mode = 'law';
 
-document.addEventListener('DOMContentLoaded', () => {
-  loadSearchIndex();
-});
+function setMode(m) {
+  mode = m;
+  document.getElementById('btnModeLaw').classList.toggle('active', m === 'law');
+  document.getElementById('btnModeOffense').classList.toggle('active', m === 'offense');
+  document.getElementById('lawForm').style.display = m === 'law' ? 'grid' : 'none';
+  document.getElementById('offenseForm').style.display = m === 'offense' ? 'grid' : 'none';
+  document.getElementById('formTitle').textContent = m === 'law' ? '2. Law Record Editor' : '2. Offense Record Editor';
+}
 
-async function loadSearchIndex() {
-  const sidebarList = document.getElementById('sidebarList');
-  try {
-    const timestamp = new Date().getTime();
-    const response = await fetch(`search-index.json?t=${timestamp}`);
-    
-    if (!response.ok) {
-      throw new Error("Could not fetch search-index.json");
-    }
-    
-    searchIndex = await response.json();
-    renderSidebar(searchIndex);
+function getCreds() {
+  return {
+    owner: document.getElementById('ghOwner').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    branch: document.getElementById('ghBranch').value.trim(),
+    token: document.getElementById('ghToken').value.trim()
+  };
+}
 
-    if (searchIndex.length > 0) {
-      const defaultMatch = searchIndex.find(i => i.id === '45-5-507') || searchIndex[0];
-      selectStatute(defaultMatch.id);
-    }
+async function saveLaw(e) {
+  e.preventDefault();
+  const c = getCreds();
+  const id = document.getElementById('law_id').value.trim();
+  const text = document.getElementById('law_text').value.trim();
 
-  } catch (err) {
-    sidebarList.innerHTML = `<div class="error-state">Error loading index: ${err.message}</div>`;
+  const payload = {
+    law_id: id,
+    title: document.getElementById('law_title').value.trim(),
+    source_type: document.getElementById('source_type').value,
+    official_url: document.getElementById('official_url').value.trim(),
+    last_updated: new Date().toISOString(),
+    history: document.getElementById('law_history').value.trim(),
+    paragraphs: text.split('\n').map(l => {
+      const m = l.match(/^(\([a-z0-9]+\))\s*(.*)/i);
+      return m ? { counter: m[1], text: m[2] } : { counter: '', text: l };
+    })
+  };
+
+  await commitFile(c, `data/laws/${id}.json`, payload, `Update Law ${id}`);
+  await updateIndex(c, 'laws-index.json', { id: id, title: payload.title });
+}
+
+async function saveOffense(e) {
+  e.preventDefault();
+  const c = getCreds();
+  const id = document.getElementById('off_id').value.trim();
+
+  const payload = {
+    offense_id: id,
+    law_id: document.getElementById('off_law_id').value.trim(),
+    subsection_ref: document.getElementById('off_sub').value.trim(),
+    charge_title: document.getElementById('off_title').value.trim(),
+    degree: document.getElementById('off_degree').value,
+    rec_bond: document.getElementById('off_bond').value.trim(),
+    max_fine: document.getElementById('off_fines').value.trim(),
+    max_jail: document.getElementById('off_jail').value.trim(),
+    must_appear: document.getElementById('off_appear').value
+  };
+
+  await commitFile(c, `data/offenses/${id}.json`, payload, `Update Offense ${id}`);
+  await updateIndex(c, 'offenses-index.json', { id: id, law_id: payload.law_id, title: payload.charge_title, degree: payload.degree });
+}
+
+async function commitFile(c, path, data, msg) {
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
+  let sha = null;
+
+  const resCheck = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
+  if (resCheck.ok) { const d = await resCheck.json(); sha = d.sha; }
+
+  const body = { message: msg, content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), branch: c.branch };
+  if (sha) body.sha = sha;
+
+  const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) alert("Error committing to GitHub");
+  else alert("Saved successfully!");
+}
+
+async function updateIndex(c, indexPath, entry) {
+  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/data/${indexPath}`;
+  let index = [];
+  let sha = null;
+
+  const res = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
+  if (res.ok) {
+    const d = await res.json();
+    sha = d.sha;
+    index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\n/g, '')))));
   }
-}
 
-function setDegreeFilter(degree) {
-  activeDegreeFilter = degree;
-  document.querySelectorAll('.filter-pills .pill').forEach(btn => btn.classList.remove('active'));
-  
-  if (degree === 'ALL') document.getElementById('btn-all').classList.add('active');
-  if (degree === 'Misdemeanor') document.getElementById('btn-misd').classList.add('active');
-  if (degree === 'Felony') document.getElementById('btn-felony').classList.add('active');
+  const idx = index.findIndex(i => i.id === entry.id);
+  if (idx >= 0) index[idx] = entry; else index.push(entry);
 
-  handleSearch();
-}
-
-function handleSearch() {
-  const query = document.getElementById('searchInput').value.trim().toLowerCase();
-
-  const filtered = searchIndex.filter(item => {
-    const matchesDegree = (activeDegreeFilter === 'ALL') || 
-      (item.degrees && item.degrees.includes(activeDegreeFilter));
-
-    const matchesQuery = !query || 
-      (item.id && item.id.toLowerCase().includes(query)) ||
-      (item.title && item.title.toLowerCase().includes(query)) ||
-      (item.keywords && item.keywords.toLowerCase().includes(query));
-
-    return matchesDegree && matchesQuery;
+  await fetch(url, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `Sync ${indexPath}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), branch: c.branch, sha: sha })
   });
-
-  renderSidebar(filtered);
-}
-
-function clearSearch() {
-  document.getElementById('searchInput').value = '';
-  setDegreeFilter('ALL');
-}
-
-function renderSidebar(list) {
-  const sidebarList = document.getElementById('sidebarList');
-  const countSpan = document.getElementById('resultCount');
-
-  countSpan.textContent = `${list.length} statute${list.length === 1 ? '' : 's'}`;
-
-  if (list.length === 0) {
-    sidebarList.innerHTML = `<div class="loading-state">No matching statutes found.</div>`;
-    return;
-  }
-
-  sidebarList.innerHTML = list.map(item => `
-    <div class="statute-item ${item.id === currentActiveId ? 'active' : ''}" id="item-${item.id}" onclick="selectStatute('${item.id}')">
-      <h4>${item.id}. ${item.title}</h4>
-      <p>Title Chapter: Title ${item.title_num || item.id.split('-')[0]}</p>
-      <div class="badge-container">
-        ${(item.degrees || ['Felony']).map(d => `
-          <span class="badge badge-${d.toLowerCase()}">${d}</span>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-function formatParagraphs(paragraphs) {
-  const cleaned = [];
-
-  for (let i = 0; i < paragraphs.length; i++) {
-    const current = paragraphs[i];
-    const next = paragraphs[i + 1];
-
-    if (!current.text && next && /^\([a-z0-9]+\)$/i.test(current.counter) && /^\([a-z0-9]+\)$/i.test(next.counter)) {
-      cleaned.push({
-        counter: `${current.counter}${next.counter}`,
-        text: next.text
-      });
-      i++;
-    } else {
-      const multiMatch = current.text ? current.text.match(/^(\((?:[a-z0-9]+|[ivx]+)\))\s*(.*)/i) : null;
-      if (multiMatch && current.counter) {
-        cleaned.push({ counter: `${current.counter}${multiMatch[1]}`, text: multiMatch[2] });
-      } else {
-        cleaned.push(current);
-      }
-    }
-  }
-
-  return cleaned;
-}
-
-function detectStatuteDegree(data) {
-  if (data.offenses && data.offenses.length > 0 && data.offenses[0].degree) {
-    return data.offenses[0].degree;
-  }
-  const fullText = JSON.stringify(data.paragraphs || []);
-  if (/state prison|life imprisonment|100 years|felony/i.test(fullText)) {
-    return 'Felony';
-  }
-  return 'Misdemeanor';
-}
-
-async function selectStatute(statuteId) {
-  currentActiveId = statuteId;
-  selectedChargeIndex = 0;
-
-  document.querySelectorAll('.statute-item').forEach(el => el.classList.remove('active'));
-  const activeEl = document.getElementById(`item-${statuteId}`);
-  if (activeEl) activeEl.classList.add('active');
-
-  const emptyState = document.getElementById('emptyState');
-  const statuteDetail = document.getElementById('statuteDetail');
-  const detailTitle = document.getElementById('detailTitle');
-  const detailContent = document.getElementById('detailContent');
-
-  emptyState.style.display = 'none';
-  statuteDetail.style.display = 'block';
-  detailTitle.textContent = `Loading MCA ${statuteId}...`;
-  detailContent.innerHTML = `<div class="loading-state">Fetching statute data...</div>`;
-
-  try {
-    const timestamp = new Date().getTime();
-    const response = await fetch(`data/statutes/${statuteId}.json?t=${timestamp}`);
-
-    if (!response.ok) {
-      throw new Error(`File data/statutes/${statuteId}.json not found on server.`);
-    }
-
-    currentStatuteData = await response.json();
-    renderStatuteView();
-
-  } catch (err) {
-    detailContent.innerHTML = `<div class="error-state" style="color:var(--badge-felony);">${err.message}</div>`;
-  }
-}
-
-function selectCharge(index) {
-  selectedChargeIndex = index;
-  renderStatuteView();
-}
-
-function renderStatuteView() {
-  if (!currentStatuteData) return;
-
-  const data = currentStatuteData;
-  const detailTitle = document.getElementById('detailTitle');
-  const detailBadges = document.getElementById('detailBadges');
-  const detailContent = document.getElementById('detailContent');
-
-  detailTitle.textContent = data.title || `${currentActiveId}`;
-
-  const mainDegree = detectStatuteDegree(data);
-  detailBadges.innerHTML = `<span class="badge badge-${mainDegree.toLowerCase()}">${mainDegree}</span>`;
-
-  const offensesList = (data.offenses && data.offenses.length > 0) ? data.offenses : [{
-    subsection: null,
-    charge_name: data.title ? data.title.replace(/^[\d-]+\.\s*/, '').replace(/\.$/, '') : 'General Offense',
-    degree: mainDegree,
-    recommended_bond: 'Court Appearance Required',
-    min_fine: '$0',
-    max_fine: '$50,000',
-    surcharges: 'Standard',
-    must_appear: 'REQUIRED',
-    jail: mainDegree === 'Felony' ? 'Up to Life / State Prison' : 'County Jail'
-  }];
-
-  const activeCharge = offensesList[selectedChargeIndex] || offensesList[0];
-  const targetSubsection = activeCharge.subsection 
-    ? activeCharge.subsection.replace(/\s+/g, '').toLowerCase() 
-    : '';
-
-  let contentHtml = '';
-
-  contentHtml += `
-    <h3 class="section-title">Bond Book Schedule <small style="font-weight:normal; font-size:0.8rem; color:var(--text-muted);">(Click a charge to highlight text)</small></h3>
-    <table class="bond-table">
-      <thead>
-        <tr>
-          <th>Offense / Charge</th>
-          <th>Degree</th>
-          <th>Rec. Bond</th>
-          <th>Min Fine</th>
-          <th>Max Fine</th>
-          <th>Surcharges</th>
-          <th>Must Appear</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${offensesList.map((o, idx) => `
-          <tr class="charge-row ${idx === selectedChargeIndex ? 'selected-charge' : ''}" onclick="selectCharge(${idx})">
-            <td>
-              <strong>${o.charge_name}</strong>
-              ${o.jail ? `<br><small style="color:#718096;">${o.jail}</small>` : ''}
-            </td>
-            <td><span class="badge badge-${(o.degree || mainDegree).toLowerCase()}">${o.degree || mainDegree}</span></td>
-            <td>${o.recommended_bond || o.bail_amount || '-'}</td>
-            <td>${o.min_fine || '-'}</td>
-            <td>${o.max_fine || '-'}</td>
-            <td>${o.surcharges || '-'}</td>
-            <td><strong>${o.must_appear || 'REQUIRED'}</strong></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-
-  contentHtml += `<h3 class="section-title">Statute Text</h3>`;
-  if (data.paragraphs && data.paragraphs.length > 0) {
-    const formatted = formatParagraphs(data.paragraphs);
-    
-    let currentLevel1 = '';
-    let currentLevel2 = '';
-
-    formatted.forEach(p => {
-      const counter = (p.counter || '').replace(/\s+/g, '').toLowerCase();
-
-      if (/^\([0-9]+\)$/.test(counter)) {
-        currentLevel1 = counter;
-        currentLevel2 = '';
-      } else if (/^\([a-z]+\)$/.test(counter)) {
-        currentLevel2 = counter;
-      } else if (/^\([0-9]+\)\([a-z]+\)$/.test(counter)) {
-        const match = counter.match(/^(\([0-9]+\))(\([a-z]+\))$/);
-        currentLevel1 = match[1];
-        currentLevel2 = match[2];
-      }
-
-      const fullPath = counter.startsWith('(') && counter.includes(')(') 
-        ? counter 
-        : `${currentLevel1}${currentLevel2}`;
-
-      const isHighlighted = targetSubsection && (
-        fullPath === targetSubsection || 
-        counter === targetSubsection || 
-        fullPath.startsWith(targetSubsection)
-      );
-
-      const indentClass = getIndentClass(p.counter);
-      const highlightClass = isHighlighted ? 'highlighted-subsection' : '';
-
-      contentHtml += `<p class="p-item ${indentClass} ${highlightClass}"><strong>${p.counter}</strong> ${p.text}</p>`;
-    });
-  } else {
-    contentHtml += `<p style="color:var(--text-muted);">No statutory text content available.</p>`;
-  }
-
-  if (data.history) {
-    contentHtml += `<div class="history-box"><strong>History:</strong> ${data.history.replace(/^History:\s*/i, '')}</div>`;
-  }
-
-  detailContent.innerHTML = contentHtml;
-}
-
-function getIndentClass(counter) {
-  if (!counter) return "indent-level-1";
-  if (/^\([0-9]+\)(\([a-z]+\))?$/.test(counter)) return "indent-level-1";
-  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2";
-  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3";
-  return "indent-level-1";
 }
 </script>
 

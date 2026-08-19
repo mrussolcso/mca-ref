@@ -413,7 +413,7 @@ function searchLaws() {
   }
 
   const matches = lawsIndexCache.filter(l => 
-    String(l.id || '').toLowerCase().includes(query) || 
+    String(l.id || l.law_id || '').toLowerCase().includes(query) || 
     String(l.title || '').toLowerCase().includes(query) ||
     String(l.short_title || '').toLowerCase().includes(query)
   );
@@ -424,11 +424,12 @@ function searchLaws() {
   }
 
   matches.slice(0, 8).forEach(m => {
+    const idVal = m.law_id || m.id;
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
     const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
-    div.innerHTML = `<strong>MCA ${m.id}</strong> - ${displayTitle}`;
-    div.onclick = () => selectLaw(m.id);
+    div.innerHTML = `<strong>MCA ${idVal}</strong> - ${displayTitle}`;
+    div.onclick = () => selectLaw(idVal);
     list.appendChild(div);
   });
 
@@ -1019,11 +1020,16 @@ async function saveLaw() {
   };
 
   await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
+  
+  // Both 'id' and 'law_id' are written to ensure total index schema compatibility
   await updateIndex('laws-index.json', { 
-    id: currentComputedLawId, 
+    id: currentComputedLawId,
+    law_id: currentComputedLawId,
     title: payload.title,
     short_title: payload.short_title
   });
+
+  await loadLawsIndexCache();
 }
 
 async function saveOffense() {
@@ -1122,7 +1128,7 @@ async function updateIndex(indexPath, entry) {
     index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\s/g, '')))));
   }
 
-  const idx = index.findIndex(i => i.id === entry.id);
+  const idx = index.findIndex(i => (i.id && i.id === entry.id) || (i.law_id && i.law_id === entry.law_id));
   if (idx >= 0) index[idx] = entry; else index.push(entry);
 
   await fetch(url, {

@@ -32,10 +32,9 @@
 
   label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: #4a5568; }
   input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; font-family: inherit; }
-  textarea { resize: vertical; min-height: 120px; }
+  textarea { resize: vertical; min-height: 180px; }
   input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(43,108,176,0.15); }
 
-  /* Masked text input for flexible PAT paste support */
   .pat-input { -webkit-text-security: disc; }
 
   .btn-group { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
@@ -49,6 +48,14 @@
   .status-success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
   .status-error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
   .status-info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+
+  /* Preview Panel */
+  .preview-box { margin-top: 15px; padding: 15px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; display: none; }
+  .p-item { margin-bottom: 8px; line-height: 1.5; font-size: 0.9rem; padding: 4px 8px; border-radius: 4px; }
+  .indent-level-1 { margin-left: 0px; }
+  .indent-level-2 { margin-left: 20px; }
+  .indent-level-3 { margin-left: 40px; }
+  .p-item.highlighted-subsection { background-color: var(--highlight-bg); border-left: 4px solid var(--highlight-border); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -60,12 +67,12 @@
 
 <div class="container">
 
-  <!-- GitHub Settings Config -->
+  <!-- 1. GitHub Configuration -->
   <div class="card">
     <h3>1. GitHub Credentials</h3>
     <div class="form-grid">
       <div>
-        <label for="ghOwner">Repository Owner (Username/Org)</label>
+        <label for="ghOwner">Repository Owner</label>
         <input type="text" id="ghOwner" value="mrussolcso" placeholder="mrussolcso">
       </div>
       <div>
@@ -86,10 +93,10 @@
     </div>
   </div>
 
-  <!-- Statute Existence Check Section -->
+  <!-- 2. Lookup Section -->
   <div class="card">
-    <h3>2. Statute Check</h3>
-    <form onsubmit="event.preventDefault(); checkFileExists();">
+    <h3>2. Statute Check & Load</h3>
+    <form onsubmit="event.preventDefault(); checkAndLoadStatute();">
       <div class="form-grid">
         <div class="full-width">
           <label for="statuteId">Statute ID (e.g. 45-5-507)</label>
@@ -98,18 +105,79 @@
       </div>
 
       <div class="btn-group" style="margin-top: 15px;">
-        <button type="button" class="btn" onclick="checkFileExists()">🔍 Check File Exists</button>
+        <button type="button" class="btn" onclick="checkAndLoadStatute()">🔍 Check & Edit Content</button>
       </div>
     </form>
 
     <div id="statusBanner" class="status-banner"></div>
   </div>
 
+  <!-- 3. Dynamic Editor Section (Shown after check) -->
+  <div class="card" id="editorCard" style="display: none;">
+    <h3>3. Statute Editor</h3>
+    <form id="statuteForm" onsubmit="publishStatute(event)">
+      <div class="form-grid">
+        <div class="full-width">
+          <label for="statuteTitle">Statute Title</label>
+          <input type="text" id="statuteTitle" placeholder="Incest" required>
+        </div>
+        
+        <div>
+          <label for="subsectionTag">Bond Subsection Ref (e.g. (1)(a) or (2))</label>
+          <input type="text" id="subsectionTag" placeholder="(1)(a)">
+        </div>
+        <div>
+          <label for="offenseDegree">Offense Degree</label>
+          <select id="offenseDegree">
+            <option value="Felony">Felony</option>
+            <option value="Misdemeanor">Misdemeanor</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="recommendedBond">Recommended Bond</label>
+          <input type="text" id="recommendedBond" placeholder="Court Appearance Required">
+        </div>
+        <div>
+          <label for="maxFine">Max Fine</label>
+          <input type="text" id="maxFine" placeholder="$50,000">
+        </div>
+
+        <div class="full-width">
+          <label for="keywords">Search Keywords (comma separated)</label>
+          <input type="text" id="keywords" placeholder="incest, family, sexual offense">
+        </div>
+
+        <div class="full-width">
+          <label for="statuteText">Raw MCA Statute Text</label>
+          <textarea id="statuteText" placeholder="(1) A person commits the offense of incest if...&#10;(2) (a) Consent is a defense to incest..." required></textarea>
+        </div>
+
+        <div class="full-width">
+          <label for="statuteHistory">Statutory History Text</label>
+          <input type="text" id="statuteHistory" placeholder="History: En. 94-5-606 by Sec. 1, Ch. 513, L. 1973...">
+        </div>
+      </div>
+
+      <div class="btn-group" style="margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="previewStatute()">👁️ Preview Highlight</button>
+        <button type="submit" class="btn" id="publishBtn">🚀 Save & Push to GitHub</button>
+      </div>
+    </form>
+
+    <!-- Preview Box -->
+    <div id="previewContainer" class="preview-box">
+      <h4 style="margin-top:0; color:var(--primary);">Parsed Paragraph Preview</h4>
+      <div id="previewBody"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
+let currentFileSha = null;
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Load stored values or default to pre-populated values
   document.getElementById('ghOwner').value = localStorage.getItem('ghOwner') || 'mrussolcso';
   document.getElementById('ghRepo').value = localStorage.getItem('ghRepo') || 'mca-ref';
   if (localStorage.getItem('ghBranch')) document.getElementById('ghBranch').value = localStorage.getItem('ghBranch');
@@ -133,9 +201,9 @@ function getCredentials() {
   };
 }
 
-// 1. VERIFY PAT API CALL
+// Verify GitHub PAT
 async function verifyPAT() {
-  const { token, owner, repo } = getCredentials();
+  const { token } = getCredentials();
   if (!token) return showStatus("Please enter a Personal Access Token first.", false, true);
 
   showStatus("Verifying PAT credentials with GitHub...", false, false, true);
@@ -154,31 +222,263 @@ async function verifyPAT() {
   }
 }
 
-// 2. CHECK FILE EXISTS IN REPO
-async function checkFileExists() {
+// Check and Load File Content directly into the Form Editor
+async function checkAndLoadStatute() {
   const { owner, repo, branch, token } = getCredentials();
   const statuteId = document.getElementById('statuteId').value.trim();
+  const editorCard = document.getElementById('editorCard');
 
   if (!statuteId) return showStatus("Please enter a Statute ID (e.g. 45-5-507).", false, true);
-  if (!owner || !repo) return showStatus("Please specify Owner and Repository Name.", false, true);
 
   const path = `data/statutes/${statuteId}.json`;
-  showStatus(`Checking existence of ${path} in ${owner}/${repo}...`, false, false, true);
+  showStatus(`Fetching ${path} from ${owner}/${repo}...`, false, false, true);
 
   try {
     const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-    const headers = token ? { 'Authorization': `token ${token}` } : {};
+    const headers = token ? { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' } : {};
     const res = await fetch(url, { headers });
 
     if (res.status === 200) {
-      showStatus(`File data/statutes/${statuteId}.json EXISTS on branch '${branch}'.`, true);
+      const fileData = await res.json();
+      currentFileSha = fileData.sha;
+      const jsonContent = JSON.parse(decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, '')))));
+      
+      populateEditorForm(jsonContent);
+      editorCard.style.display = 'block';
+      showStatus(`File data/statutes/${statuteId}.json loaded into editor below!`, true);
     } else if (res.status === 404) {
-      showStatus(`File data/statutes/${statuteId}.json DOES NOT exist on branch '${branch}'.`, false, false, true);
+      currentFileSha = null;
+      resetEditorForm(statuteId);
+      editorCard.style.display = 'block';
+      showStatus(`File data/statutes/${statuteId}.json DOES NOT exist yet. New template created for editor below.`, false, false, true);
     } else {
       throw new Error(`GitHub returned status code ${res.status}`);
     }
   } catch (err) {
     showStatus(`Error checking file: ${err.message}`, false, true);
+  }
+}
+
+function populateEditorForm(data) {
+  document.getElementById('statuteTitle').value = data.title || '';
+  
+  const offense = (data.offenses && data.offenses[0]) ? data.offenses[0] : {};
+  document.getElementById('subsectionTag').value = offense.subsection || '';
+  document.getElementById('offenseDegree').value = offense.degree || 'Felony';
+  document.getElementById('recommendedBond').value = offense.recommended_bond || 'Court Appearance Required';
+  document.getElementById('maxFine').value = offense.max_fine || '$50,000';
+  
+  document.getElementById('keywords').value = data.keywords || '';
+  document.getElementById('statuteHistory').value = data.history || '';
+
+  if (data.paragraphs && data.paragraphs.length > 0) {
+    document.getElementById('statuteText').value = data.paragraphs
+      .map(p => p.counter ? `${p.counter} ${p.text}` : p.text)
+      .join('\n');
+  } else {
+    document.getElementById('statuteText').value = '';
+  }
+}
+
+function resetEditorForm(statuteId) {
+  document.getElementById('statuteTitle').value = '';
+  document.getElementById('subsectionTag').value = '';
+  document.getElementById('offenseDegree').value = 'Felony';
+  document.getElementById('recommendedBond').value = 'Court Appearance Required';
+  document.getElementById('maxFine').value = '$50,000';
+  document.getElementById('keywords').value = '';
+  document.getElementById('statuteHistory').value = '';
+  document.getElementById('statuteText').value = '';
+}
+
+function previewStatute() {
+  const rawText = document.getElementById('statuteText').value.trim();
+  const targetTag = document.getElementById('subsectionTag').value.trim().toLowerCase().replace(/\s+/g, '');
+  const previewBox = document.getElementById('previewContainer');
+  const previewBody = document.getElementById('previewBody');
+
+  if (!rawText) return showStatus("Enter statute text to review.", false, true);
+
+  const paragraphs = parseStatuteParagraphs(rawText);
+  let html = '';
+  let currentLevel1 = '';
+  let currentLevel2 = '';
+
+  paragraphs.forEach(p => {
+    const counter = (p.counter || '').replace(/\s+/g, '').toLowerCase();
+
+    if (/^\([0-9]+\)$/.test(counter)) {
+      currentLevel1 = counter;
+      currentLevel2 = '';
+    } else if (/^\([a-z]+\)$/.test(counter)) {
+      currentLevel2 = counter;
+    } else if (/^\([0-9]+\)\([a-z]+\)$/.test(counter)) {
+      const match = counter.match(/^(\([0-9]+\))(\([a-z]+\))$/);
+      currentLevel1 = match[1];
+      currentLevel2 = match[2];
+    }
+
+    const fullPath = counter.startsWith('(') && counter.includes(')(') 
+      ? counter 
+      : `${currentLevel1}${currentLevel2}`;
+
+    const isHighlighted = targetTag && (
+      fullPath === targetTag || 
+      counter === targetTag || 
+      fullPath.startsWith(targetTag)
+    );
+
+    const indent = getIndentClass(p.counter);
+    const highlightClass = isHighlighted ? 'highlighted-subsection' : '';
+
+    html += `<div class="p-item ${indent} ${highlightClass}"><strong>${p.counter}</strong> ${p.text}</div>`;
+  });
+
+  previewBody.innerHTML = html;
+  previewBox.style.display = 'block';
+}
+
+function parseStatuteParagraphs(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const paragraphs = [];
+
+  lines.forEach(line => {
+    const match = line.match(/^(\((?:[0-9]+|[a-z]+|[ivx]+)\))\s*(.*)/i);
+    if (match) {
+      paragraphs.push({ counter: match[1], text: match[2] });
+    } else {
+      paragraphs.push({ counter: "", text: line });
+    }
+  });
+
+  return paragraphs;
+}
+
+function getIndentClass(counter) {
+  if (!counter) return "indent-level-1";
+  if (/^\([0-9]+\)(\([a-z]+\))?$/.test(counter)) return "indent-level-1";
+  if (/^\([a-z]+\)$/.test(counter)) return "indent-level-2";
+  if (/^\([ivx]+\)$/i.test(counter)) return "indent-level-3";
+  return "indent-level-1";
+}
+
+async function publishStatute(e) {
+  e.preventDefault();
+  const { owner, repo, branch, token } = getCredentials();
+
+  const statuteId = document.getElementById('statuteId').value.trim();
+  const title = document.getElementById('statuteTitle').value.trim();
+  const subsectionTag = document.getElementById('subsectionTag').value.trim();
+  const degree = document.getElementById('offenseDegree').value;
+  const keywords = document.getElementById('keywords').value.trim();
+  const recommendedBond = document.getElementById('recommendedBond').value.trim() || 'Court Appearance Required';
+  const maxFine = document.getElementById('maxFine').value.trim() || '$50,000';
+  const rawText = document.getElementById('statuteText').value.trim();
+  const history = document.getElementById('statuteHistory').value.trim();
+
+  const btn = document.getElementById('publishBtn');
+  showStatus("Saving changes and updating GitHub...", false, false, true);
+  btn.disabled = true;
+
+  try {
+    if (!token) throw new Error("Missing PAT token in Section 1.");
+
+    const titleNum = parseInt(statuteId.split('-')[0], 10) || 45;
+    const fullCitation = subsectionTag ? `${statuteId}${subsectionTag}` : statuteId;
+
+    const statuteData = {
+      id: statuteId,
+      title: title,
+      title_num: titleNum,
+      paragraphs: parseStatuteParagraphs(rawText),
+      offenses: [{
+        subsection: subsectionTag || null,
+        charge_name: `${fullCitation}. ${title}`,
+        degree: degree,
+        recommended_bond: recommendedBond,
+        min_fine: "$0",
+        max_fine: maxFine,
+        surcharges: "Standard",
+        must_appear: "REQUIRED",
+        jail: degree === 'Felony' ? "Up to Life / State Prison" : "County Jail"
+      }],
+      history: history
+    };
+
+    const path = `data/statutes/${statuteId}.json`;
+    await commitToGitHub(owner, repo, branch, token, path, JSON.stringify(statuteData, null, 2), `Update statute ${statuteId}`, currentFileSha);
+
+    await syncSearchIndex(owner, repo, branch, token, {
+      id: statuteId,
+      title: title,
+      title_num: titleNum,
+      degrees: [degree],
+      keywords: `${fullCitation} ${keywords} ${title.toLowerCase()}`.trim()
+    });
+
+    showStatus(`Success! Saved ${statuteId} to repository and synced search index.`, true);
+
+  } catch (err) {
+    showStatus(`Publish Error: ${err.message}`, false, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function syncSearchIndex(owner, repo, branch, token, newEntry) {
+  const indexPath = 'search-index.json';
+  let searchIndex = [];
+  let sha = null;
+
+  const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${indexPath}?ref=${branch}`;
+  const getRes = await fetch(getUrl, {
+    headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+  });
+
+  if (getRes.ok) {
+    const fileInfo = await getRes.json();
+    sha = fileInfo.sha;
+    const contentStr = decodeURIComponent(escape(atob(fileInfo.content.replace(/\n/g, ''))));
+    searchIndex = JSON.parse(contentStr);
+  }
+
+  const existingIndex = searchIndex.findIndex(item => item.id === newEntry.id);
+  if (existingIndex >= 0) {
+    searchIndex[existingIndex] = newEntry;
+  } else {
+    searchIndex.push(newEntry);
+  }
+
+  searchIndex.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' }));
+
+  await commitToGitHub(owner, repo, branch, token, indexPath, JSON.stringify(searchIndex, null, 2), `Sync search-index.json for ${newEntry.id}`, sha);
+}
+
+async function commitToGitHub(owner, repo, branch, token, path, contentStr, commitMessage, existingSha = null) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+
+  const encodedContent = btoa(unescape(encodeURIComponent(contentStr)));
+
+  const payload = {
+    message: commitMessage,
+    content: encodedContent,
+    branch: branch
+  };
+  if (existingSha) payload.sha = existingSha;
+
+  const putRes = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `token ${token}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/vnd.github.v3+json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!putRes.ok) {
+    const errData = await putRes.json();
+    throw new Error(`GitHub API Error (${path}): ${errData.message || putRes.statusText}`);
   }
 }
 

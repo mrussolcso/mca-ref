@@ -17,7 +17,6 @@
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
   .container { max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
-  /* Top Bar Navigation */
   .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
   .admin-header h2 { margin: 0; font-size: 1.25rem; }
   .btn-back { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
@@ -44,16 +43,13 @@
   .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; color: #4a5568; }
   .mode-btn.active { background: var(--primary); color: white; }
 
-  /* Status Notices */
   .status-notice { padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; }
   .status-new { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; }
   .status-edit { background: #feebc8; color: #742a2a; border: 1px solid #fbd38d; }
   .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
-  /* Offense Display Preview Box */
   .display-tag-preview { background: #fefcbf; border: 1px solid #d69e2e; color: #744210; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-align: center; margin-top: 4px; }
 
-  /* Tree Editor Styling */
   .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
   .tree-node { margin-top: 10px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
   .node-box { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -62,7 +58,6 @@
   .node-text { flex-grow: 1; }
   .node-toolbar { display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f0f4f8; justify-content: flex-start; }
 
-  /* Autocomplete Dropdown Styling */
   .autocomplete-container { position: relative; width: 100%; }
   .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 99; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: none; }
   .autocomplete-item { padding: 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid #edf2f7; }
@@ -75,26 +70,21 @@
 
 <div class="container">
   
-  <!-- Header Navigation -->
   <header class="admin-header">
     <h2>⚙️ Relational Admin Publisher</h2>
     <a href="index.html" class="btn-back">← Back to Index</a>
   </header>
 
-  <!-- Section 1: Authentication -->
+  <!-- Section 1: Auth -->
   <div class="card" id="sec1_card">
     <h3 style="margin-top:0;">1. Authentication</h3>
-    
     <form id="authForm" onsubmit="event.preventDefault(); verifyToken();">
       <input type="text" id="username" name="username" value="mrussolcso" autocomplete="username" style="display:none;">
-      
       <label for="ghToken">Personal Access Token (PAT)</label>
-      
       <div style="position: relative; display: flex; align-items: center;">
         <input type="password" id="ghToken" name="password" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required style="padding-right: 40px;">
         <button type="button" id="togglePatVisibility" onclick="togglePatTokenView()" title="Toggle Visibility" style="position: absolute; right: 8px; background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; color: #718096;">👁️</button>
       </div>
-
       <button type="submit" class="btn btn-auth">🔐 Verify Token</button>
     </form>
 
@@ -106,7 +96,7 @@
     </div>
   </div>
 
-  <!-- Section 2: Task Selection -->
+  <!-- Section 2: Mode -->
   <div class="card" id="sec2_card" style="display: none;">
     <h3 style="margin-top:0;">2. Select Action</h3>
     <div class="mode-selector">
@@ -115,7 +105,7 @@
     </div>
   </div>
 
-  <!-- Section 3: Source & ID Configuration (Law Mode) -->
+  <!-- Section 3: Law Identifier -->
   <div class="card" id="sec3_card" style="display: none;">
     <h3 style="margin-top:0;">3. Law Identifier & Source</h3>
     <div class="form-grid">
@@ -127,35 +117,29 @@
           <option value="City Code">City Code</option>
         </select>
       </div>
-
       <div id="idFieldsContainer" class="full form-grid" style="padding:0;"></div>
-
       <div class="full">
         <button type="button" class="btn btn-check" onclick="checkEntry()">🔍 Check Entry</button>
       </div>
     </div>
   </div>
 
-  <!-- Section 3-Offense: Offense Source & ID Configuration (Offense Mode) -->
+  <!-- Section 3-Offense: Source & Search -->
   <div class="card" id="sec3_offense_card" style="display: none;">
     <h3 style="margin-top:0;">3. Offense Source & ID Configuration</h3>
     <div class="form-grid">
-      
-      <!-- Statute Search -->
       <div class="autocomplete-container">
         <label>Law ID (Search Statutes)</label>
         <input type="text" id="lawIdSearch" autocomplete="off" placeholder="Type MCA number (e.g., 45-5-206)..." oninput="searchLaws()">
         <div id="lawSearchResults" class="autocomplete-list"></div>
       </div>
 
-      <!-- Subsection Search -->
       <div class="autocomplete-container">
-        <label>Law Subsection</label>
+        <label>Law Subsection Path</label>
         <input type="text" id="subsectionSearch" autocomplete="off" placeholder="Type subsection (e.g. (1)(a))..." oninput="filterSubsections()" disabled>
         <div id="subsectionSearchResults" class="autocomplete-list"></div>
       </div>
 
-      <!-- Resulting Unified Offense ID -->
       <div class="autocomplete-container">
         <label>Target Offense ID / Charge Code</label>
         <input type="text" id="offense_id_input" autocomplete="off" placeholder="Generated Offense ID..." oninput="handleOffenseIdInput(this.value)">
@@ -165,11 +149,10 @@
       <div class="full">
         <button type="button" class="btn btn-check" style="width:100%; margin-top:6px;" onclick="checkOffenseEntry()">🔍 Check Offense Record</button>
       </div>
-
     </div>
   </div>
 
-  <!-- Section 4: Metadata Details (Law Mode) -->
+  <!-- Section 4: Law Details -->
   <div class="card" id="sec4_card" style="display: none;">
     <h3 style="margin-top:0;">4. Law Details</h3>
     <div id="entryStatusNotice" class="status-notice"></div>
@@ -180,11 +163,10 @@
     </div>
   </div>
 
-  <!-- Section 4-Offense: Offense Data Entry Form (Offense Mode) -->
+  <!-- Section 4-Offense: Offense Details -->
   <div class="card" id="sec4_offense_card" style="display: none;">
     <h3 style="margin-top:0;">4. Offense Details</h3>
     <div id="offenseStatusNotice" class="status-notice"></div>
-    
     <div class="form-grid">
       <div class="span-2">
         <label>Offense Name / Title</label>
@@ -235,7 +217,6 @@
         <input type="text" id="offense_conditions" placeholder="e.g. No Contact Order required">
       </div>
 
-      <!-- Statutory Linking Controls -->
       <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
         <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Categorized Law Sections</h4>
       </div>
@@ -248,7 +229,6 @@
         <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap; width: 100%; height: 35px;" onclick="fetchAnchorsForLaw()">Fetch Law Anchors</button>
       </div>
 
-      <!-- Primary Charge Section Category (Yellow Highlight) -->
       <div class="full" style="background: #fefcbf; padding: 12px; border-radius: 6px; border: 1px solid #f6e05e;">
         <label style="color: #744210;">🟨 Primary Offense Law Sections (Charge Text Category)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -260,7 +240,6 @@
         <input type="text" id="offense_primary_anchors" placeholder="e.g. 1-a" oninput="updateOffenseDisplayTag()" style="background: white;">
       </div>
 
-      <!-- Secondary Related Section Category (Green Highlight) -->
       <div class="full" style="background: #f0fff4; padding: 12px; border-radius: 6px; border: 1px solid #9ae6b4;">
         <label style="color: #22543d;">🟩 Secondary Related Law Sections (Context / Penalties Category)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -272,7 +251,6 @@
         <input type="text" id="offense_secondary_anchors" placeholder="e.g. 2, 3-a" style="background: white;">
       </div>
 
-      <!-- Live Display Tag Preview -->
       <div class="full">
         <label>Primary Citation Tag Preview</label>
         <div id="offenseDisplayTagPreview" class="display-tag-preview">--</div>
@@ -284,7 +262,7 @@
     </div>
   </div>
 
-  <!-- Section 5: Structure & Text Editor (Law Mode) -->
+  <!-- Section 5: Tree Editor -->
   <div class="card" id="sec5_card" style="display: none;">
     <h3 style="margin-top:0;">5. Law Text Editor (Sections & Subsections)</h3>
     <div class="tree-container">
@@ -311,13 +289,11 @@ let currentComputedOffenseId = '';
 let treeData = [];
 let offenseIndexCache = [];
 
-// New Law/Subsection Index State
 let lawsIndexCache = [];
 let currentSelectedLawData = null;
 let selectedLawId = '';
 let selectedSubsection = '';
 
-// Auto-check stored session on load
 window.addEventListener('DOMContentLoaded', () => {
   const savedToken = sessionStorage.getItem('gh_pat');
   if (savedToken) {
@@ -325,7 +301,6 @@ window.addEventListener('DOMContentLoaded', () => {
     verifyToken();
   }
 
-  // Close autocomplete list when clicking outside
   document.addEventListener('click', function(e) {
     if (!e.target.closest('.autocomplete-container')) {
       closeAutocompleteList();
@@ -333,7 +308,6 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* PAT TOKEN VISIBILITY TOGGLE */
 function togglePatTokenView() {
   const tokenInput = document.getElementById('ghToken');
   const toggleBtn = document.getElementById('togglePatVisibility');
@@ -347,7 +321,6 @@ function togglePatTokenView() {
   }
 }
 
-/* AUTHENTICATION LOGIC */
 async function verifyToken() {
   const token = document.getElementById('ghToken').value.trim();
 
@@ -378,7 +351,6 @@ async function verifyToken() {
 
     document.getElementById('sec2_card').style.display = 'block';
     
-    // Pre-cache indexes for autocomplete
     loadOffenseIndexCache();
     loadLawsIndexCache();
 
@@ -403,7 +375,6 @@ function logout() {
   document.getElementById('sec5_card').style.display = 'none';
 }
 
-/* SECTION 2 ACTION SELECTION */
 function selectAction(action) {
   activeAction = action;
   document.getElementById('btnModeLaw').classList.toggle('active', action === 'law');
@@ -422,7 +393,6 @@ function selectAction(action) {
   }
 }
 
-/* LAWS INDEX CACHE & SUBSECTION SEARCH */
 async function loadLawsIndexCache() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/laws-index.json`;
   try {
@@ -474,7 +444,6 @@ async function selectLaw(lawId) {
   document.getElementById('lawIdSearch').value = lawId;
   document.getElementById('lawSearchResults').style.display = 'none';
   
-  // Set linked law ID in Section 4 automatically
   document.getElementById('offense_law_id').value = lawId;
 
   const subInput = document.getElementById('subsectionSearch');
@@ -484,7 +453,6 @@ async function selectLaw(lawId) {
   
   updateOffenseId();
 
-  // Fetch detailed statute JSON for subsections
   const path = `data/laws/${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   try {
@@ -516,9 +484,9 @@ function filterSubsections() {
 
   const paragraphs = currentSelectedLawData.paragraphs;
   const matches = paragraphs.filter(p => {
-    const counter = String(p.counter || '').toLowerCase();
+    const pathStr = String(p.path || p.counter || '').toLowerCase();
     const text = String(p.text || '').toLowerCase();
-    return counter.includes(query) || text.includes(query);
+    return pathStr.includes(query) || text.includes(query);
   });
 
   if (matches.length === 0) {
@@ -529,10 +497,11 @@ function filterSubsections() {
   matches.slice(0, 8).forEach(p => {
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    div.innerHTML = `<strong>${p.counter}</strong> ${p.text.substring(0, 50)}...`;
+    const displayPath = p.path || p.counter;
+    div.innerHTML = `<strong>${displayPath}</strong> ${p.text.substring(0, 50)}...`;
     div.onclick = () => {
-      document.getElementById('subsectionSearch').value = p.counter;
-      selectedSubsection = p.counter;
+      document.getElementById('subsectionSearch').value = displayPath;
+      selectedSubsection = displayPath;
       list.style.display = 'none';
       updateOffenseId();
     };
@@ -550,7 +519,6 @@ function updateOffenseId() {
   }
 }
 
-/* OFFENSE AUTOCOMPLETE FUNCTIONS */
 async function loadOffenseIndexCache() {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/offenses-index.json`;
   try {
@@ -609,7 +577,6 @@ function closeAutocompleteList() {
   lists.forEach(l => l.style.display = 'none');
 }
 
-/* DYNAMIC ID FIELDS (LAW MODE) */
 function renderIdFields() {
   const sourceType = document.getElementById('source_type').value;
   const container = document.getElementById('idFieldsContainer');
@@ -659,7 +626,6 @@ function updateComputedId() {
   currentComputedLawId = computeLawId();
 }
 
-/* BOND INPUT DISPLAY TOGGLE */
 function toggleBondInput() {
   const type = document.getElementById('offense_bond_type').value;
   const container = document.getElementById('bond_amount_container');
@@ -671,7 +637,6 @@ function toggleBondInput() {
   }
 }
 
-/* OFFENSE DISPLAY TAG CALCULATION */
 function getOrdinalSuffix(n) {
   const num = parseInt(n, 10);
   if (isNaN(num)) return '';
@@ -687,7 +652,7 @@ function updateOffenseDisplayTag() {
 
   let formattedAnchors = '';
   if (primaryAnchorsRaw) {
-    formattedAnchors = '(' + primaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean).join(')(') + ')';
+    formattedAnchors = '(' + primaryAnchorsRaw.split(',').map(s => s.trim().replace(/[\(\)]/g, '')).filter(Boolean).join(')(') + ')';
   }
 
   let occurrenceTag = '';
@@ -699,7 +664,6 @@ function updateOffenseDisplayTag() {
   document.getElementById('offenseDisplayTagPreview').textContent = result;
 }
 
-/* CHECK LAW ENTRY LOGIC */
 async function checkEntry() {
   currentComputedLawId = computeLawId();
 
@@ -757,7 +721,6 @@ async function checkEntry() {
   }
 }
 
-/* CHECK OFFENSE ENTRY LOGIC */
 async function checkOffenseEntry() {
   closeAutocompleteList();
   if (!currentComputedOffenseId) {
@@ -826,7 +789,6 @@ async function checkOffenseEntry() {
   }
 }
 
-/* FETCH ANCHORS FROM LINKED LAW */
 async function fetchAnchorsForLaw() {
   const lawId = document.getElementById('offense_law_id').value.trim();
   if (!lawId) {
@@ -862,12 +824,12 @@ async function fetchAnchorsForLaw() {
       content.paragraphs.forEach(p => {
         const optPrimary = document.createElement('option');
         optPrimary.value = p.anchor_id;
-        optPrimary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        optPrimary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
         primarySelect.appendChild(optPrimary);
 
         const optSecondary = document.createElement('option');
         optSecondary.value = p.anchor_id;
-        optSecondary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        optSecondary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
         secondarySelect.appendChild(optSecondary);
       });
 
@@ -902,7 +864,6 @@ async function fetchAnchorsForLaw() {
   }
 }
 
-/* TREE STATE SYNCING & RENDERING (LAW MODE) */
 function syncTreeDOMToState() {
   const root = document.getElementById('treeRoot');
   if (!root) return;
@@ -1020,9 +981,35 @@ function deleteNode(pathStr) {
   renderTree();
 }
 
-/* ANCHOR SLUG & TREE STRUCTURING HELPERS */
 function slugifyCounter(counter) {
   return (counter || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+}
+
+/* RECURSIVE CUMULATIVE PATH & ANCHOR TRAVERSAL */
+function processTreeWithFullPaths(nodes, parentPath = '', parentAnchor = '', depth = 1) {
+  let flatList = [];
+
+  nodes.forEach(node => {
+    const slug = slugifyCounter(node.counter);
+    const fullPath = `${parentPath}${node.counter}`;
+    const fullAnchor = parentAnchor ? `${parentAnchor}-${slug}` : slug;
+
+    flatList.push({
+      counter: node.counter,
+      path: fullPath,
+      anchor_id: fullAnchor,
+      text: node.text,
+      indent: depth
+    });
+
+    if (node.children && node.children.length > 0) {
+      flatList = flatList.concat(
+        processTreeWithFullPaths(node.children, fullPath, fullAnchor, depth + 1)
+      );
+    }
+  });
+
+  return flatList;
 }
 
 function processTreeAnchors(nodes, parentAnchor = '') {
@@ -1039,27 +1026,6 @@ function processTreeAnchors(nodes, parentAnchor = '') {
   });
 }
 
-function flattenTree(nodes, parentAnchor = '', indentLevel = 1) {
-  let flat = [];
-  nodes.forEach(n => {
-    const slug = slugifyCounter(n.counter);
-    const anchorId = parentAnchor ? `${parentAnchor}-${slug}` : slug;
-
-    flat.push({ 
-      counter: n.counter, 
-      anchor_id: anchorId, 
-      text: n.text, 
-      indent: indentLevel 
-    });
-
-    if (n.children && n.children.length > 0) {
-      flat = flat.concat(flattenTree(n.children, anchorId, indentLevel + 1));
-    }
-  });
-  return flat;
-}
-
-/* SAVE LAW TO GITHUB */
 async function saveLaw() {
   syncTreeDOMToState();
   
@@ -1069,6 +1035,7 @@ async function saveLaw() {
   }
 
   const processedTree = processTreeAnchors(treeData);
+  const flattenedParagraphs = processTreeWithFullPaths(treeData);
 
   const payload = {
     law_id: currentComputedLawId,
@@ -1077,7 +1044,7 @@ async function saveLaw() {
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
     history: document.getElementById('law_history').value.trim(),
-    paragraphs: flattenTree(treeData),
+    paragraphs: flattenedParagraphs,
     tree: processedTree
   };
 
@@ -1085,7 +1052,6 @@ async function saveLaw() {
   await updateIndex('laws-index.json', { id: currentComputedLawId, title: payload.title });
 }
 
-/* SAVE OFFENSE TO GITHUB */
 async function saveOffense() {
   if (!currentComputedOffenseId) {
     alert('Offense ID is missing.');
@@ -1128,11 +1094,9 @@ async function saveOffense() {
     law_id: payload.law_id 
   });
 
-  // Refresh local cache after saving
   await loadOffenseIndexCache();
 }
 
-/* COMMITS & INDEX UPDATES VIA GITHUB API */
 async function commitFile(path, data, msg) {
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   let sha = null;

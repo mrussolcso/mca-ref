@@ -1,14 +1,14 @@
 [
   {
     "id": "45-5-206(1)(a) [1st]",
-    "name": "Partner Or Family Member Assault, Causing Bodily Injury To Partner Or Family Member - 1st Offense",
+    "name": "PFMA - Causing Bodily Injury To Partner Or Family Member [1st Offense]",
     "occurrence": 1,
     "severity": "Misdemeanor",
     "law_id": "45-5-206"
   },
   {
     "id": "45-5-206(1)(b) [1st]",
-    "name": "Partner Or Fam Mem Assault, Causing Bodily Injury To Partner Or Fam Mem With Weapon - 1st Offense",
+    "name": "PFMA - Causing Bodily Injury To Partner Or Fam Mem With Weapon [1st Offense]",
     "occurrence": 1,
     "severity": "Misdemeanor",
     "law_id": "45-5-206"

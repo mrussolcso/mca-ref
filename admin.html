@@ -40,7 +40,6 @@
   .btn-add-child { background: #3182ce; color: white; }
   .btn-del { background: var(--danger); color: white; }
   
-  .pat-input { -webkit-text-security: disc; }
   .mode-selector { display: flex; gap: 10px; }
   .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; color: #4a5568; }
   .mode-btn.active { background: var(--primary); color: white; }
@@ -75,11 +74,15 @@
   <div class="card" id="sec1_card">
     <h3 style="margin-top:0;">1. Authentication</h3>
     
-    <div id="authForm">
-      <label>Personal Access Token (PAT)</label>
-      <input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-      <button type="button" class="btn btn-auth" onclick="verifyToken()">🔐 Verify Token</button>
-    </div>
+    <!-- Password Manager compatible form structure -->
+    <form id="authForm" onsubmit="event.preventDefault(); verifyToken();">
+      <!-- Hidden username input allows Chrome Password Manager to store credentials properly -->
+      <input type="text" id="username" name="username" value="mrussolcso" autocomplete="username" style="display:none;">
+      
+      <label for="ghToken">Personal Access Token (PAT)</label>
+      <input type="password" id="ghToken" name="password" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required>
+      <button type="submit" class="btn btn-auth">🔐 Verify Token</button>
+    </form>
 
     <div id="authSuccess" style="display: none;">
       <div class="auth-badge">
@@ -89,7 +92,7 @@
     </div>
   </div>
 
-  <!-- Section 2: Task Selection (Hidden until authenticated) -->
+  <!-- Section 2: Task Selection -->
   <div class="card" id="sec2_card" style="display: none;">
     <h3 style="margin-top:0;">2. Select Action</h3>
     <div class="mode-selector">
@@ -145,7 +148,6 @@
 </div>
 
 <script>
-// Target repository defaults
 const REPO_CONFIG = {
   owner: 'mrussolcso',
   repo: 'mca-ref',
@@ -211,7 +213,6 @@ function logout() {
   document.getElementById('authForm').style.display = 'block';
   document.getElementById('authSuccess').style.display = 'none';
 
-  // Hide downstream sections
   document.getElementById('sec2_card').style.display = 'none';
   document.getElementById('sec3_card').style.display = 'none';
   document.getElementById('sec4_card').style.display = 'none';

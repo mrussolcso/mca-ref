@@ -3,152 +3,298 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Publisher - Montana Reference Platform</title>
+<title>Admin Relational Publisher</title>
 <style>
-  :root {
-    --primary: #1a365d;
-    --primary-light: #2b6cb0;
-    --border: #cbd5e0;
-    --bg: #f7fafc;
-    --text: #2d3748;
+  :root { 
+    --primary: #1a365d; 
+    --primary-light: #2b6cb0; 
+    --border: #cbd5e0; 
+    --bg: #f7fafc; 
+    --danger: #e53e3e; 
+    --success: #38a169;
   }
-
-  * { box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f7fafc; color: var(--text); margin: 0; padding: 20px; }
   
-  .admin-container { max-width: 900px; margin: 0 auto; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+  .container { max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
-  header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
-  header h1 { margin: 0; font-size: 1.4rem; color: var(--primary); }
-  .btn-nav { background: #edf2f7; color: var(--text); text-decoration: none; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 0.85rem; border: 1px solid var(--border); }
+  /* Top Bar Navigation */
+  .admin-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
+  .admin-header h2 { margin: 0; font-size: 1.25rem; }
+  .btn-back { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn-back:hover { background: rgba(255, 255, 255, 0.35); }
 
-  .section-box { border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 20px; background: #fff; }
-  .section-box h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px solid #edf2f7; padding-bottom: 8px; }
+  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .full { grid-column: span 3; }
+  .span-2 { grid-column: span 2; }
+  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
+  input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+  
+  .btn { background: var(--primary-light); color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+  .btn:hover { opacity: 0.9; }
+  .btn-auth { background: #2b6cb0; width: 100%; margin-top: 10px; }
+  .btn-logout { background: #718096; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; border: none; color: white; cursor: pointer; float: right; }
+  .btn-check { background: #3182ce; color: white; margin-top: 10px; }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .btn-add-peer { background: #319795; color: white; }
+  .btn-add-child { background: #3182ce; color: white; }
+  .btn-del { background: var(--danger); color: white; }
+  
+  .mode-selector { display: flex; gap: 10px; }
+  .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; color: #4a5568; }
+  .mode-btn.active { background: var(--primary); color: white; }
 
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-bottom: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-group label { font-size: 0.82rem; font-weight: bold; color: #4a5568; }
-  .form-group input, .form-group select, .form-group textarea { padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.88rem; }
-  .form-group textarea { resize: vertical; min-height: 70px; }
+  /* Status Notices */
+  .status-notice { padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; }
+  .status-new { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; }
+  .status-edit { background: #feebc8; color: #742a2a; border: 1px solid #fbd38d; }
+  .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
-  .search-results { max-height: 150px; overflow-y: auto; border: 1px solid var(--border); border-radius: 4px; margin-top: 4px; background: #fff; display: none; }
-  .search-item { padding: 6px 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid #edf2f7; }
-  .search-item:hover { background: #ebf8ff; color: var(--primary); }
+  /* Offense Display Preview Box */
+  .display-tag-preview { background: #fefcbf; border: 1px solid #d69e2e; color: #744210; padding: 10px; border-radius: 6px; font-weight: bold; font-size: 1rem; text-align: center; margin-top: 4px; }
 
-  .btn-submit { background: var(--primary); color: #fff; border: none; padding: 10px 20px; border-radius: 4px; font-weight: bold; font-size: 0.9rem; cursor: pointer; margin-top: 10px; }
-  .btn-submit:hover { background: var(--primary-light); }
+  /* Tree Editor Styling */
+  .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
+  .tree-node { margin-top: 10px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
+  .node-box { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .node-header-row { display: flex; gap: 8px; }
+  .node-counter { width: 80px; flex-shrink: 0; font-weight: bold; }
+  .node-text { flex-grow: 1; }
+  .node-toolbar { display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f0f4f8; justify-content: flex-start; }
 
-  .generated-id-preview { font-weight: bold; color: var(--primary); background: #edf2f7; padding: 8px; border-radius: 4px; border: 1px solid var(--border); margin-top: 4px; font-size: 0.9rem; }
+  /* Autocomplete Dropdown Styling */
+  .autocomplete-container { position: relative; width: 100%; }
+  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 99; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: none; }
+  .autocomplete-item { padding: 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid #edf2f7; }
+  .autocomplete-item:hover { background-color: #ebf8ff; }
+  .autocomplete-item strong { color: var(--primary); }
+  .autocomplete-item span { color: #718096; font-size: 0.78rem; display: block; }
 </style>
 </head>
 <body>
 
-<div class="admin-container">
-  <header>
-    <h1>Admin Publisher</h1>
-    <a href="index.html" class="btn-nav">← Back to Platform</a>
+<div class="container">
+  
+  <!-- Header Navigation -->
+  <header class="admin-header">
+    <h2>⚙️ Relational Admin Publisher</h2>
+    <a href="index.html" class="btn-back">← Back to Index</a>
   </header>
 
-  <form id="offenseForm" onsubmit="handlePublish(event)">
+  <!-- Section 1: Authentication -->
+  <div class="card" id="sec1_card">
+    <h3 style="margin-top:0;">1. Authentication</h3>
     
-    <!-- Section 1: Basic Information -->
-    <div class="section-box">
-      <h2>1. Basic Information</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Offense Name / Title</label>
-          <input type="text" id="offenseName" placeholder="e.g., Partner Or Family Member Assault" required>
-        </div>
-        <div class="form-group">
-          <label>Severity</label>
-          <select id="severity">
-            <option value="Misdemeanor">Misdemeanor</option>
-            <option value="Felony">Felony</option>
-            <option value="Violation / Infraction">Violation / Infraction</option>
+    <form id="authForm" onsubmit="event.preventDefault(); verifyToken();">
+      <input type="text" id="username" name="username" value="mrussolcso" autocomplete="username" style="display:none;">
+      
+      <label for="ghToken">Personal Access Token (PAT)</label>
+      
+      <div style="position: relative; display: flex; align-items: center;">
+        <input type="password" id="ghToken" name="password" autocomplete="current-password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" required style="padding-right: 40px;">
+        <button type="button" id="togglePatVisibility" onclick="togglePatTokenView()" title="Toggle Visibility" style="position: absolute; right: 8px; background: transparent; border: none; cursor: pointer; font-size: 1.1rem; padding: 4px; line-height: 1; color: #718096;">👁️</button>
+      </div>
+
+      <button type="submit" class="btn btn-auth">🔐 Verify Token</button>
+    </form>
+
+    <div id="authSuccess" style="display: none;">
+      <div class="auth-badge">
+        <span>✅ Authenticated as <strong id="authUser">--</strong></span>
+        <button type="button" class="btn-logout" onclick="logout()">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Task Selection -->
+  <div class="card" id="sec2_card" style="display: none;">
+    <h3 style="margin-top:0;">2. Select Action</h3>
+    <div class="mode-selector">
+      <button class="mode-btn" id="btnModeLaw" onclick="selectAction('law')">📜 Add / Edit Law</button>
+      <button class="mode-btn" id="btnModeOffense" onclick="selectAction('offense')">🚨 Add / Edit Offense</button>
+    </div>
+  </div>
+
+  <!-- Section 3: Source & ID Configuration (Law Mode) -->
+  <div class="card" id="sec3_card" style="display: none;">
+    <h3 style="margin-top:0;">3. Law Identifier & Source</h3>
+    <div class="form-grid">
+      <div class="full">
+        <label>Source Type</label>
+        <select id="source_type" onchange="renderIdFields()">
+          <option value="MCA Statute">MCA Statute</option>
+          <option value="County Ordinance">County Ordinance</option>
+          <option value="City Code">City Code</option>
+        </select>
+      </div>
+
+      <div id="idFieldsContainer" class="full form-grid" style="padding:0;"></div>
+
+      <div class="full">
+        <button type="button" class="btn btn-check" onclick="checkEntry()">🔍 Check Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3-Offense: Offense Source & ID Configuration (Offense Mode) -->
+  <div class="card" id="sec3_offense_card" style="display: none;">
+    <h3 style="margin-top:0;">3. Offense Source & ID Configuration</h3>
+    <div class="form-grid">
+      
+      <!-- Statute Search -->
+      <div class="autocomplete-container">
+        <label>Law ID (Search Statutes)</label>
+        <input type="text" id="lawIdSearch" autocomplete="off" placeholder="Type MCA number (e.g., 45-5-206)..." oninput="searchLaws()">
+        <div id="lawSearchResults" class="autocomplete-list"></div>
+      </div>
+
+      <!-- Subsection Search -->
+      <div class="autocomplete-container">
+        <label>Law Subsection</label>
+        <input type="text" id="subsectionSearch" autocomplete="off" placeholder="Type subsection (e.g. (1)(a))..." oninput="filterSubsections()" disabled>
+        <div id="subsectionSearchResults" class="autocomplete-list"></div>
+      </div>
+
+      <!-- Resulting Unified Offense ID -->
+      <div class="autocomplete-container">
+        <label>Target Offense ID / Charge Code</label>
+        <input type="text" id="offense_id_input" autocomplete="off" placeholder="Generated Offense ID..." oninput="handleOffenseIdInput(this.value)">
+        <div id="offense_autocomplete_list" class="autocomplete-list"></div>
+      </div>
+
+      <div class="full">
+        <button type="button" class="btn btn-check" style="width:100%; margin-top:6px;" onclick="checkOffenseEntry()">🔍 Check Offense Record</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Section 4: Metadata Details (Law Mode) -->
+  <div class="card" id="sec4_card" style="display: none;">
+    <h3 style="margin-top:0;">4. Law Details</h3>
+    <div id="entryStatusNotice" class="status-notice"></div>
+    <div class="form-grid">
+      <div class="full"><label>Title</label><input type="text" id="law_title" placeholder="e.g. Partner or Family Member Assault" required></div>
+      <div class="full"><label>Official Publication URL</label><input type="url" id="official_url" placeholder="https://leg.mt.gov/statutes/..."></div>
+      <div class="full"><label>Revision History</label><input type="text" id="law_history" placeholder="e.g. Enacted 1995, last amended 2023"></div>
+    </div>
+  </div>
+
+  <!-- Section 4-Offense: Offense Data Entry Form (Offense Mode) -->
+  <div class="card" id="sec4_offense_card" style="display: none;">
+    <h3 style="margin-top:0;">4. Offense Details</h3>
+    <div id="offenseStatusNotice" class="status-notice"></div>
+    
+    <div class="form-grid">
+      <div class="span-2">
+        <label>Offense Name / Title</label>
+        <input type="text" id="offense_name" placeholder="e.g. Partner or Family Member Assault">
+      </div>
+      <div>
+        <label>Occurrence / Offense Sequence Number</label>
+        <input type="number" id="offense_occurrence" min="1" placeholder="1 (for 1st), 2 (for 2nd)..." oninput="updateOffenseDisplayTag()">
+      </div>
+
+      <div>
+        <label>Classification Severity</label>
+        <select id="offense_severity">
+          <option value="Misdemeanor">Misdemeanor</option>
+          <option value="Felony">Felony</option>
+          <option value="Violation / Civil">Violation / Civil</option>
+        </select>
+      </div>
+
+      <div class="span-2">
+        <label>Bond Type</label>
+        <select id="offense_bond_type" onchange="toggleBondInput()">
+          <option value="amount">Fixed Monetary Bond</option>
+          <option value="no_bond">No Bond (Hold Until Initial Appearance)</option>
+          <option value="schedule">Per Bond Schedule / Discretionary</option>
+        </select>
+      </div>
+
+      <div id="bond_amount_container" class="full">
+        <label>Standard Bond Amount ($)</label>
+        <input type="number" id="offense_bond" placeholder="500">
+      </div>
+
+      <div class="full">
+        <label>Short Description / Charge Overview</label>
+        <textarea id="offense_description" rows="2" placeholder="Brief statement of the offense conditions..."></textarea>
+      </div>
+
+      <div>
+        <label>Mandatory Appearance</label>
+        <select id="offense_mandatory">
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+      <div class="span-2">
+        <label>Local Enhancement / Special Conditions</label>
+        <input type="text" id="offense_conditions" placeholder="e.g. No Contact Order required">
+      </div>
+
+      <!-- Statutory Linking Controls -->
+      <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
+        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Categorized Law Sections</h4>
+      </div>
+
+      <div class="span-2">
+        <label>Linked Law ID</label>
+        <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206" oninput="updateOffenseDisplayTag()">
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap; width: 100%; height: 35px;" onclick="fetchAnchorsForLaw()">Fetch Law Anchors</button>
+      </div>
+
+      <!-- Primary Charge Section Category (Yellow Highlight) -->
+      <div class="full" style="background: #fefcbf; padding: 12px; border-radius: 6px; border: 1px solid #f6e05e;">
+        <label style="color: #744210;">🟨 Primary Offense Law Sections (Charge Text Category)</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="primary_anchor_select" style="background: white;">
+            <option value="">-- Load anchors using Fetch Law Anchors --</option>
           </select>
         </div>
+        <label style="color: #744210; font-size: 0.75rem;">Selected Primary Section Anchors (Comma-separated)</label>
+        <input type="text" id="offense_primary_anchors" placeholder="e.g. 1-a" oninput="updateOffenseDisplayTag()" style="background: white;">
       </div>
-    </div>
 
-    <!-- Section 2: Bond & Schedule -->
-    <div class="section-box">
-      <h2>2. Bond & Schedule</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>Bond Type</label>
-          <select id="bondType">
-            <option value="no_bond">No Bond (Hold)</option>
-            <option value="amount">Fixed Amount ($)</option>
-            <option value="discretionary">Per Schedule / Discretionary</option>
+      <!-- Secondary Related Section Category (Green Highlight) -->
+      <div class="full" style="background: #f0fff4; padding: 12px; border-radius: 6px; border: 1px solid #9ae6b4;">
+        <label style="color: #22543d;">🟩 Secondary Related Law Sections (Context / Penalties Category)</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="secondary_anchor_select" style="background: white;">
+            <option value="">-- Load anchors using Fetch Law Anchors --</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Bond Amount ($)</label>
-          <input type="number" id="bondAmount" placeholder="e.g., 500">
-        </div>
-        <div class="form-group">
-          <label>Mandatory Appearance</label>
-          <select id="mandatoryAppearance">
-            <option value="true">Yes</option>
-            <option value="false">No</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Occurrence / Sequence</label>
-          <input type="text" id="occurrence" placeholder="e.g., 1st Offense, 2nd Offense">
-        </div>
+        <label style="color: #22543d; font-size: 0.75rem;">Selected Secondary Section Anchors (Comma-separated)</label>
+        <input type="text" id="offense_secondary_anchors" placeholder="e.g. 2, 3-a" style="background: white;">
+      </div>
+
+      <!-- Live Display Tag Preview -->
+      <div class="full">
+        <label>Primary Citation Tag Preview</label>
+        <div id="offenseDisplayTagPreview" class="display-tag-preview">--</div>
+      </div>
+
+      <div class="full">
+        <button type="button" class="btn" style="margin-top:10px; width:100%; font-size:1.05rem;" onclick="saveOffense()">🚀 Save Offense Record to GitHub</button>
       </div>
     </div>
+  </div>
 
-    <!-- Section 3: Offense Source -->
-    <div class="section-box">
-      <h2>3. Offense Source</h2>
-      <div class="form-grid">
-        
-        <!-- Search Existing Laws in Database -->
-        <div class="form-group" style="position: relative;">
-          <label>Law ID (Search Statutes)</label>
-          <input type="text" id="lawIdSearch" placeholder="Type MCA number (e.g., 45-5-206)..." oninput="searchLaws()" autocomplete="off">
-          <div id="lawSearchResults" class="search-results"></div>
-        </div>
-
-        <!-- Search / Select Subsection within Selected Law -->
-        <div class="form-group" style="position: relative;">
-          <label>Law Subsection</label>
-          <input type="text" id="subsectionSearch" placeholder="Type/Select subsection (e.g., (1)(a))..." oninput="filterSubsections()" autocomplete="off" disabled>
-          <div id="subsectionSearchResults" class="search-results"></div>
-        </div>
-
-      </div>
-
-      <!-- Generated Offense ID Preview -->
-      <div class="form-group">
-        <label>Generated Offense ID</label>
-        <div id="offenseIdPreview" class="generated-id-preview">Select Law ID and Subsection above</div>
-      </div>
+  <!-- Section 5: Structure & Text Editor (Law Mode) -->
+  <div class="card" id="sec5_card" style="display: none;">
+    <h3 style="margin-top:0;">5. Law Text Editor (Sections & Subsections)</h3>
+    <div class="tree-container">
+      <div id="treeRoot"></div>
+      <button type="button" class="btn btn-sm btn-add-peer" style="margin-top:12px;" onclick="addTopLevelSection()">➕ Add Top-Level Section</button>
     </div>
 
-    <!-- Section 4: Details & Section Anchors -->
-    <div class="section-box">
-      <h2>4. Details & Section Anchors</h2>
-      <div class="form-group">
-        <label>Description / Conditions</label>
-        <textarea id="description" placeholder="Enter offense description and conditions..."></textarea>
-      </div>
-      <div class="form-grid" style="margin-top: 10px;">
-        <div class="form-group">
-          <label>Primary Sections (Comma Separated)</label>
-          <input type="text" id="primaryAnchors" placeholder="e.g., 1, 1-a">
-        </div>
-        <div class="form-group">
-          <label>Secondary Sections (Comma Separated)</label>
-          <input type="text" id="secondaryAnchors" placeholder="e.g., 2, 2-a, 3-a-i">
-        </div>
-      </div>
-    </div>
+    <button type="button" class="btn" style="margin-top:20px; width:100%; font-size:1.05rem;" onclick="saveLaw()">🚀 Save Law Record to GitHub</button>
+  </div>
 
-    <button type="submit" class="btn-submit">Publish Offense Record</button>
-  </form>
 </div>
 
 <script>
@@ -158,49 +304,169 @@ const REPO_CONFIG = {
   branch: 'main'
 };
 
-let lawsIndex = [];
+let validatedToken = '';
+let activeAction = null;
+let currentComputedLawId = '';
+let currentComputedOffenseId = '';
+let treeData = [];
+let offenseIndexCache = [];
+
+// New Law/Subsection Index State
+let lawsIndexCache = [];
 let currentSelectedLawData = null;
 let selectedLawId = '';
 let selectedSubsection = '';
 
-window.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws-index.json`);
-    if (res.ok) lawsIndex = await res.json();
-  } catch (err) {
-    console.error("Failed to load laws index:", err);
+// Auto-check stored session on load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedToken = sessionStorage.getItem('gh_pat');
+  if (savedToken) {
+    document.getElementById('ghToken').value = savedToken;
+    verifyToken();
   }
+
+  // Close autocomplete list when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-container')) {
+      closeAutocompleteList();
+    }
+  });
 });
 
-function searchLaws() {
-  const query = document.getElementById('lawIdSearch').value.trim().toLowerCase();
-  const resultsEl = document.getElementById('lawSearchResults');
-  resultsEl.innerHTML = '';
+/* PAT TOKEN VISIBILITY TOGGLE */
+function togglePatTokenView() {
+  const tokenInput = document.getElementById('ghToken');
+  const toggleBtn = document.getElementById('togglePatVisibility');
 
-  if (!query) {
-    resultsEl.style.display = 'none';
+  if (tokenInput.type === 'password') {
+    tokenInput.type = 'text';
+    toggleBtn.textContent = '🙈';
+  } else {
+    tokenInput.type = 'password';
+    toggleBtn.textContent = '👁️';
+  }
+}
+
+/* AUTHENTICATION LOGIC */
+async function verifyToken() {
+  const token = document.getElementById('ghToken').value.trim();
+
+  if (!token) {
+    alert('Please enter a valid GitHub PAT Token.');
     return;
   }
 
-  const matches = lawsIndex.filter(l => 
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('Invalid PAT token or insufficient permissions.');
+    }
+
+    const userData = await res.json();
+    validatedToken = token;
+    sessionStorage.setItem('gh_pat', token);
+
+    document.getElementById('authUser').textContent = `@${userData.login}`;
+    document.getElementById('authForm').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'block';
+
+    document.getElementById('sec2_card').style.display = 'block';
+    
+    // Pre-cache indexes for autocomplete
+    loadOffenseIndexCache();
+    loadLawsIndexCache();
+
+  } catch (err) {
+    alert(`Authentication Failed: ${err.message}`);
+    logout();
+  }
+}
+
+function logout() {
+  validatedToken = '';
+  sessionStorage.removeItem('gh_pat');
+  document.getElementById('ghToken').value = '';
+  document.getElementById('authForm').style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+
+  document.getElementById('sec2_card').style.display = 'none';
+  document.getElementById('sec3_card').style.display = 'none';
+  document.getElementById('sec3_offense_card').style.display = 'none';
+  document.getElementById('sec4_card').style.display = 'none';
+  document.getElementById('sec4_offense_card').style.display = 'none';
+  document.getElementById('sec5_card').style.display = 'none';
+}
+
+/* SECTION 2 ACTION SELECTION */
+function selectAction(action) {
+  activeAction = action;
+  document.getElementById('btnModeLaw').classList.toggle('active', action === 'law');
+  document.getElementById('btnModeOffense').classList.toggle('active', action === 'offense');
+
+  if (action === 'law') {
+    document.getElementById('sec3_card').style.display = 'block';
+    document.getElementById('sec3_offense_card').style.display = 'none';
+    document.getElementById('sec4_offense_card').style.display = 'none';
+    renderIdFields();
+  } else {
+    document.getElementById('sec3_card').style.display = 'none';
+    document.getElementById('sec4_card').style.display = 'none';
+    document.getElementById('sec5_card').style.display = 'none';
+    document.getElementById('sec3_offense_card').style.display = 'block';
+  }
+}
+
+/* LAWS INDEX CACHE & SUBSECTION SEARCH */
+async function loadLawsIndexCache() {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/laws-index.json`;
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: { 'Authorization': `token ${validatedToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      lawsIndexCache = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+    }
+  } catch (err) {
+    console.warn("Could not cache laws-index.json:", err);
+  }
+}
+
+function searchLaws() {
+  const query = document.getElementById('lawIdSearch').value.trim().toLowerCase();
+  const list = document.getElementById('lawSearchResults');
+  list.innerHTML = '';
+
+  if (!query || lawsIndexCache.length === 0) {
+    list.style.display = 'none';
+    return;
+  }
+
+  const matches = lawsIndexCache.filter(l => 
     String(l.id || '').toLowerCase().includes(query) || 
     String(l.title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
-    resultsEl.style.display = 'none';
+    list.style.display = 'none';
     return;
   }
 
-  matches.forEach(m => {
+  matches.slice(0, 8).forEach(m => {
     const div = document.createElement('div');
-    div.className = 'search-item';
-    div.innerHTML = `<strong>MCA ${m.id}</strong> - ${m.title}`;
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<strong>MCA ${m.id}</strong> - ${m.title || ''}`;
     div.onclick = () => selectLaw(m.id);
-    resultsEl.appendChild(div);
+    list.appendChild(div);
   });
 
-  resultsEl.style.display = 'block';
+  list.style.display = 'block';
 }
 
 async function selectLaw(lawId) {
@@ -208,7 +474,9 @@ async function selectLaw(lawId) {
   document.getElementById('lawIdSearch').value = lawId;
   document.getElementById('lawSearchResults').style.display = 'none';
   
-  // Enable subsection search box
+  // Set linked law ID in Section 4 automatically
+  document.getElementById('offense_law_id').value = lawId;
+
   const subInput = document.getElementById('subsectionSearch');
   subInput.disabled = false;
   subInput.value = '';
@@ -216,11 +484,16 @@ async function selectLaw(lawId) {
   
   updateOffenseId();
 
-  // Fetch detailed statute JSON to pull subsections/paragraphs
+  // Fetch detailed statute JSON for subsections
+  const path = `data/laws/${lawId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   try {
-    const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`);
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: { 'Authorization': `token ${validatedToken}` }
+    });
     if (res.ok) {
-      currentSelectedLawData = await res.json();
+      const data = await res.json();
+      currentSelectedLawData = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
       filterSubsections();
     }
   } catch (err) {
@@ -230,14 +503,14 @@ async function selectLaw(lawId) {
 
 function filterSubsections() {
   const query = document.getElementById('subsectionSearch').value.trim().toLowerCase();
-  const resultsEl = document.getElementById('subsectionSearchResults');
-  resultsEl.innerHTML = '';
+  const list = document.getElementById('subsectionSearchResults');
+  list.innerHTML = '';
 
   selectedSubsection = document.getElementById('subsectionSearch').value.trim();
   updateOffenseId();
 
   if (!currentSelectedLawData || !currentSelectedLawData.paragraphs) {
-    resultsEl.style.display = 'none';
+    list.style.display = 'none';
     return;
   }
 
@@ -249,62 +522,679 @@ function filterSubsections() {
   });
 
   if (matches.length === 0) {
-    resultsEl.style.display = 'none';
+    list.style.display = 'none';
     return;
   }
 
-  matches.forEach(p => {
+  matches.slice(0, 8).forEach(p => {
     const div = document.createElement('div');
-    div.className = 'search-item';
-    div.innerHTML = `<strong>${p.counter}</strong> ${p.text.substring(0, 60)}...`;
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<strong>${p.counter}</strong> ${p.text.substring(0, 50)}...`;
     div.onclick = () => {
       document.getElementById('subsectionSearch').value = p.counter;
       selectedSubsection = p.counter;
-      resultsEl.style.display = 'none';
+      list.style.display = 'none';
       updateOffenseId();
     };
-    resultsEl.appendChild(div);
+    list.appendChild(div);
   });
 
-  resultsEl.style.display = 'block';
+  list.style.display = 'block';
 }
 
 function updateOffenseId() {
-  const previewEl = document.getElementById('offenseIdPreview');
   if (selectedLawId) {
     const combined = `${selectedLawId}${selectedSubsection ? selectedSubsection : ''}`;
-    previewEl.textContent = combined;
-  } else {
-    previewEl.textContent = 'Select Law ID and Subsection above';
+    document.getElementById('offense_id_input').value = combined;
+    currentComputedOffenseId = combined;
   }
 }
 
-function handlePublish(e) {
-  e.preventDefault();
-  const offenseId = document.getElementById('offenseIdPreview').textContent;
-  
-  if (!selectedLawId || offenseId.includes('Select Law ID')) {
-    alert('Please select a valid Law ID first.');
+/* OFFENSE AUTOCOMPLETE FUNCTIONS */
+async function loadOffenseIndexCache() {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/offenses-index.json`;
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: { 'Authorization': `token ${validatedToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      offenseIndexCache = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+    }
+  } catch (err) {
+    console.warn("Could not cache offenses-index.json:", err);
+  }
+}
+
+function handleOffenseIdInput(val) {
+  currentComputedOffenseId = val.trim();
+  const list = document.getElementById('offense_autocomplete_list');
+  list.innerHTML = '';
+
+  if (!val.trim() || offenseIndexCache.length === 0) {
+    list.style.display = 'none';
     return;
   }
 
+  const query = val.toLowerCase();
+  const matches = offenseIndexCache.filter(item => 
+    (item.id && item.id.toLowerCase().includes(query)) ||
+    (item.name && item.name.toLowerCase().includes(query)) ||
+    (item.law_id && item.law_id.toLowerCase().includes(query))
+  );
+
+  if (matches.length === 0) {
+    list.style.display = 'none';
+    return;
+  }
+
+  matches.slice(0, 8).forEach(match => {
+    const div = document.createElement('div');
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<strong>${match.id}</strong> - ${match.name || 'Unnamed'} <span>Law ID: ${match.law_id || 'N/A'}</span>`;
+    div.onclick = function() {
+      document.getElementById('offense_id_input').value = match.id;
+      currentComputedOffenseId = match.id;
+      closeAutocompleteList();
+      checkOffenseEntry();
+    };
+    list.appendChild(div);
+  });
+
+  list.style.display = 'block';
+}
+
+function closeAutocompleteList() {
+  const lists = document.querySelectorAll('.autocomplete-list');
+  lists.forEach(l => l.style.display = 'none');
+}
+
+/* DYNAMIC ID FIELDS (LAW MODE) */
+function renderIdFields() {
+  const sourceType = document.getElementById('source_type').value;
+  const container = document.getElementById('idFieldsContainer');
+  container.innerHTML = '';
+
+  if (sourceType === 'MCA Statute') {
+    container.innerHTML = `
+      <div><label>Title #</label><input type="text" id="id_mca_title" placeholder="45" oninput="updateComputedId()"></div>
+      <div><label>Chapter #</label><input type="text" id="id_mca_chapter" placeholder="5" oninput="updateComputedId()"></div>
+      <div><label>Statute #</label><input type="text" id="id_mca_section" placeholder="206" oninput="updateComputedId()"></div>
+    `;
+  } else if (sourceType === 'County Ordinance') {
+    container.innerHTML = `
+      <div><label>County Identifier</label><input type="text" id="id_ord_county" placeholder="LC" oninput="updateComputedId()"></div>
+      <div class="span-2"><label>Ordinance Number</label><input type="text" id="id_ord_num" placeholder="2021-04" oninput="updateComputedId()"></div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div><label>City Identifier</label><input type="text" id="id_city_code" placeholder="HELENA" oninput="updateComputedId()"></div>
+      <div class="span-2"><label>Code Section</label><input type="text" id="id_city_sec" placeholder="8-4-1" oninput="updateComputedId()"></div>
+    `;
+  }
+
+  document.getElementById('sec4_card').style.display = 'none';
+  document.getElementById('sec5_card').style.display = 'none';
+}
+
+function computeLawId() {
+  const sourceType = document.getElementById('source_type').value;
+  if (sourceType === 'MCA Statute') {
+    const t = document.getElementById('id_mca_title')?.value.trim() || '';
+    const c = document.getElementById('id_mca_chapter')?.value.trim() || '';
+    const s = document.getElementById('id_mca_section')?.value.trim() || '';
+    return (t && c && s) ? `${t}-${c}-${s}` : '';
+  } else if (sourceType === 'County Ordinance') {
+    const county = document.getElementById('id_ord_county')?.value.trim() || '';
+    const num = document.getElementById('id_ord_num')?.value.trim() || '';
+    return (county && num) ? `ORD-${county}-${num}` : '';
+  } else {
+    const city = document.getElementById('id_city_code')?.value.trim() || '';
+    const sec = document.getElementById('id_city_sec')?.value.trim() || '';
+    return (city && sec) ? `CITY-${city}-${sec}` : '';
+  }
+}
+
+function updateComputedId() {
+  currentComputedLawId = computeLawId();
+}
+
+/* BOND INPUT DISPLAY TOGGLE */
+function toggleBondInput() {
+  const type = document.getElementById('offense_bond_type').value;
+  const container = document.getElementById('bond_amount_container');
+  if (type === 'amount') {
+    container.style.display = 'block';
+  } else {
+    container.style.display = 'none';
+    document.getElementById('offense_bond').value = '';
+  }
+}
+
+/* OFFENSE DISPLAY TAG CALCULATION */
+function getOrdinalSuffix(n) {
+  const num = parseInt(n, 10);
+  if (isNaN(num)) return '';
+  const s = ["th", "st", "nd", "rd"];
+  const v = num % 100;
+  return num + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+function updateOffenseDisplayTag() {
+  const lawId = document.getElementById('offense_law_id').value.trim();
+  const primaryAnchorsRaw = document.getElementById('offense_primary_anchors').value.trim();
+  const occurrence = document.getElementById('offense_occurrence').value.trim();
+
+  let formattedAnchors = '';
+  if (primaryAnchorsRaw) {
+    formattedAnchors = '(' + primaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean).join(')(') + ')';
+  }
+
+  let occurrenceTag = '';
+  if (occurrence) {
+    occurrenceTag = ` [${getOrdinalSuffix(occurrence)}]`;
+  }
+
+  const result = (lawId || 'LAW_ID') + formattedAnchors + occurrenceTag;
+  document.getElementById('offenseDisplayTagPreview').textContent = result;
+}
+
+/* CHECK LAW ENTRY LOGIC */
+async function checkEntry() {
+  currentComputedLawId = computeLawId();
+
+  if (!currentComputedLawId) {
+    alert('Please fill out all ID fields for the selected source type.');
+    return;
+  }
+
+  const path = `data/laws/${currentComputedLawId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const notice = document.getElementById('entryStatusNotice');
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+      const content = JSON.parse(rawText);
+      
+      notice.className = "status-notice status-edit";
+      notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded details for editing.`;
+
+      document.getElementById('law_title').value = content.title || '';
+      document.getElementById('official_url').value = content.official_url || '';
+      document.getElementById('law_history').value = content.history || '';
+      
+      treeData = content.tree || [];
+      if (treeData.length === 0 && content.paragraphs) {
+        treeData = content.paragraphs.map(p => ({ counter: p.counter, text: p.text, children: [] }));
+      }
+    } else {
+      notice.className = "status-notice status-new";
+      notice.textContent = `✨ No existing record found for ID "${currentComputedLawId}". Creating a new law entry.`;
+
+      document.getElementById('law_title').value = '';
+      document.getElementById('official_url').value = '';
+      document.getElementById('law_history').value = '';
+      treeData = [];
+      addTopLevelSection();
+    }
+
+    renderTree();
+    document.getElementById('sec4_card').style.display = 'block';
+    document.getElementById('sec5_card').style.display = 'block';
+
+  } catch (err) {
+    alert(`Error checking entry (${currentComputedLawId}): ${err.message}`);
+  }
+}
+
+/* CHECK OFFENSE ENTRY LOGIC */
+async function checkOffenseEntry() {
+  closeAutocompleteList();
+  if (!currentComputedOffenseId) {
+    alert('Please provide an Offense ID / Charge Code.');
+    return;
+  }
+
+  const path = `data/offenses/${currentComputedOffenseId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const notice = document.getElementById('offenseStatusNotice');
+
+    if (res.ok) {
+      const data = await res.json();
+      const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
+      const content = JSON.parse(rawText);
+
+      notice.className = "status-notice status-edit";
+      notice.textContent = `📝 Existing Offense Record Found for ID "${currentComputedOffenseId}". Loaded details for editing.`;
+
+      document.getElementById('offense_name').value = content.name || '';
+      document.getElementById('offense_occurrence').value = content.occurrence || '';
+      document.getElementById('offense_severity').value = content.severity || 'Misdemeanor';
+      document.getElementById('offense_description').value = content.description || '';
+      
+      document.getElementById('offense_bond_type').value = content.bond_type || (content.no_bond ? 'no_bond' : 'amount');
+      toggleBondInput();
+      document.getElementById('offense_bond').value = content.bond_amount || '';
+
+      document.getElementById('offense_mandatory').value = content.mandatory_appearance ? 'Yes' : 'No';
+      document.getElementById('offense_conditions').value = content.conditions || '';
+      document.getElementById('offense_law_id').value = content.law_id || '';
+      document.getElementById('offense_primary_anchors').value = (content.primary_anchors || content.target_anchors || []).join(', ');
+      document.getElementById('offense_secondary_anchors').value = (content.secondary_anchors || []).join(', ');
+    } else {
+      notice.className = "status-notice status-new";
+      notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
+
+      document.getElementById('offense_name').value = '';
+      document.getElementById('offense_occurrence').value = '';
+      document.getElementById('offense_severity').value = 'Misdemeanor';
+      document.getElementById('offense_description').value = '';
+      document.getElementById('offense_bond_type').value = 'amount';
+      toggleBondInput();
+      document.getElementById('offense_bond').value = '';
+      document.getElementById('offense_mandatory').value = 'No';
+      document.getElementById('offense_conditions').value = '';
+      document.getElementById('offense_law_id').value = selectedLawId || '';
+      document.getElementById('offense_primary_anchors').value = '';
+      document.getElementById('offense_secondary_anchors').value = '';
+    }
+
+    updateOffenseDisplayTag();
+    document.getElementById('sec4_offense_card').style.display = 'block';
+
+  } catch (err) {
+    alert(`Error checking offense (${currentComputedOffenseId}): ${err.message}`);
+  }
+}
+
+/* FETCH ANCHORS FROM LINKED LAW */
+async function fetchAnchorsForLaw() {
+  const lawId = document.getElementById('offense_law_id').value.trim();
+  if (!lawId) {
+    alert('Please enter a Linked Law ID first.');
+    return;
+  }
+
+  const path = `data/laws/${lawId}.json`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error(`Law JSON for "${lawId}" not found.`);
+    }
+
+    const data = await res.json();
+    const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+    
+    const primarySelect = document.getElementById('primary_anchor_select');
+    const secondarySelect = document.getElementById('secondary_anchor_select');
+    
+    primarySelect.innerHTML = '<option value="">-- Select primary anchor to append --</option>';
+    secondarySelect.innerHTML = '<option value="">-- Select secondary anchor to append --</option>';
+
+    if (content.paragraphs && content.paragraphs.length > 0) {
+      content.paragraphs.forEach(p => {
+        const optPrimary = document.createElement('option');
+        optPrimary.value = p.anchor_id;
+        optPrimary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        primarySelect.appendChild(optPrimary);
+
+        const optSecondary = document.createElement('option');
+        optSecondary.value = p.anchor_id;
+        optSecondary.textContent = `${p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+        secondarySelect.appendChild(optSecondary);
+      });
+
+      primarySelect.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_primary_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
+          updateOffenseDisplayTag();
+        }
+      };
+
+      secondarySelect.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_secondary_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
+        }
+      };
+
+      alert(`Successfully loaded ${content.paragraphs.length} anchors from Law ID "${lawId}".`);
+    } else {
+      alert('Law record found, but contains no paragraph anchors.');
+    }
+
+  } catch (err) {
+    alert(`Error fetching anchors: ${err.message}`);
+  }
+}
+
+/* TREE STATE SYNCING & RENDERING (LAW MODE) */
+function syncTreeDOMToState() {
+  const root = document.getElementById('treeRoot');
+  if (!root) return;
+
+  function processContainer(containerNode) {
+    const nodes = [];
+    const childDivs = Array.from(containerNode.children).filter(el => el.classList.contains('tree-node'));
+
+    childDivs.forEach(div => {
+      const counterInput = div.querySelector(':scope > .node-box > .node-header-row > .node-counter');
+      const textInput = div.querySelector(':scope > .node-box > .node-header-row > .node-text');
+      const childrenContainer = div.querySelector(':scope > .node-children');
+
+      nodes.push({
+        counter: counterInput ? counterInput.value : '',
+        text: textInput ? textInput.value : '',
+        children: childrenContainer ? processContainer(childrenContainer) : []
+      });
+    });
+
+    return nodes;
+  }
+
+  treeData = processContainer(root);
+}
+
+function renderTree() {
+  const container = document.getElementById('treeRoot');
+  container.innerHTML = '';
+  treeData.forEach((node, index) => {
+    container.appendChild(buildNodeDOM(node, [index]));
+  });
+}
+
+function buildNodeDOM(node, path) {
+  const div = document.createElement('div');
+  div.className = 'tree-node';
+  const pathStr = path.join('-');
+
+  div.innerHTML = `
+    <div class="node-box">
+      <div class="node-header-row">
+        <input type="text" class="node-counter" value="${node.counter || ''}" placeholder="(1)">
+        <input type="text" class="node-text" value="${node.text || ''}" placeholder="Section text content...">
+      </div>
+      <div class="node-toolbar">
+        <button type="button" class="btn-sm btn-add-child" onclick="addChildNode('${pathStr}')">➕ Add Subsection</button>
+        <button type="button" class="btn-sm btn-add-peer" onclick="addPeerNode('${pathStr}')">➕ Add Peer Section</button>
+        <button type="button" class="btn-sm btn-del" onclick="deleteNode('${pathStr}')">🗑️ Delete</button>
+      </div>
+    </div>
+    <div class="node-children"></div>
+  `;
+
+  const childrenContainer = div.querySelector('.node-children');
+  node.children.forEach((child, idx) => {
+    childrenContainer.appendChild(buildNodeDOM(child, [...path, idx]));
+  });
+
+  return div;
+}
+
+function getNodeByPath(pathStr) {
+  const indices = pathStr.split('-').map(Number);
+  let current = treeData[indices[0]];
+  for (let i = 1; i < indices.length; i++) {
+    current = current.children[indices[i]];
+  }
+  return { node: current, indices };
+}
+
+function addTopLevelSection() {
+  syncTreeDOMToState();
+  const num = treeData.length + 1;
+  treeData.push({ counter: `(${num})`, text: '', children: [] });
+  renderTree();
+}
+
+function addPeerNode(pathStr) {
+  syncTreeDOMToState();
+  const indices = pathStr.split('-').map(Number);
+  const parentIndices = indices.slice(0, -1);
+  const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
+  
+  const depth = indices.length;
+  let defaultCounter = '(1)';
+  if (depth === 1) defaultCounter = `(${targetArray.length + 1})`;
+  else if (depth === 2) defaultCounter = `(${String.fromCharCode(97 + targetArray.length)})`;
+  else if (depth === 3) defaultCounter = `(i)`;
+
+  targetArray.splice(indices[indices.length - 1] + 1, 0, { counter: defaultCounter, text: '', children: [] });
+  renderTree();
+}
+
+function addChildNode(pathStr) {
+  syncTreeDOMToState();
+  const { node, indices } = getNodeByPath(pathStr);
+  const depth = indices.length + 1;
+  
+  let defaultCounter = '(a)';
+  if (depth === 3) defaultCounter = '(i)';
+  if (depth === 4) defaultCounter = '(A)';
+
+  node.children.push({ counter: defaultCounter, text: '', children: [] });
+  renderTree();
+}
+
+function deleteNode(pathStr) {
+  syncTreeDOMToState();
+  const indices = pathStr.split('-').map(Number);
+  const parentIndices = indices.slice(0, -1);
+  const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
+  
+  targetArray.splice(indices[indices.length - 1], 1);
+  renderTree();
+}
+
+/* ANCHOR SLUG & TREE STRUCTURING HELPERS */
+function slugifyCounter(counter) {
+  return (counter || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+}
+
+function processTreeAnchors(nodes, parentAnchor = '') {
+  return nodes.map(n => {
+    const slug = slugifyCounter(n.counter);
+    const anchorId = parentAnchor ? `${parentAnchor}-${slug}` : slug;
+    
+    return {
+      counter: n.counter,
+      anchor_id: anchorId,
+      text: n.text,
+      children: n.children && n.children.length > 0 ? processTreeAnchors(n.children, anchorId) : []
+    };
+  });
+}
+
+function flattenTree(nodes, parentAnchor = '', indentLevel = 1) {
+  let flat = [];
+  nodes.forEach(n => {
+    const slug = slugifyCounter(n.counter);
+    const anchorId = parentAnchor ? `${parentAnchor}-${slug}` : slug;
+
+    flat.push({ 
+      counter: n.counter, 
+      anchor_id: anchorId, 
+      text: n.text, 
+      indent: indentLevel 
+    });
+
+    if (n.children && n.children.length > 0) {
+      flat = flat.concat(flattenTree(n.children, anchorId, indentLevel + 1));
+    }
+  });
+  return flat;
+}
+
+/* SAVE LAW TO GITHUB */
+async function saveLaw() {
+  syncTreeDOMToState();
+  
+  if (!currentComputedLawId) {
+    alert('Law ID is missing.');
+    return;
+  }
+
+  const processedTree = processTreeAnchors(treeData);
+
   const payload = {
-    offense_id: offenseId,
-    display_tag: offenseId,
-    name: document.getElementById('offenseName').value,
-    severity: document.getElementById('severity').value,
-    bond_type: document.getElementById('bondType').value,
-    bond_amount: document.getElementById('bondAmount').value || '0',
-    mandatory_appearance: document.getElementById('mandatoryAppearance').value === 'true',
-    occurrence: document.getElementById('occurrence').value,
-    law_id: selectedLawId,
-    description: document.getElementById('description').value,
-    primary_anchors: document.getElementById('primaryAnchors').value.split(',').map(s => s.trim()).filter(Boolean),
-    secondary_anchors: document.getElementById('secondaryAnchors').value.split(',').map(s => s.trim()).filter(Boolean)
+    law_id: currentComputedLawId,
+    title: document.getElementById('law_title').value.trim(),
+    source_type: document.getElementById('source_type').value,
+    official_url: document.getElementById('official_url').value.trim(),
+    last_updated: new Date().toISOString(),
+    history: document.getElementById('law_history').value.trim(),
+    paragraphs: flattenTree(treeData),
+    tree: processedTree
   };
 
-  console.log("Publishing Offense Record:", payload);
-  alert(`Offense Record ${offenseId} prepared for publishing! Check console for payload.`);
+  await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
+  await updateIndex('laws-index.json', { id: currentComputedLawId, title: payload.title });
+}
+
+/* SAVE OFFENSE TO GITHUB */
+async function saveOffense() {
+  if (!currentComputedOffenseId) {
+    alert('Offense ID is missing.');
+    return;
+  }
+
+  const primaryAnchorsRaw = document.getElementById('offense_primary_anchors').value;
+  const primaryAnchors = primaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const secondaryAnchorsRaw = document.getElementById('offense_secondary_anchors').value;
+  const secondaryAnchors = secondaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
+  const bondType = document.getElementById('offense_bond_type').value;
+  const displayTag = document.getElementById('offenseDisplayTagPreview').textContent;
+
+  const payload = {
+    offense_id: currentComputedOffenseId,
+    display_tag: displayTag,
+    name: document.getElementById('offense_name').value.trim(),
+    occurrence: parseInt(document.getElementById('offense_occurrence').value, 10) || null,
+    severity: document.getElementById('offense_severity').value,
+    description: document.getElementById('offense_description').value.trim(),
+    bond_type: bondType,
+    bond_amount: bondType === 'amount' ? (parseFloat(document.getElementById('offense_bond').value) || 0) : null,
+    mandatory_appearance: document.getElementById('offense_mandatory').value === 'Yes',
+    conditions: document.getElementById('offense_conditions').value.trim(),
+    law_id: document.getElementById('offense_law_id').value.trim(),
+    primary_anchors: primaryAnchors,
+    secondary_anchors: secondaryAnchors,
+    last_updated: new Date().toISOString()
+  };
+
+  await commitFile(`data/offenses/${currentComputedOffenseId}.json`, payload, `Update Offense ${currentComputedOffenseId}`);
+  await updateIndex('offenses-index.json', { 
+    id: currentComputedOffenseId, 
+    display_tag: payload.display_tag,
+    name: payload.name, 
+    occurrence: payload.occurrence,
+    severity: payload.severity, 
+    law_id: payload.law_id 
+  });
+
+  // Refresh local cache after saving
+  await loadOffenseIndexCache();
+}
+
+/* COMMITS & INDEX UPDATES VIA GITHUB API */
+async function commitFile(path, data, msg) {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+  let sha = null;
+
+  try {
+    const resCheck = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { 
+      headers: { 'Authorization': `token ${validatedToken}`, 'Accept': 'application/vnd.github.v3+json' } 
+    });
+    if (resCheck.ok) { 
+      const d = await resCheck.json(); 
+      sha = d.sha; 
+    }
+
+    const body = { 
+      message: msg, 
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), 
+      branch: REPO_CONFIG.branch 
+    };
+    if (sha) body.sha = sha;
+
+    const res = await fetch(url, { 
+      method: 'PUT', 
+      headers: { 
+        'Authorization': `token ${validatedToken}`, 
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json' 
+      }, 
+      body: JSON.stringify(body) 
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(`[${res.status}] ${errData.message || res.statusText}`);
+    }
+    
+    alert(`Successfully committed ${path}!`);
+  } catch (err) {
+    console.error(err);
+    alert(`GitHub Error (${path}): ${err.message}`);
+  }
+}
+
+async function updateIndex(indexPath, entry) {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/${indexPath}`;
+  let index = [];
+  let sha = null;
+
+  const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { headers: { 'Authorization': `token ${validatedToken}` } });
+  if (res.ok) {
+    const d = await res.json();
+    sha = d.sha;
+    index = JSON.parse(decodeURIComponent(escape(atob(d.content.replace(/\s/g, '')))));
+  }
+
+  const idx = index.findIndex(i => i.id === entry.id);
+  if (idx >= 0) index[idx] = entry; else index.push(entry);
+
+  await fetch(url, {
+    method: 'PUT',
+    headers: { 'Authorization': `token ${validatedToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `Sync ${indexPath}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), branch: REPO_CONFIG.branch, sha: sha })
+  });
 }
 </script>
 

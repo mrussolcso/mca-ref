@@ -61,6 +61,14 @@
   .node-counter { width: 80px; flex-shrink: 0; font-weight: bold; }
   .node-text { flex-grow: 1; }
   .node-toolbar { display: flex; gap: 6px; padding-top: 4px; border-top: 1px solid #f0f4f8; justify-content: flex-start; }
+
+  /* Autocomplete Dropdown Styling */
+  .autocomplete-container { position: relative; width: 100%; }
+  .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 99; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: none; }
+  .autocomplete-item { padding: 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid #edf2f7; }
+  .autocomplete-item:hover { background-color: #ebf8ff; }
+  .autocomplete-item strong { color: var(--primary); }
+  .autocomplete-item span { color: #718096; font-size: 0.78rem; display: block; }
 </style>
 </head>
 <body>
@@ -132,9 +140,10 @@
   <div class="card" id="sec3_offense_card" style="display: none;">
     <h3 style="margin-top:0;">3. Offense Identifier & Source</h3>
     <div class="form-grid">
-      <div class="span-2">
+      <div class="span-2 autocomplete-container">
         <label>Offense ID / Local Charge Code</label>
-        <input type="text" id="offense_id_input" placeholder="e.g. PFMA-1ST or MCA-45-5-206-1A" oninput="currentComputedOffenseId = this.value.trim()">
+        <input type="text" id="offense_id_input" autocomplete="off" placeholder="Type to search existing (e.g. PFMA-1ST) or enter new ID..." oninput="handleOffenseIdInput(this.value)">
+        <div id="offense_autocomplete_list" class="autocomplete-list"></div>
       </div>
       <div style="display: flex; align-items: flex-end;">
         <button type="button" class="btn btn-check" style="width:100%; margin-top:0;" onclick="checkOffenseEntry()">🔍 Check Offense</button>
@@ -282,6 +291,7 @@ let activeAction = null;
 let currentComputedLawId = '';
 let currentComputedOffenseId = '';
 let treeData = [];
+let offenseIndexCache = [];
 
 // Auto-check stored session on load
 window.addEventListener('DOMContentLoaded', () => {
@@ -290,6 +300,13 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('ghToken').value = savedToken;
     verifyToken();
   }
+
+  // Close autocomplete list when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.autocomplete-container')) {
+      closeAutocompleteList();
+    }
+  });
 });
 
 /* PAT TOKEN VISIBILITY TOGGLE */
@@ -336,6 +353,9 @@ async function verifyToken() {
     document.getElementById('authSuccess').style.display = 'block';
 
     document.getElementById('sec2_card').style.display = 'block';
+    
+    // Pre-cache offense index for autocomplete
+    loadOffenseIndexCache();
 
   } catch (err) {
     alert(`Authentication Failed: ${err.message}`);
@@ -375,6 +395,65 @@ function selectAction(action) {
     document.getElementById('sec5_card').style.display = 'none';
     document.getElementById('sec3_offense_card').style.display = 'block';
   }
+}
+
+/* OFFENSE AUTOCOMPLETE FUNCTIONS */
+async function loadOffenseIndexCache() {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/offenses-index.json`;
+  try {
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: { 'Authorization': `token ${validatedToken}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      offenseIndexCache = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
+    }
+  } catch (err) {
+    console.warn("Could not cache offenses-index.json:", err);
+  }
+}
+
+function handleOffenseIdInput(val) {
+  currentComputedOffenseId = val.trim();
+  const list = document.getElementById('offense_autocomplete_list');
+  list.innerHTML = '';
+
+  if (!val.trim() || offenseIndexCache.length === 0) {
+    list.style.display = 'none';
+    return;
+  }
+
+  const query = val.toLowerCase();
+  const matches = offenseIndexCache.filter(item => 
+    (item.id && item.id.toLowerCase().includes(query)) ||
+    (item.name && item.name.toLowerCase().includes(query)) ||
+    (item.law_id && item.law_id.toLowerCase().includes(query))
+  );
+
+  if (matches.length === 0) {
+    list.style.display = 'none';
+    return;
+  }
+
+  matches.slice(0, 8).forEach(match => {
+    const div = document.createElement('div');
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<strong>${match.id}</strong> - ${match.name || 'Unnamed'} <span>Law ID: ${match.law_id || 'N/A'}</span>`;
+    div.onclick = function() {
+      document.getElementById('offense_id_input').value = match.id;
+      currentComputedOffenseId = match.id;
+      closeAutocompleteList();
+      checkOffenseEntry();
+    };
+    list.appendChild(div);
+  });
+
+  list.style.display = 'block';
+}
+
+function closeAutocompleteList() {
+  const list = document.getElementById('offense_autocomplete_list');
+  if (list) list.style.display = 'none';
 }
 
 /* DYNAMIC ID FIELDS (LAW MODE) */
@@ -527,6 +606,7 @@ async function checkEntry() {
 
 /* CHECK OFFENSE ENTRY LOGIC */
 async function checkOffenseEntry() {
+  closeAutocompleteList();
   if (!currentComputedOffenseId) {
     alert('Please provide an Offense ID / Charge Code.');
     return;
@@ -894,6 +974,9 @@ async function saveOffense() {
     severity: payload.severity, 
     law_id: payload.law_id 
   });
+
+  // Refresh local cache after saving
+  await loadOffenseIndexCache();
 }
 
 /* COMMITS & INDEX UPDATES VIA GITHUB API */

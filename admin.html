@@ -100,19 +100,19 @@
       </div>
     </div>
 
-    <!-- Section 3: Offense Source (REVISED) -->
+    <!-- Section 3: Offense Source -->
     <div class="section-box">
       <h2>3. Offense Source</h2>
       <div class="form-grid">
         
-        <!-- Search Existing Laws in DB -->
+        <!-- Search Existing Laws in Database -->
         <div class="form-group" style="position: relative;">
           <label>Law ID (Search Statutes)</label>
           <input type="text" id="lawIdSearch" placeholder="Type MCA number (e.g., 45-5-206)..." oninput="searchLaws()" autocomplete="off">
           <div id="lawSearchResults" class="search-results"></div>
         </div>
 
-        <!-- Search / Select Subsection within selected Law -->
+        <!-- Search / Select Subsection within Selected Law -->
         <div class="form-group" style="position: relative;">
           <label>Law Subsection</label>
           <input type="text" id="subsectionSearch" placeholder="Type/Select subsection (e.g., (1)(a))..." oninput="filterSubsections()" autocomplete="off" disabled>
@@ -128,7 +128,7 @@
       </div>
     </div>
 
-    <!-- Section 4: Categorized Sections & Details -->
+    <!-- Section 4: Details & Section Anchors -->
     <div class="section-box">
       <h2>4. Details & Section Anchors</h2>
       <div class="form-group">
@@ -216,7 +216,7 @@ async function selectLaw(lawId) {
   
   updateOffenseId();
 
-  // Load detailed statute JSON to fetch subsections/paragraphs
+  // Fetch detailed statute JSON to pull subsections/paragraphs
   try {
     const res = await fetch(`https://raw.githubusercontent.com/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/${REPO_CONFIG.branch}/data/laws/${lawId}.json`);
     if (res.ok) {

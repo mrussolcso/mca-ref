@@ -30,15 +30,24 @@
   label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
   input, select { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
 
-  /* 3-Column Grid Layout */
+  /* 3-Column Grid Layout with Natural Vertical Alignment */
   .view-grid-3col { 
     display: grid; 
     grid-template-columns: 300px 1fr 340px; 
     gap: 20px; 
+    align-items: start;
+  }
+
+  /* Column Panels (Fixed heights removed to allow full page scrolling) */
+  .list-panel, .law-panel, .offense-panel { 
+    background: white; 
+    border: 1px solid var(--border); 
+    border-radius: 8px; 
+    padding: 20px; 
+    box-sizing: border-box;
   }
 
   /* Column 1: Index Search / Master Selection */
-  .list-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 14px; height: 720px; overflow-y: auto; }
   .list-item { padding: 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
   .list-item:hover { background: #edf2f7; }
   .list-item.active { background: #ebf8ff; border-color: var(--primary-light); }
@@ -46,7 +55,6 @@
   .item-sub { font-size: 0.82rem; color: #4a5568; margin-top: 3px; }
 
   /* Column 2: Law Text View */
-  .law-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 24px; height: 720px; overflow-y: auto; }
   .law-header { border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-bottom: 16px; }
   .law-header h2 { margin: 0; color: var(--primary); font-size: 1.35rem; }
 
@@ -61,14 +69,14 @@
   .indent-4 { margin-left: 60px; }
 
   /* Column 3: Offense Details View */
-  .offense-panel { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; height: 720px; overflow-y: auto; }
   .offense-info-card { background: #f7fafc; border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
   .offense-info-card h3 { margin: 0 0 12px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 1px dashed var(--border); padding-bottom: 6px; }
   
   .meta-list { display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; }
+  .meta-item { overflow-wrap: anywhere; word-break: break-word; }
   .meta-item strong { color: var(--primary); display: block; margin-bottom: 2px; }
 
-  .empty-state { text-align: center; color: #a0aec0; margin-top: 120px; font-style: italic; }
+  .empty-state { text-align: center; color: #a0aec0; margin: 60px 0; font-style: italic; }
 </style>
 </head>
 <body>

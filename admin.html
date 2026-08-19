@@ -3,74 +3,75 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Publisher - Montana Law & Bond Schedule Reference</title>
+<title>Admin Publisher - Montana Law & Bond Schedule</title>
 <style>
   :root { 
     --primary: #1a365d; 
     --primary-light: #2b6cb0; 
     --border: #cbd5e0; 
     --bg: #f7fafc; 
-    --danger: #e53e3e; 
     --success: #38a169;
+    --danger: #e53e3e;
   }
   
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-  .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .container { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   
   .app-header { display: flex; justify-content: space-between; align-items: center; background: var(--primary); color: white; padding: 16px 20px; border-radius: 8px; }
   .app-header h1 { margin: 0; font-size: 1.4rem; }
   .btn-nav { background: rgba(255, 255, 255, 0.2); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; transition: background 0.2s; }
   .btn-nav:hover { background: rgba(255, 255, 255, 0.35); }
 
-  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
-  .card h2 { margin-top: 0; font-size: 1.15rem; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+  .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 24px; }
+  .card h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 8px; font-size: 1.2rem; }
   
-  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 12px; }
+  .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 16px; }
   .full-width { grid-column: span 2; }
   
-  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
+  label { display: block; font-size: 0.85rem; font-weight: 700; margin-bottom: 6px; color: var(--primary); }
   input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.95rem; }
-  textarea { height: 80px; resize: vertical; }
+  textarea { resize: vertical; min-height: 100px; font-family: inherit; }
 
-  .btn-submit { background: var(--primary-light); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 16px; }
+  .btn-submit { background: var(--primary-light); color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: background 0.2s; margin-top: 16px; width: 100%; }
   .btn-submit:hover { background: var(--primary); }
 
-  .status-banner { margin-top: 16px; padding: 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; display: none; }
-  .status-banner.success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
-  .status-banner.error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
+  .status-message { margin-top: 16px; padding: 12px; border-radius: 6px; font-weight: 600; display: none; }
+  .status-message.success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+  .status-message.error { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
 </style>
 </head>
 <body>
 
 <div class="container">
 
+  <!-- Header Nav -->
   <header class="app-header">
     <h1>⚙️ MCA Reference Admin Publisher</h1>
     <a href="index.html" class="btn-nav">👈 Back to Public View</a>
   </header>
 
-  <!-- GitHub Credentials Card -->
+  <!-- GitHub Settings Card -->
   <div class="card">
-    <h2>🔑 GitHub API Credentials</h2>
+    <h2>🔑 GitHub API Settings</h2>
     <div class="form-grid">
       <div>
-        <label for="ghRepo">GitHub Repository (owner/repo)</label>
-        <input type="text" id="ghRepo" placeholder="e.g. username/mca-ref">
+        <label for="ghRepo">Repository Path (owner/repo)</label>
+        <input type="text" id="ghRepo" placeholder="username/mca-ref">
       </div>
       <div>
-        <label for="ghToken">Personal Access Token (PAT)</label>
-        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx">
+        <label for="ghToken">GitHub Personal Access Token (PAT)</label>
+        <input type="password" id="ghToken" placeholder="github_pat_...">
       </div>
     </div>
   </div>
 
-  <!-- Offense Publisher Card -->
+  <!-- Offense Entry Form -->
   <div class="card">
-    <h2>🚨 Publish / Update Offense Record</h2>
-    <form id="offenseForm" onsubmit="publishOffense(event)">
+    <h2>🚨 Publish Offense / Bond Record</h2>
+    <form id="offenseForm" onsubmit="handlePublishOffense(event)">
       <div class="form-grid">
         <div>
-          <label for="offenseId">Offense ID (Filename)</label>
+          <label for="offenseId">Unique Offense ID</label>
           <input type="text" id="offenseId" placeholder="e.g., 45-5-206-pfma-1st" required>
         </div>
         <div>
@@ -79,19 +80,19 @@
         </div>
         <div class="full-width">
           <label for="offenseName">Offense Title / Name</label>
-          <input type="text" id="offenseName" placeholder="e.g., Partner Or Family Member Assault..." required>
+          <input type="text" id="offenseName" placeholder="e.g., Partner Or Family Member Assault - 1st Offense" required>
         </div>
         <div>
           <label for="lawId">Associated Law ID (MCA)</label>
           <input type="text" id="lawId" placeholder="e.g., 45-5-206" required>
         </div>
         <div>
-          <label for="targetAnchors">Target Anchors (comma separated)</label>
-          <input type="text" id="targetAnchors" placeholder="e.g., 1-a, 1-b">
+          <label for="targetAnchors">Statutory Target Anchors (comma-separated)</label>
+          <input type="text" id="targetAnchors" placeholder="e.g., 1, 1-a, 2, 2-a">
         </div>
         <div>
           <label for="occurrence">Occurrence / Sequence</label>
-          <input type="number" id="occurrence" value="1" min="1">
+          <input type="number" id="occurrence" placeholder="1" value="1">
         </div>
         <div>
           <label for="severity">Severity</label>
@@ -99,25 +100,26 @@
             <option value="Misdemeanor">Misdemeanor</option>
             <option value="Felony">Felony</option>
             <option value="Traffic">Traffic Violation</option>
+            <option value="Civil">Civil Infraction</option>
           </select>
         </div>
         <div>
           <label for="bondType">Bond Type</label>
           <select id="bondType">
-            <option value="amount">Fixed Amount</option>
-            <option value="no_bond">No Bond (Hold)</option>
-            <option value="schedule">Bond Schedule</option>
+            <option value="amount">Fixed Amount ($)</option>
+            <option value="no_bond">No Bond (Hold Until Appearance)</option>
+            <option value="schedule">Discretionary / Schedule</option>
           </select>
         </div>
         <div>
           <label for="bondAmount">Bond Amount ($)</label>
-          <input type="number" id="bondAmount" placeholder="e.g., 500">
+          <input type="number" id="bondAmount" placeholder="500">
         </div>
         <div>
           <label for="mandatoryApp">Mandatory Appearance</label>
           <select id="mandatoryApp">
-            <option value="false">No</option>
             <option value="true">Yes</option>
+            <option value="false">No</option>
           </select>
         </div>
         <div class="full-width">
@@ -125,141 +127,137 @@
           <input type="text" id="conditions" placeholder="e.g., No Contact Order Required">
         </div>
         <div class="full-width">
-          <label for="description">Charge Overview</label>
-          <textarea id="description" placeholder="Brief summary of offense..."></textarea>
+          <label for="description">Charge Overview / Description</label>
+          <textarea id="description" placeholder="Enter charge summary..."></textarea>
         </div>
       </div>
+
       <button type="submit" class="btn-submit">🚀 Publish Offense to GitHub</button>
+      <div id="offenseStatus" class="status-message"></div>
     </form>
-    <div id="statusBanner" class="status-banner"></div>
   </div>
 
 </div>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
+// Load saved credentials from localStorage
+document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('ghRepo').value = localStorage.getItem('mca_gh_repo') || '';
   document.getElementById('ghToken').value = localStorage.getItem('mca_gh_token') || '';
 });
 
+// Save API Credentials
 function saveCredentials() {
   const repo = document.getElementById('ghRepo').value.trim();
   const token = document.getElementById('ghToken').value.trim();
-  if (repo) localStorage.setItem('mca_gh_repo', repo);
-  if (token) localStorage.setItem('mca_gh_token', token);
+  localStorage.setItem('mca_gh_repo', repo);
+  localStorage.setItem('mca_gh_token', token);
   return { repo, token };
 }
 
-function showStatus(message, isError = false) {
-  const banner = document.getElementById('statusBanner');
-  banner.textContent = message;
-  banner.className = `status-banner ${isError ? 'error' : 'success'}`;
-  banner.style.display = 'block';
-}
+async function handlePublishOffense(event) {
+  event.preventDefault();
+  const statusDiv = document.getElementById('offenseStatus');
+  statusDiv.style.display = 'none';
 
-async function publishOffense(e) {
-  e.preventDefault();
   const { repo, token } = saveCredentials();
-
   if (!repo || !token) {
-    showStatus('Please provide GitHub Repo and Personal Access Token.', true);
+    showStatus(statusDiv, 'Please enter your GitHub repository path and Personal Access Token.', false);
     return;
   }
 
+  // Build JSON Payload
   const offenseId = document.getElementById('offenseId').value.trim();
-  const displayTag = document.getElementById('displayTag').value.trim();
-  const offenseName = document.getElementById('offenseName').value.trim();
-  const lawId = document.getElementById('lawId').value.trim();
-  const anchorsRaw = document.getElementById('targetAnchors').value.trim();
-  const targetAnchors = anchorsRaw ? anchorsRaw.split(',').map(s => s.trim()) : [];
-  const occurrence = parseInt(document.getElementById('occurrence').value) || 1;
-  const severity = document.getElementById('severity').value;
-  const bondType = document.getElementById('bondType').value;
-  const bondAmountVal = document.getElementById('bondAmount').value;
-  const bondAmount = bondAmountVal ? parseFloat(bondAmountVal) : null;
-  const mandatoryApp = document.getElementById('mandatoryApp').value === 'true';
-  const conditions = document.getElementById('conditions').value.trim();
-  const description = document.getElementById('description').value.trim();
+  const rawAnchors = document.getElementById('targetAnchors').value;
+  const targetAnchors = rawAnchors ? rawAnchors.split(',').map(a => a.trim()).filter(Boolean) : [];
 
-  const offensePayload = {
+  const offenseData = {
     offense_id: offenseId,
-    display_tag: displayTag,
-    name: offenseName,
-    law_id: lawId,
+    display_tag: document.getElementById('displayTag').value.trim(),
+    name: document.getElementById('offenseName').value.trim(),
+    law_id: document.getElementById('lawId').value.trim(),
     target_anchors: targetAnchors,
-    occurrence: occurrence,
-    severity: severity,
-    bond_type: bondType,
-    bond_amount: bondAmount,
-    mandatory_appearance: mandatoryApp,
-    conditions: conditions,
-    description: description
+    occurrence: parseInt(document.getElementById('occurrence').value) || 1,
+    severity: document.getElementById('severity').value,
+    bond_type: document.getElementById('bondType').value,
+    bond_amount: document.getElementById('bondAmount').value ? parseFloat(document.getElementById('bondAmount').value) : null,
+    mandatory_appearance: document.getElementById('mandatoryApp').value === 'true',
+    conditions: document.getElementById('conditions').value.trim(),
+    description: document.getElementById('description').value.trim()
   };
 
   try {
-    showStatus('Publishing offense file to GitHub...');
-    await commitToGitHub(repo, token, `data/offenses/${offenseId}.json`, JSON.stringify(offensePayload, null, 2), `Add/Update offense ${offenseId}`);
+    showStatus(statusDiv, 'Publishing offense record to GitHub...', true, false);
 
-    showStatus('Updating offenses index...');
-    await updateIndex(repo, token, {
-      id: offenseId,
-      display_tag: displayTag,
-      name: offenseName,
-      law_id: lawId
-    });
+    // 1. Commit the single Offense JSON file: data/offenses/{offenseId}.json
+    const filePath = `data/offenses/${offenseId}.json`;
+    await createOrUpdateFile(repo, token, filePath, JSON.stringify(offenseData, null, 2), `Add/Update offense ${offenseId}`);
 
-    showStatus(`Successfully published ${offenseId}!`);
+    // 2. Fetch, update, and commit data/offenses-index.json
+    await updateOffensesIndex(repo, token, offenseData);
+
+    showStatus(statusDiv, `Successfully published ${offenseId} and updated index!`, true);
   } catch (err) {
-    showStatus(`Error publishing: ${err.message}`, true);
+    showStatus(statusDiv, `Error publishing record: ${err.message}`, false);
   }
 }
 
-async function updateIndex(repo, token, newEntry) {
-  const path = 'data/offenses-index.json';
+async function updateOffensesIndex(repo, token, newOffense) {
+  const indexPath = 'data/offenses-index.json';
   let indexData = [];
   let sha = null;
 
   try {
-    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${indexPath}`, {
       headers: { 'Authorization': `token ${token}` }
     });
     if (res.ok) {
-      const file = await res.json();
-      sha = file.sha;
-      indexData = JSON.parse(atob(file.content));
+      const data = await res.json();
+      sha = data.sha;
+      indexData = JSON.parse(atob(data.content));
     }
-  } catch (err) {}
-
-  const existingIdx = indexData.findIndex(item => item.id === newEntry.id);
-  if (existingIdx >= 0) {
-    indexData[existingIdx] = newEntry;
-  } else {
-    indexData.push(newEntry);
+  } catch (e) {
+    console.log('Index file not found, creating new index array.');
   }
 
-  await commitToGitHub(repo, token, path, JSON.stringify(indexData, null, 2), `Update index for ${newEntry.id}`, sha);
+  // Update or append index entry
+  const newIndexEntry = {
+    id: newOffense.offense_id,
+    display_tag: newOffense.display_tag,
+    name: newOffense.name,
+    law_id: newOffense.law_id
+  };
+
+  const existingIdx = indexData.findIndex(item => item.id === newOffense.offense_id);
+  if (existingIdx >= 0) {
+    indexData[existingIdx] = newIndexEntry;
+  } else {
+    indexData.push(newIndexEntry);
+  }
+
+  await createOrUpdateFile(repo, token, indexPath, JSON.stringify(indexData, null, 2), `Update offenses-index for ${newOffense.offense_id}`, sha);
 }
 
-async function commitToGitHub(repo, token, path, content, message, sha = null) {
+async function createOrUpdateFile(repo, token, path, content, commitMessage, sha = null) {
   if (!sha) {
     try {
-      const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      const existing = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
         headers: { 'Authorization': `token ${token}` }
       });
-      if (res.ok) {
-        const file = await res.json();
-        sha = file.sha;
+      if (existing.ok) {
+        const fileData = await existing.json();
+        sha = fileData.sha;
       }
-    } catch (err) {}
+    } catch (e) {}
   }
 
   const payload = {
-    message: message,
+    message: commitMessage,
     content: btoa(unescape(encodeURIComponent(content))),
     ...(sha && { sha })
   };
 
-  const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+  const response = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
     method: 'PUT',
     headers: {
       'Authorization': `token ${token}`,
@@ -268,10 +266,16 @@ async function commitToGitHub(repo, token, path, content, message, sha = null) {
     body: JSON.stringify(payload)
   });
 
-  if (!res.ok) {
-    const errData = await res.json();
-    throw new Error(errData.message || 'GitHub API error');
+  if (!response.ok) {
+    const errRes = await response.json();
+    throw new Error(errRes.message || 'GitHub API write failure');
   }
+}
+
+function showStatus(div, msg, isSuccess, autoHide = true) {
+  div.style.display = 'block';
+  div.className = `status-message ${isSuccess ? 'success' : 'error'}`;
+  div.innerText = msg;
 }
 </script>
 

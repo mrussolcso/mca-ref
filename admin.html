@@ -5,21 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Relational Publisher</title>
 <style>
-  :root { --primary: #1a365d; --primary-light: #2b6cb0; --border: #cbd5e0; --bg: #f7fafc; }
+  :root { --primary: #1a365d; --primary-light: #2b6cb0; --border: #cbd5e0; --bg: #f7fafc; --danger: #e53e3e; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-  .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .container { max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
   .card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
   .form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
   .full { grid-column: span 2; }
-  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; }
+  label { display: block; font-size: 0.82rem; font-weight: 700; margin-bottom: 4px; color: var(--primary); }
   input, select, textarea { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
-  textarea { min-height: 120px; }
   .btn { background: var(--primary-light); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+  .btn:hover { opacity: 0.9; }
+  .btn-sm { padding: 4px 8px; font-size: 0.75rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; }
+  .btn-add-peer { background: #319795; color: white; }
+  .btn-add-child { background: #3182ce; color: white; }
+  .btn-del { background: var(--danger); color: white; }
   .pat-input { -webkit-text-security: disc; }
   .mode-selector { display: flex; gap: 10px; margin-bottom: 10px; }
   .mode-btn { flex: 1; padding: 10px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; }
   .mode-btn.active { background: var(--primary); color: white; }
-  .status { padding: 10px; border-radius: 6px; display: none; margin-top: 10px; font-weight: 600; }
+
+  /* Tree Editor Styling */
+  .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
+  .tree-node { margin-top: 8px; padding-left: 16px; border-left: 2px dashed #cbd5e0; }
+  .node-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+  .node-counter { width: 80px; flex-shrink: 0; font-weight: bold; }
+  .node-text { flex-grow: 1; }
+  .node-actions { display: flex; gap: 4px; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -29,7 +40,7 @@
 
   <!-- Credentials -->
   <div class="card">
-    <h3>1. GitHub Configuration</h3>
+    <h3>1. GitHub Credentials</h3>
     <div class="form-grid">
       <div><label>Owner</label><input type="text" id="ghOwner" value="mrussolcso"></div>
       <div><label>Repo</label><input type="text" id="ghRepo" value="mca-ref"></div>
@@ -55,10 +66,18 @@
         <div><label>Source Type</label><select id="source_type"><option>MCA Statute</option><option>County Ordinance</option><option>City Code</option></select></div>
         <div class="full"><label>Title</label><input type="text" id="law_title" required></div>
         <div class="full"><label>Official Publication URL</label><input type="url" id="official_url"></div>
-        <div class="full"><label>Raw Text (Auto Parsed)</label><textarea id="law_text" required></textarea></div>
         <div class="full"><label>Revision History</label><input type="text" id="law_history"></div>
+
+        <!-- Tree Section / Subsection Editor -->
+        <div class="full">
+          <label>Law Structured Sections & Subsections</label>
+          <div class="tree-container">
+            <div id="treeRoot"></div>
+            <button type="button" class="btn btn-sm btn-add-peer" style="margin-top:10px;" onclick="addTopLevelSection()">➕ Add Top-Level Section</button>
+          </div>
+        </div>
       </div>
-      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Law to GitHub</button>
+      <button type="submit" class="btn" style="margin-top:20px;">🚀 Save Law to GitHub</button>
     </form>
 
     <!-- OFFENSE FORM -->
@@ -74,15 +93,19 @@
         <div><label>Min / Max Jail</label><input type="text" id="off_jail" placeholder="None / 1 Year"></div>
         <div><label>Must Appear</label><select id="off_appear"><option>REQUIRED</option><option>OPTIONAL</option></select></div>
       </div>
-      <button type="submit" class="btn" style="margin-top:15px;">🚀 Save Offense to GitHub</button>
+      <button type="submit" class="btn" style="margin-top:20px;">🚀 Save Offense to GitHub</button>
     </form>
-
-    <div id="status" class="status"></div>
   </div>
 </div>
 
 <script>
 let mode = 'law';
+let treeData = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Start with one default section
+  addTopLevelSection();
+});
 
 function setMode(m) {
   mode = m;
@@ -93,6 +116,127 @@ function setMode(m) {
   document.getElementById('formTitle').textContent = m === 'law' ? '2. Law Record Editor' : '2. Offense Record Editor';
 }
 
+/* TREE EDITOR LOGIC */
+function renderTree() {
+  const container = document.getElementById('treeRoot');
+  container.innerHTML = '';
+  treeData.forEach((node, index) => {
+    container.appendChild(buildNodeDOM(node, [index]));
+  });
+}
+
+function buildNodeDOM(node, path) {
+  const div = document.createElement('div');
+  div.className = 'tree-node';
+
+  const depth = path.length;
+  
+  div.innerHTML = `
+    <div class="node-row">
+      <input type="text" class="node-counter" value="${node.counter}" placeholder="(1)" oninput="updateNode('${path.join('-')}', 'counter', this.value)">
+      <input type="text" class="node-text" value="${node.text}" placeholder="Section text content..." oninput="updateNode('${path.join('-')}', 'text', this.value)">
+      <div class="node-actions">
+        <button type="button" class="btn-sm btn-add-child" title="Add Subsection" onclick="addChildNode('${path.join('-')}')">➕ Subsection</button>
+        <button type="button" class="btn-sm btn-add-peer" title="Add Peer Section" onclick="addPeerNode('${path.join('-')}')">➕ Peer</button>
+        <button type="button" class="btn-sm btn-del" title="Delete Section" onclick="deleteNode('${path.join('-')}')">🗑️</button>
+      </div>
+    </div>
+    <div class="node-children"></div>
+  `;
+
+  const childrenContainer = div.querySelector('.node-children');
+  node.children.forEach((child, idx) => {
+    childrenContainer.appendChild(buildNodeDOM(child, [...path, idx]));
+  });
+
+  return div;
+}
+
+function getNodeByPath(pathStr) {
+  const indices = pathStr.split('-').map(Number);
+  let current = treeData[indices[0]];
+  for (let i = 1; i < indices.length; i++) {
+    current = current.children[indices[i]];
+  }
+  return { node: current, indices };
+}
+
+function updateNode(pathStr, key, value) {
+  const { node } = getNodeByPath(pathStr);
+  node[key] = value;
+}
+
+function addTopLevelSection() {
+  const num = treeData.length + 1;
+  treeData.push({
+    counter: `(${num})`,
+    text: '',
+    children: []
+  });
+  renderTree();
+}
+
+function addPeerNode(pathStr) {
+  const indices = pathStr.split('-').map(Number);
+  const parentIndices = indices.slice(0, -1);
+  const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
+  
+  const depth = indices.length;
+  let defaultCounter = '(1)';
+  if (depth === 1) defaultCounter = `(${targetArray.length + 1})`;
+  else if (depth === 2) defaultCounter = `(${String.fromCharCode(97 + targetArray.length)})`; // (a), (b)...
+  else if (depth === 3) defaultCounter = `(i)`;
+
+  targetArray.splice(indices[indices.length - 1] + 1, 0, {
+    counter: defaultCounter,
+    text: '',
+    children: []
+  });
+  renderTree();
+}
+
+function addChildNode(pathStr) {
+  const { node, indices } = getNodeByPath(pathStr);
+  const depth = indices.length + 1;
+  
+  let defaultCounter = '(a)';
+  if (depth === 3) defaultCounter = '(i)';
+  if (depth === 4) defaultCounter = '(A)';
+
+  node.children.push({
+    counter: defaultCounter,
+    text: '',
+    children: []
+  });
+  renderTree();
+}
+
+function deleteNode(pathStr) {
+  const indices = pathStr.split('-').map(Number);
+  const parentIndices = indices.slice(0, -1);
+  const targetArray = parentIndices.length === 0 ? treeData : getNodeByPath(parentIndices.join('-')).node.children;
+  
+  targetArray.splice(indices[indices.length - 1], 1);
+  renderTree();
+}
+
+/* Flatten tree for reading compatibility */
+function flattenTree(nodes, indentLevel = 1) {
+  let flat = [];
+  nodes.forEach(n => {
+    flat.push({
+      counter: n.counter,
+      text: n.text,
+      indent: indentLevel
+    });
+    if (n.children && n.children.length > 0) {
+      flat = flat.concat(flattenTree(n.children, indentLevel + 1));
+    }
+  });
+  return flat;
+}
+
+/* GITHUB INTEGRATION */
 function getCreds() {
   return {
     owner: document.getElementById('ghOwner').value.trim(),
@@ -106,7 +250,6 @@ async function saveLaw(e) {
   e.preventDefault();
   const c = getCreds();
   const id = document.getElementById('law_id').value.trim();
-  const text = document.getElementById('law_text').value.trim();
 
   const payload = {
     law_id: id,
@@ -115,10 +258,8 @@ async function saveLaw(e) {
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
     history: document.getElementById('law_history').value.trim(),
-    paragraphs: text.split('\n').map(l => {
-      const m = l.match(/^(\([a-z0-9]+\))\s*(.*)/i);
-      return m ? { counter: m[1], text: m[2] } : { counter: '', text: l };
-    })
+    paragraphs: flattenTree(treeData),
+    tree: treeData // Preserves exact hierarchy for future admin edits
   };
 
   await commitFile(c, `data/laws/${id}.json`, payload, `Update Law ${id}`);
@@ -150,15 +291,42 @@ async function commitFile(c, path, data, msg) {
   const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
   let sha = null;
 
-  const resCheck = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
-  if (resCheck.ok) { const d = await resCheck.json(); sha = d.sha; }
+  try {
+    const resCheck = await fetch(`${url}?ref=${c.branch}`, { 
+      headers: { 'Authorization': `token ${c.token}`, 'Accept': 'application/vnd.github.v3+json' } 
+    });
+    if (resCheck.ok) { 
+      const d = await resCheck.json(); 
+      sha = d.sha; 
+    }
 
-  const body = { message: msg, content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), branch: c.branch };
-  if (sha) body.sha = sha;
+    const body = { 
+      message: msg, 
+      content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), 
+      branch: c.branch 
+    };
+    if (sha) body.sha = sha;
 
-  const res = await fetch(url, { method: 'PUT', headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  if (!res.ok) alert("Error committing to GitHub");
-  else alert("Saved successfully!");
+    const res = await fetch(url, { 
+      method: 'PUT', 
+      headers: { 
+        'Authorization': `token ${c.token}`, 
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json' 
+      }, 
+      body: JSON.stringify(body) 
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(`[${res.status}] ${errData.message || res.statusText}`);
+    }
+    
+    alert(`Successfully committed ${path}!`);
+  } catch (err) {
+    console.error(err);
+    alert(`GitHub Error (${path}): ${err.message}`);
+  }
 }
 
 async function updateIndex(c, indexPath, entry) {

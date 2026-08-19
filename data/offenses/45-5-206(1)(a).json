@@ -1,6 +1,6 @@
 {
   "offense_id": "45-5-206(1)(a)",
-  "display_tag": "45-5-206(1)(1-a)(2)(2-a)(2-b)(3-a-i)(3-a-iii)(3-a-v) [1st]",
+  "display_tag": "45-5-206(1)(1-a) [1st]",
   "name": "Partner Or Family Member Assault, Causing Bodily Injury To Partner Or Family Member - 1st Offense",
   "occurrence": 1,
   "severity": "Misdemeanor",
@@ -10,9 +10,11 @@
   "mandatory_appearance": true,
   "conditions": "No Contact Order Required",
   "law_id": "45-5-206",
-  "target_anchors": [
+  "primary_anchors": [
     "1",
-    "1-a",
+    "1-a"
+  ],
+  "secondary_anchors": [
     "2",
     "2-a",
     "2-b",
@@ -20,5 +22,5 @@
     "3-a-iii",
     "3-a-v"
   ],
-  "last_updated": "2026-08-19T18:01:28.149Z"
+  "last_updated": "2026-08-19T18:11:39.456Z"
 }

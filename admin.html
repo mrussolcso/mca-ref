@@ -32,6 +32,8 @@
   
   .btn { background: var(--primary-light); color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; }
   .btn:hover { opacity: 0.9; }
+  .btn-auth { background: #2b6cb0; width: 100%; margin-top: 10px; }
+  .btn-logout { background: #718096; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; border: none; color: white; cursor: pointer; float: right; }
   .btn-check { background: #3182ce; color: white; margin-top: 10px; }
   .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
   .btn-add-peer { background: #319795; color: white; }
@@ -43,10 +45,11 @@
   .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; color: #4a5568; }
   .mode-btn.active { background: var(--primary); color: white; }
 
-  /* Status Notice */
+  /* Status Notices */
   .status-notice { padding: 10px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px; }
   .status-new { background: #e6fffa; color: #234e52; border: 1px solid #b2f5ea; }
   .status-edit { background: #feebc8; color: #742a2a; border: 1px solid #fbd38d; }
+  .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
   /* Tree Editor Styling */
   .tree-container { border: 1px solid var(--border); border-radius: 6px; padding: 12px; background: #faf5ff; }
@@ -62,24 +65,32 @@
 
 <div class="container">
   
-  <!-- Section 1: Credentials -->
+  <!-- Header Navigation -->
   <header class="admin-header">
     <h2>⚙️ Relational Admin Publisher</h2>
     <a href="index.html" class="btn-back">← Back to Index</a>
   </header>
 
-  <div class="card">
-    <h3 style="margin-top:0;">1. GitHub Credentials</h3>
-    <div class="form-grid">
-      <div><label>Owner</label><input type="text" id="ghOwner" value="mrussolcso"></div>
-      <div><label>Repo</label><input type="text" id="ghRepo" value="mca-ref"></div>
-      <div><label>Branch</label><input type="text" id="ghBranch" value="main"></div>
-      <div class="full"><label>PAT Token</label><input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxx"></div>
+  <!-- Section 1: Authentication -->
+  <div class="card" id="sec1_card">
+    <h3 style="margin-top:0;">1. Authentication</h3>
+    
+    <div id="authForm">
+      <label>Personal Access Token (PAT)</label>
+      <input type="text" id="ghToken" class="pat-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      <button type="button" class="btn btn-auth" onclick="verifyToken()">🔐 Verify Token</button>
+    </div>
+
+    <div id="authSuccess" style="display: none;">
+      <div class="auth-badge">
+        <span>✅ Authenticated as <strong id="authUser">--</strong></span>
+        <button type="button" class="btn-logout" onclick="logout()">Log Out</button>
+      </div>
     </div>
   </div>
 
-  <!-- Section 2: Task Selection -->
-  <div class="card">
+  <!-- Section 2: Task Selection (Hidden until authenticated) -->
+  <div class="card" id="sec2_card" style="display: none;">
     <h3 style="margin-top:0;">2. Select Action</h3>
     <div class="mode-selector">
       <button class="mode-btn" id="btnModeLaw" onclick="selectAction('law')">📜 Add / Edit Law</button>
@@ -134,10 +145,80 @@
 </div>
 
 <script>
+// Target repository defaults
+const REPO_CONFIG = {
+  owner: 'mrussolcso',
+  repo: 'mca-ref',
+  branch: 'main'
+};
+
+let validatedToken = '';
 let activeAction = null;
 let currentComputedLawId = '';
 let treeData = [];
 
+// Auto-check stored session on load
+window.addEventListener('DOMContentLoaded', () => {
+  const savedToken = sessionStorage.getItem('gh_pat');
+  if (savedToken) {
+    document.getElementById('ghToken').value = savedToken;
+    verifyToken();
+  }
+});
+
+/* AUTHENTICATION LOGIC */
+async function verifyToken() {
+  const token = document.getElementById('ghToken').value.trim();
+
+  if (!token) {
+    alert('Please enter a valid GitHub PAT Token.');
+    return;
+  }
+
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error('Invalid PAT token or insufficient permissions.');
+    }
+
+    const userData = await res.json();
+    validatedToken = token;
+    sessionStorage.setItem('gh_pat', token);
+
+    document.getElementById('authUser').textContent = `@${userData.login}`;
+    document.getElementById('authForm').style.display = 'none';
+    document.getElementById('authSuccess').style.display = 'block';
+
+    // Unlock Section 2
+    document.getElementById('sec2_card').style.display = 'block';
+
+  } catch (err) {
+    alert(`Authentication Failed: ${err.message}`);
+    logout();
+  }
+}
+
+function logout() {
+  validatedToken = '';
+  sessionStorage.removeItem('gh_pat');
+  document.getElementById('ghToken').value = '';
+  document.getElementById('authForm').style.display = 'block';
+  document.getElementById('authSuccess').style.display = 'none';
+
+  // Hide downstream sections
+  document.getElementById('sec2_card').style.display = 'none';
+  document.getElementById('sec3_card').style.display = 'none';
+  document.getElementById('sec4_card').style.display = 'none';
+  document.getElementById('sec5_card').style.display = 'none';
+}
+
+/* SECTION 2 ACTION SELECTION */
 function selectAction(action) {
   activeAction = action;
   document.getElementById('btnModeLaw').classList.toggle('active', action === 'law');
@@ -147,7 +228,7 @@ function selectAction(action) {
     document.getElementById('sec3_card').style.display = 'block';
     renderIdFields();
   } else {
-    alert('Offense editor functionality remains available on the index page; law editor focus active.');
+    alert('Offense editor focus: Law Editor active for now.');
     document.getElementById('sec3_card').style.display = 'none';
     document.getElementById('sec4_card').style.display = 'none';
     document.getElementById('sec5_card').style.display = 'none';
@@ -188,7 +269,6 @@ function computeLawId() {
     const t = document.getElementById('id_mca_title')?.value.trim() || '';
     const c = document.getElementById('id_mca_chapter')?.value.trim() || '';
     const s = document.getElementById('id_mca_section')?.value.trim() || '';
-    // Format strictly as Title-Chapter-Section (e.g., 45-5-206 or 45-5-999)
     return (t && c && s) ? `${t}-${c}-${s}` : '';
   } else if (sourceType === 'County Ordinance') {
     const county = document.getElementById('id_ord_county')?.value.trim() || '';
@@ -214,27 +294,26 @@ async function checkEntry() {
     return;
   }
 
-  const c = getCreds();
   const path = `data/laws/${currentComputedLawId}.json`;
-  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
-    const headers = { 'Accept': 'application/vnd.github.v3+json' };
-    if (c.token) headers['Authorization'] = `token ${c.token}`;
+    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, {
+      headers: {
+        'Authorization': `token ${validatedToken}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
 
-    const res = await fetch(`${url}?ref=${c.branch}`, { headers });
     const notice = document.getElementById('entryStatusNotice');
 
     if (res.ok) {
-      // Existing record found
       const data = await res.json();
-      
-      // Safe UTF-8 decoding
       const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
       const content = JSON.parse(rawText);
       
       notice.className = "status-notice status-edit";
-      notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded existing details for editing.`;
+      notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded details for editing.`;
 
       document.getElementById('law_title').value = content.title || '';
       document.getElementById('official_url').value = content.official_url || '';
@@ -242,11 +321,9 @@ async function checkEntry() {
       
       treeData = content.tree || [];
       if (treeData.length === 0 && content.paragraphs) {
-        // Fallback reconstruction if treeData wasn't stored in older files
         treeData = content.paragraphs.map(p => ({ counter: p.counter, text: p.text, children: [] }));
       }
     } else {
-      // New record
       notice.className = "status-notice status-new";
       notice.textContent = `✨ No existing record found for ID "${currentComputedLawId}". Creating a new law entry.`;
 
@@ -396,18 +473,8 @@ function flattenTree(nodes, indentLevel = 1) {
 }
 
 /* SAVE TO GITHUB */
-function getCreds() {
-  return {
-    owner: document.getElementById('ghOwner').value.trim(),
-    repo: document.getElementById('ghRepo').value.trim(),
-    branch: document.getElementById('ghBranch').value.trim(),
-    token: document.getElementById('ghToken').value.trim()
-  };
-}
-
 async function saveLaw() {
   syncTreeDOMToState();
-  const c = getCreds();
   
   if (!currentComputedLawId) {
     alert('Law ID is missing.');
@@ -425,17 +492,17 @@ async function saveLaw() {
     tree: treeData
   };
 
-  await commitFile(c, `data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
-  await updateIndex(c, 'laws-index.json', { id: currentComputedLawId, title: payload.title });
+  await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
+  await updateIndex('laws-index.json', { id: currentComputedLawId, title: payload.title });
 }
 
-async function commitFile(c, path, data, msg) {
-  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
+async function commitFile(path, data, msg) {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   let sha = null;
 
   try {
-    const resCheck = await fetch(`${url}?ref=${c.branch}`, { 
-      headers: { 'Authorization': `token ${c.token}`, 'Accept': 'application/vnd.github.v3+json' } 
+    const resCheck = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { 
+      headers: { 'Authorization': `token ${validatedToken}`, 'Accept': 'application/vnd.github.v3+json' } 
     });
     if (resCheck.ok) { 
       const d = await resCheck.json(); 
@@ -445,14 +512,14 @@ async function commitFile(c, path, data, msg) {
     const body = { 
       message: msg, 
       content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2)))), 
-      branch: c.branch 
+      branch: REPO_CONFIG.branch 
     };
     if (sha) body.sha = sha;
 
     const res = await fetch(url, { 
       method: 'PUT', 
       headers: { 
-        'Authorization': `token ${c.token}`, 
+        'Authorization': `token ${validatedToken}`, 
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.github.v3+json' 
       }, 
@@ -471,12 +538,12 @@ async function commitFile(c, path, data, msg) {
   }
 }
 
-async function updateIndex(c, indexPath, entry) {
-  const url = `https://api.github.com/repos/${c.owner}/${c.repo}/contents/data/${indexPath}`;
+async function updateIndex(indexPath, entry) {
+  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/data/${indexPath}`;
   let index = [];
   let sha = null;
 
-  const res = await fetch(`${url}?ref=${c.branch}`, { headers: { 'Authorization': `token ${c.token}` } });
+  const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}`, { headers: { 'Authorization': `token ${validatedToken}` } });
   if (res.ok) {
     const d = await res.json();
     sha = d.sha;
@@ -488,8 +555,8 @@ async function updateIndex(c, indexPath, entry) {
 
   await fetch(url, {
     method: 'PUT',
-    headers: { 'Authorization': `token ${c.token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: `Sync ${indexPath}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), branch: c.branch, sha: sha })
+    headers: { 'Authorization': `token ${validatedToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `Sync ${indexPath}`, content: btoa(unescape(encodeURIComponent(JSON.stringify(index, null, 2)))), branch: REPO_CONFIG.branch, sha: sha })
   });
 }
 </script>

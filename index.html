@@ -291,31 +291,35 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
     html += `<div style="margin-top:12px;">`;
 
-    (law.paragraphs || []).forEach(p => {
-      const textContent = p.text ? p.text.trim() : '';
-      
-      // Skip rendering empty structural elements (e.g. empty parent headers)
-      if (!textContent) {
-        return;
-      }
+(law.paragraphs || []).forEach(p => {
+  const textContent = p.text ? p.text.trim() : '';
+  const indentClass = `para-indent-${p.indent || 1}`;
+  const anchorId = p.anchor_id;
 
-      const indentClass = `para-indent-${p.indent || 1}`;
-      const anchorId = p.anchor_id;
+  let highlightClass = '';
+  if (primaryAnchors.includes(anchorId)) {
+    highlightClass = 'highlight-primary';
+  } else if (secondaryAnchors.includes(anchorId)) {
+    highlightClass = 'highlight-secondary';
+  }
 
-      let highlightClass = '';
-      if (primaryAnchors.includes(anchorId)) {
-        highlightClass = 'highlight-primary';
-      } else if (secondaryAnchors.includes(anchorId)) {
-        highlightClass = 'highlight-secondary';
-      }
-
-      html += `
-        <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-          <span class="para-counter">${p.counter}</span>
-          <span>${textContent}</span>
-        </div>
-      `;
-    });
+  // If text is present, render counter + text normally
+  if (textContent) {
+    html += `
+      <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
+        <span class="para-counter">${p.counter}</span>
+        <span>${textContent}</span>
+      </div>
+    `;
+  } else {
+    // Structural parent with no text: render counter line to preserve hierarchy
+    html += `
+      <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
+        <span class="para-counter">${p.counter}</span>
+      </div>
+    `;
+  }
+});
 
     html += `</div>`;
     container.innerHTML = html;

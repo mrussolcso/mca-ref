@@ -175,8 +175,8 @@
         <input type="text" id="offense_short_title" placeholder="e.g. 1st Offense" oninput="updateOffenseNameConcat()">
       </div>
       <div>
-        <label>Offense Name</label>
-        <input type="text" id="offense_name" placeholder="Concatenated automatically..." readonly style="background-color: #edf2f7;">
+        <label>Offense Section</label>
+        <input type="text" id="offense_section" placeholder="e.g. (1)(a)" oninput="updateOffenseNameConcat()">
       </div>
 
       <div class="full">
@@ -189,7 +189,7 @@
         <input type="number" id="offense_occurrence" min="1" placeholder="1 (for 1st), 2 (for 2nd)...">
       </div>
 
-      <div>
+      <div class="span-2">
         <label>Classification Severity</label>
         <select id="offense_severity">
           <option value="Misdemeanor">Misdemeanor</option>
@@ -207,7 +207,7 @@
         </select>
       </div>
 
-      <div id="bond_amount_container" class="full">
+      <div id="bond_amount_container" class="span-2">
         <label>Standard Bond Amount ($)</label>
         <input type="number" id="offense_bond" placeholder="500">
       </div>
@@ -228,31 +228,18 @@
         <label>Local Enhancement / Special Conditions</label>
         <input type="text" id="offense_conditions" placeholder="e.g. No Contact Order required">
       </div>
+    </div>
+  </div>
 
-      <div class="full" style="border-top: 1px solid var(--border); padding-top: 14px; margin-top: 6px;">
-        <h4 style="margin: 0 0 10px 0; color: var(--primary);">Statutory Linkage & Categorized Law Sections</h4>
-      </div>
-
-      <div class="span-2">
-        <label>Linked Law ID</label>
-        <input type="text" id="offense_law_id" placeholder="e.g. 45-5-206" readonly style="background-color: #edf2f7;">
-      </div>
-      <div style="display: flex; align-items: flex-end;">
-        <button type="button" class="btn btn-sm btn-add-child" style="white-space: nowrap; width: 100%; height: 35px;" onclick="fetchAnchorsForLaw()">Fetch Law Anchors</button>
-      </div>
-
-      <div class="full autocomplete-container">
-        <label>Penalty Section (Optional Additional Law)</label>
-        <input type="text" id="penaltyLawSearch" autocomplete="off" placeholder="Search Penalty Section Law ID or Title..." oninput="searchPenaltyLaws()">
-        <input type="hidden" id="offense_penalty_law_id">
-        <div id="penaltyLawSearchResults" class="autocomplete-list"></div>
-      </div>
-
+  <!-- Section 5-Offense: Statutory Linkage -->
+  <div class="card" id="sec5_offense_card" style="display: none;">
+    <h3 style="margin-top:0;">5. Statutory Linkage</h3>
+    <div class="form-grid">
       <div class="full" style="background: #fefcbf; padding: 12px; border-radius: 6px; border: 1px solid #f6e05e;">
         <label style="color: #744210;">🟨 Primary Offense Law Sections (Charge Text Category)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <select id="primary_anchor_select" style="background: white;">
-            <option value="">-- Load anchors using Fetch Law Anchors --</option>
+            <option value="">-- Select anchor to append --</option>
           </select>
         </div>
         <label style="color: #744210; font-size: 0.75rem;">Selected Primary Section Anchors (Comma-separated)</label>
@@ -263,11 +250,29 @@
         <label style="color: #22543d;">🟩 Secondary Related Law Sections (Context / Penalties Category)</label>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <select id="secondary_anchor_select" style="background: white;">
-            <option value="">-- Load anchors using Fetch Law Anchors --</option>
+            <option value="">-- Select anchor to append --</option>
           </select>
         </div>
         <label style="color: #22543d; font-size: 0.75rem;">Selected Secondary Section Anchors (Comma-separated)</label>
         <input type="text" id="offense_secondary_anchors" placeholder="e.g. 2, 3-a" style="background: white;">
+      </div>
+
+      <div class="full autocomplete-container">
+        <label>Penalty Section (Optional Additional Law)</label>
+        <input type="text" id="penaltyLawSearch" autocomplete="off" placeholder="Search Penalty Section Law ID or Title..." oninput="searchPenaltyLaws()">
+        <input type="hidden" id="offense_penalty_law_id">
+        <div id="penaltyLawSearchResults" class="autocomplete-list"></div>
+      </div>
+
+      <div class="full autocomplete-container" id="penalty_anchors_container" style="display: none; background: #edf2f7; padding: 12px; border-radius: 6px; border: 1px solid var(--border);">
+        <label style="color: var(--primary);">Penalty Law Anchors</label>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <select id="penalty_anchor_select" style="background: white;">
+            <option value="">-- Select penalty anchor to append --</option>
+          </select>
+        </div>
+        <label style="color: var(--primary); font-size: 0.75rem;">Selected Penalty Section Anchors (Comma-separated)</label>
+        <input type="text" id="offense_penalty_anchors" placeholder="e.g. 1-a" style="background: white;">
       </div>
 
       <div class="full">
@@ -386,6 +391,7 @@ function logout() {
   document.getElementById('sec3_offense_card').style.display = 'none';
   document.getElementById('sec4_card').style.display = 'none';
   document.getElementById('sec4_offense_card').style.display = 'none';
+  document.getElementById('sec5_offense_card').style.display = 'none';
   document.getElementById('sec5_card').style.display = 'none';
 }
 
@@ -398,6 +404,7 @@ function selectAction(action) {
     document.getElementById('sec3_card').style.display = 'block';
     document.getElementById('sec3_offense_card').style.display = 'none';
     document.getElementById('sec4_offense_card').style.display = 'none';
+    document.getElementById('sec5_offense_card').style.display = 'none';
     renderIdFields();
   } else {
     document.getElementById('sec3_card').style.display = 'none';
@@ -511,8 +518,6 @@ async function selectLaw(lawId) {
   selectedLawId = lawId;
   document.getElementById('lawIdSearch').value = lawId;
   document.getElementById('lawSearchResults').style.display = 'none';
-  
-  document.getElementById('offense_law_id').value = lawId;
 
   const foundLaw = lawsIndexCache.find(l => (l.law_id || l.id) === lawId);
   selectedLawShortTitle = foundLaw ? (foundLaw.short_title || foundLaw.title || '') : '';
@@ -534,7 +539,7 @@ async function selectLaw(lawId) {
     console.error(`Error loading law details for MCA ${lawId}:`, err);
   }
 
-  fetchAnchorsForLaw();
+  fetchAnchorsForLaw(lawId, 'primary');
   populateOffenseDropdownForLaw(lawId);
 }
 
@@ -559,11 +564,13 @@ function populateOffenseDropdownForLaw(lawId) {
 
   dropdownContainer.style.display = 'block';
   document.getElementById('sec4_offense_card').style.display = 'none';
+  document.getElementById('sec5_offense_card').style.display = 'none';
 }
 
 function handleOffenseDropdownChange(val) {
   if (!val) {
     document.getElementById('sec4_offense_card').style.display = 'none';
+    document.getElementById('sec5_offense_card').style.display = 'none';
     return;
   }
 
@@ -579,14 +586,23 @@ function handleOffenseDropdownChange(val) {
 
 function updateOffenseNameConcat() {
   const offenseShortTitle = document.getElementById('offense_short_title').value.trim();
-  const nameInput = document.getElementById('offense_name');
+  const offenseSection = document.getElementById('offense_section').value.trim();
+  
+  let name = '';
   if (selectedLawShortTitle && offenseShortTitle) {
-    nameInput.value = `${selectedLawShortTitle} - ${offenseShortTitle}`;
+    name = `${selectedLawShortTitle} - ${offenseShortTitle}`;
   } else if (selectedLawShortTitle) {
-    nameInput.value = selectedLawShortTitle;
+    name = selectedLawShortTitle;
   } else {
-    nameInput.value = offenseShortTitle;
+    name = offenseShortTitle;
   }
+
+  if (name && selectedLawId) {
+    name += ` (${selectedLawId}${offenseSection})`;
+  }
+
+  // Store constructed name on dataset for form retrieval
+  document.getElementById('sec4_offense_card').dataset.generatedName = name;
 }
 
 function searchPenaltyLaws() {
@@ -620,6 +636,7 @@ function searchPenaltyLaws() {
       document.getElementById('penaltyLawSearch').value = `${idVal} - ${displayTitle}`;
       document.getElementById('offense_penalty_law_id').value = idVal;
       list.style.display = 'none';
+      fetchAnchorsForLaw(idVal, 'penalty');
     };
     list.appendChild(div);
   });
@@ -804,7 +821,7 @@ async function checkOffenseEntry() {
       notice.textContent = `📝 Existing Offense Record Found for ID "${currentComputedOffenseId}". Loaded details for editing.`;
 
       document.getElementById('offense_short_title').value = content.short_title || '';
-      document.getElementById('offense_name').value = content.name || '';
+      document.getElementById('offense_section').value = content.offense_section || '';
       document.getElementById('offense_title').value = content.offense_title || '';
       document.getElementById('offense_occurrence').value = content.occurrence || '';
       document.getElementById('offense_severity').value = content.severity || 'Misdemeanor';
@@ -816,22 +833,29 @@ async function checkOffenseEntry() {
 
       document.getElementById('offense_mandatory').value = content.mandatory_appearance ? 'Yes' : 'No';
       document.getElementById('offense_conditions').value = content.conditions || '';
-      document.getElementById('offense_law_id').value = content.law_id || selectedLawId || '';
       
-      const penaltyId = content.penalty_law_id || '';
+      const penaltyId = content.penalty_law_id || selectedLawId || '';
       document.getElementById('offense_penalty_law_id').value = penaltyId;
-      document.getElementById('penaltyLawSearch').value = penaltyId;
+      
+      const foundPenaltyLaw = lawsIndexCache.find(l => (l.law_id || l.id) === penaltyId);
+      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.short_title ? `${foundPenaltyLaw.title} (${foundPenaltyLaw.short_title})` : foundPenaltyLaw.title) : '';
+      document.getElementById('penaltyLawSearch').value = penaltyId ? `${penaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
 
       document.getElementById('offense_primary_anchors').value = (content.primary_anchors || content.target_anchors || []).join(', ');
       document.getElementById('offense_secondary_anchors').value = (content.secondary_anchors || []).join(', ');
+      document.getElementById('offense_penalty_anchors').value = (content.penalty_anchors || []).join(', ');
       
+      if (penaltyId) {
+        fetchAnchorsForLaw(penaltyId, 'penalty');
+      }
+
       updateOffenseNameConcat();
     } else {
       notice.className = "status-notice status-new";
       notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
 
       document.getElementById('offense_short_title').value = '';
-      document.getElementById('offense_name').value = '';
+      document.getElementById('offense_section').value = '';
       document.getElementById('offense_title').value = '';
       document.getElementById('offense_occurrence').value = '';
       document.getElementById('offense_severity').value = 'Misdemeanor';
@@ -841,28 +865,35 @@ async function checkOffenseEntry() {
       document.getElementById('offense_bond').value = '';
       document.getElementById('offense_mandatory').value = 'No';
       document.getElementById('offense_conditions').value = '';
-      document.getElementById('offense_law_id').value = selectedLawId || '';
-      document.getElementById('offense_penalty_law_id').value = '';
-      document.getElementById('penaltyLawSearch').value = '';
+      
+      const defaultPenaltyId = selectedLawId || '';
+      document.getElementById('offense_penalty_law_id').value = defaultPenaltyId;
+      
+      const foundPenaltyLaw = lawsIndexCache.find(l => (l.law_id || l.id) === defaultPenaltyId);
+      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.short_title ? `${foundPenaltyLaw.title} (${foundPenaltyLaw.short_title})` : foundPenaltyLaw.title) : '';
+      document.getElementById('penaltyLawSearch').value = defaultPenaltyId ? `${defaultPenaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
+
       document.getElementById('offense_primary_anchors').value = '';
       document.getElementById('offense_secondary_anchors').value = '';
+      document.getElementById('offense_penalty_anchors').value = '';
+
+      if (defaultPenaltyId) {
+        fetchAnchorsForLaw(defaultPenaltyId, 'penalty');
+      }
 
       updateOffenseNameConcat();
     }
 
     document.getElementById('sec4_offense_card').style.display = 'block';
+    document.getElementById('sec5_offense_card').style.display = 'block';
 
   } catch (err) {
     alert(`Error checking offense (${currentComputedOffenseId}): ${err.message}`);
   }
 }
 
-async function fetchAnchorsForLaw() {
-  const lawId = document.getElementById('offense_law_id').value.trim();
-  if (!lawId) {
-    alert('Please enter a Linked Law ID first.');
-    return;
-  }
+async function fetchAnchorsForLaw(lawId, targetType = 'primary') {
+  if (!lawId) return;
 
   const path = `data/laws/${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
@@ -882,51 +913,77 @@ async function fetchAnchorsForLaw() {
     const data = await res.json();
     const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
     
-    const primarySelect = document.getElementById('primary_anchor_select');
-    const secondarySelect = document.getElementById('secondary_anchor_select');
-    
-    primarySelect.innerHTML = '<option value="">-- Select primary anchor to append --</option>';
-    secondarySelect.innerHTML = '<option value="">-- Select secondary anchor to append --</option>';
+    if (targetType === 'primary') {
+      const primarySelect = document.getElementById('primary_anchor_select');
+      const secondarySelect = document.getElementById('secondary_anchor_select');
+      
+      primarySelect.innerHTML = '<option value="">-- Select anchor to append --</option>';
+      secondarySelect.innerHTML = '<option value="">-- Select anchor to append --</option>';
 
-    if (content.paragraphs && content.paragraphs.length > 0) {
-      content.paragraphs.forEach(p => {
-        const optPrimary = document.createElement('option');
-        optPrimary.value = p.anchor_id;
-        optPrimary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
-        primarySelect.appendChild(optPrimary);
+      if (content.paragraphs && content.paragraphs.length > 0) {
+        content.paragraphs.forEach(p => {
+          const optPrimary = document.createElement('option');
+          optPrimary.value = p.anchor_id;
+          optPrimary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+          primarySelect.appendChild(optPrimary);
 
-        const optSecondary = document.createElement('option');
-        optSecondary.value = p.anchor_id;
-        optSecondary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
-        secondarySelect.appendChild(optSecondary);
-      });
+          const optSecondary = document.createElement('option');
+          optSecondary.value = p.anchor_id;
+          optSecondary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+          secondarySelect.appendChild(optSecondary);
+        });
 
-      primarySelect.onchange = function() {
-        if (!this.value) return;
-        const currentTargets = document.getElementById('offense_primary_anchors');
-        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
-        if (!existing.includes(this.value)) {
-          existing.push(this.value);
-          currentTargets.value = existing.join(', ');
-        }
-      };
+        primarySelect.onchange = function() {
+          if (!this.value) return;
+          const currentTargets = document.getElementById('offense_primary_anchors');
+          const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+          if (!existing.includes(this.value)) {
+            existing.push(this.value);
+            currentTargets.value = existing.join(', ');
+          }
+        };
 
-      secondarySelect.onchange = function() {
-        if (!this.value) return;
-        const currentTargets = document.getElementById('offense_secondary_anchors');
-        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
-        if (!existing.includes(this.value)) {
-          existing.push(this.value);
-          currentTargets.value = existing.join(', ');
-        }
-      };
+        secondarySelect.onchange = function() {
+          if (!this.value) return;
+          const currentTargets = document.getElementById('offense_secondary_anchors');
+          const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+          if (!existing.includes(this.value)) {
+            existing.push(this.value);
+            currentTargets.value = existing.join(', ');
+          }
+        };
+      }
+    } else if (targetType === 'penalty') {
+      const penaltySelect = document.getElementById('penalty_anchor_select');
+      const penaltyContainer = document.getElementById('penalty_anchors_container');
+      
+      penaltySelect.innerHTML = '<option value="">-- Select penalty anchor to append --</option>';
 
-    } else {
-      alert('Law record found, but contains no paragraph anchors.');
+      if (content.paragraphs && content.paragraphs.length > 0) {
+        penaltyContainer.style.display = 'block';
+        content.paragraphs.forEach(p => {
+          const optPenalty = document.createElement('option');
+          optPenalty.value = p.anchor_id;
+          optPenalty.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+          penaltySelect.appendChild(optPenalty);
+        });
+
+        penaltySelect.onchange = function() {
+          if (!this.value) return;
+          const currentTargets = document.getElementById('offense_penalty_anchors');
+          const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+          if (!existing.includes(this.value)) {
+            existing.push(this.value);
+            currentTargets.value = existing.join(', ');
+          }
+        };
+      } else {
+        penaltyContainer.style.display = 'none';
+      }
     }
 
   } catch (err) {
-    alert(`Error fetching anchors: ${err.message}`);
+    console.error(`Error fetching anchors for ${lawId}:`, err);
   }
 }
 
@@ -1131,12 +1188,17 @@ async function saveOffense() {
   const secondaryAnchorsRaw = document.getElementById('offense_secondary_anchors').value;
   const secondaryAnchors = secondaryAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
 
+  const penaltyAnchorsRaw = document.getElementById('offense_penalty_anchors').value;
+  const penaltyAnchors = penaltyAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
   const bondType = document.getElementById('offense_bond_type').value;
+  const generatedName = document.getElementById('sec4_offense_card').dataset.generatedName || '';
 
   const payload = {
     offense_id: currentComputedOffenseId,
     short_title: document.getElementById('offense_short_title').value.trim(),
-    name: document.getElementById('offense_name').value.trim(),
+    offense_section: document.getElementById('offense_section').value.trim(),
+    name: generatedName,
     offense_title: document.getElementById('offense_title').value.trim(),
     occurrence: parseInt(document.getElementById('offense_occurrence').value, 10) || null,
     severity: document.getElementById('offense_severity').value,
@@ -1145,10 +1207,11 @@ async function saveOffense() {
     bond_amount: bondType === 'amount' ? (parseFloat(document.getElementById('offense_bond').value) || 0) : null,
     mandatory_appearance: document.getElementById('offense_mandatory').value === 'Yes',
     conditions: document.getElementById('offense_conditions').value.trim(),
-    law_id: document.getElementById('offense_law_id').value.trim(),
+    law_id: selectedLawId,
     penalty_law_id: document.getElementById('offense_penalty_law_id').value.trim(),
     primary_anchors: primaryAnchors,
     secondary_anchors: secondaryAnchors,
+    penalty_anchors: penaltyAnchors,
     last_updated: new Date().toISOString()
   };
 

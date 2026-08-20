@@ -154,19 +154,19 @@ function handleSearch() {
 
   if (currentSearchMode === 'offenses') {
     const filtered = offensesIndex.filter(o => 
-      (o.id && o.id.toLowerCase().includes(query)) ||
-      (o.offense_id && o.offense_id.toLowerCase().includes(query)) ||
-      (o.short_title && o.short_title.toLowerCase().includes(query)) ||
-      (o.name && o.name.toLowerCase().includes(query)) ||
-      (o.offense_title && o.offense_title.toLowerCase().includes(query)) ||
+      (o.offense_ID && o.offense_ID.toLowerCase().includes(query)) ||
+      (o.offense_display_short && o.offense_display_short.toLowerCase().includes(query)) ||
+      (o.offense_display_full && o.offense_display_full.toLowerCase().includes(query)) ||
+      (o.offense_title_short && o.offense_title_short.toLowerCase().includes(query)) ||
+      (o.offense_title_full && o.offense_title_full.toLowerCase().includes(query)) ||
       (o.law_id && o.law_id.toLowerCase().includes(query))
     );
     renderLeftIndex(filtered);
   } else {
     const filtered = lawsIndex.filter(l => 
-      (l.id && l.id.toLowerCase().includes(query)) ||
-      (l.title && l.title.toLowerCase().includes(query)) ||
-      (l.short_title && l.short_title.toLowerCase().includes(query))
+      (l.law_id && l.law_id.toLowerCase().includes(query)) ||
+      (l.law_full_title && l.law_full_title.toLowerCase().includes(query)) ||
+      (l.law_short_title && l.law_short_title.toLowerCase().includes(query))
     );
     renderLeftIndex(filtered);
   }
@@ -188,18 +188,15 @@ function renderLeftIndex(filteredList = null) {
       div.onclick = () => {
         document.querySelectorAll('#leftIndexList .card-item').forEach(c => c.classList.remove('active'));
         div.classList.add('active');
-        selectOffense(item.id || item.offense_id);
+        selectOffense(item.offense_ID);
       };
 
-      const fullOffenseId = item.id || item.offense_id || '';
-      let shortTitle = item.short_title || '';
-      if (!shortTitle && item.name) {
-        shortTitle = item.name.replace(/\s*\([^)]*\)\s*$/, '');
-      }
+      const offenseId = item.offense_ID || '';
+      const shortDisplay = item.offense_display_short || item.offense_title_short || 'Unnamed Offense';
 
       div.innerHTML = `
-        <div class="card-title">${fullOffenseId}</div>
-        <div class="card-subtitle">${shortTitle || 'Unnamed Offense'}</div>
+        <div class="card-title">${offenseId}</div>
+        <div class="card-subtitle">${shortDisplay}</div>
       `;
       container.appendChild(div);
     });
@@ -215,11 +212,11 @@ function renderLeftIndex(filteredList = null) {
       div.onclick = () => {
         document.querySelectorAll('#leftIndexList .card-item').forEach(c => c.classList.remove('active'));
         div.classList.add('active');
-        selectLaw(item.id);
+        selectLaw(item.law_id);
       };
-      const titleDisplay = item.short_title || item.title || 'Untitled Law';
+      const titleDisplay = item.law_short_title || item.law_full_title || 'Untitled Law';
       div.innerHTML = `
-        <div class="card-title">MCA ${item.id}</div>
+        <div class="card-title">MCA ${item.law_id}</div>
         <div class="card-subtitle">${titleDisplay}</div>
       `;
       container.appendChild(div);
@@ -232,19 +229,19 @@ async function selectOffense(offenseId) {
   center.innerHTML = 'Loading offense details...';
 
   try {
-    const res = await fetch(`data/offenses/${offenseId}.json`);
+    const res = await fetch(`data/offenses/OFFENSE_${offenseId}.json`);
     if (!res.ok) {
       center.innerHTML = 'Failed to load offense record.';
       return;
     }
     const offense = await res.json();
 
-    const displayTitle = offense.offense_title || offense.name;
-    document.getElementById('centerPanelHeader').textContent = `📋 ${displayTitle}`;
+    const fullDisplay = offense.offense_display_full || offense.offense_title_full || offense.offense_ID;
+    document.getElementById('centerPanelHeader').textContent = `📋 ${fullDisplay}`;
 
     let html = `
-      <h3 style="margin-top:0; color:var(--primary);">${displayTitle}</h3>
-      <div class="detail-row"><span class="detail-label">Offense Title</span>${displayTitle}</div>
+      <h3 style="margin-top:0; color:var(--primary);">${offense.offense_ID}</h3>
+      <div class="detail-row"><span class="detail-label">Offense Title</span>${offense.offense_title_full || ''}</div>
       <div class="detail-row"><span class="detail-label">Severity</span>${offense.severity}</div>
       <div class="detail-row"><span class="detail-label">Bond Type / Amount</span>${offense.bond_type === 'amount' ? '$' + offense.bond_amount : offense.bond_type}</div>
       <div class="detail-row"><span class="detail-label">Mandatory Appearance</span>${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
@@ -274,7 +271,7 @@ async function selectOffense(offenseId) {
       }
 
       currentActiveLawId = offense.law_id;
-      renderRightAssociatedOffenses(offense.law_id, offense.offense_id || offense.id);
+      renderRightAssociatedOffenses(offense.law_id, offense.offense_ID);
     } else {
       renderRightAssociatedOffenses(null);
     }
@@ -294,7 +291,7 @@ async function selectLaw(lawId) {
 
 async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnchors = []) {
   try {
-    const res = await fetch(`data/laws/${lawId}.json`);
+    const res = await fetch(`data/laws/LAW_${lawId}.json`);
     if (!res.ok) {
       container.innerHTML = `<p>Statute ${lawId} text not found.</p>`;
       return;
@@ -302,7 +299,7 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
     const law = await res.json();
 
     if (currentSearchMode === 'laws') {
-      document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${law.title}`;
+      document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${law.law_full_title}`;
     }
 
     let html = '';
@@ -363,7 +360,7 @@ function renderRightAssociatedOffenses(lawId, excludeOffenseId = null) {
     return;
   }
 
-  const associated = offensesIndex.filter(o => o.law_id === lawId && (o.id || o.offense_id) !== excludeOffenseId);
+  const associated = offensesIndex.filter(o => o.law_id === lawId && o.offense_ID !== excludeOffenseId);
 
   if (associated.length === 0) {
     container.textContent = `No other offenses associated with MCA ${lawId}.`;
@@ -374,18 +371,15 @@ function renderRightAssociatedOffenses(lawId, excludeOffenseId = null) {
     const div = document.createElement('div');
     div.className = 'card-item';
     div.onclick = () => {
-      selectOffense(item.id || item.offense_id);
+      selectOffense(item.offense_ID);
     };
 
-    const fullOffenseId = item.id || item.offense_id || '';
-    let shortTitle = item.short_title || '';
-    if (!shortTitle && item.name) {
-      shortTitle = item.name.replace(/\s*\([^)]*\)\s*$/, '');
-    }
+    const offenseId = item.offense_ID || '';
+    const shortDisplay = item.offense_display_short || item.offense_title_short || 'Unnamed Offense';
 
     div.innerHTML = `
-      <div class="card-title">${fullOffenseId}</div>
-      <div class="card-subtitle">${shortTitle || 'Unnamed Offense'}</div>
+      <div class="card-title">${offenseId}</div>
+      <div class="card-subtitle">${shortDisplay}</div>
     `;
     container.appendChild(div);
   });

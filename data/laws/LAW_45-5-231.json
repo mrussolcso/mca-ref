@@ -6,140 +6,59 @@
   "short_title": "Assault Offenses - Definitions",
   "source_type": "MCA Statute",
   "official_url": "https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0310/0450-0050-0020-0310.html",
-  "last_updated": "2026-08-20T20:10:28.102Z",
+  "last_updated": "2026-08-20T20:35:59.001Z",
   "history": "En. Sec. 1, Ch. 503, L. 2001; amd. Sec. 23, Ch. 713, L. 2023.",
-  "paragraphs": [
+  "body_html": "<p class=\"line-indent\">As used in&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0310/title_0450/chapter_0050/part_0020/section_0310/0450-0050-0020-0310.html\"><span class=\"citation\">45-5-231</span></a>&nbsp;through&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0340/0450-0050-0020-0340.html\"><span class=\"citation\">45-5-234</span></a>, unless the context requires otherwise, the following definitions apply:</p>\n<p class=\"line-indent\"><span id=\"1\" class=\"statute-section\" data-anchor=\"1\">(1) \"Assault on a partner or family member\" has the meaning provided in&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0060/0450-0050-0020-0060.html\"><span class=\"citation\">45-5-206</span></a>&nbsp;for partner or family member assault.</span></p>\n<p class=\"line-indent\"><span id=\"2\" class=\"statute-section\" data-anchor=\"2\">(2) \"Chemical dependency treatment\" means required counseling and treatment related to chemical dependency issues.</span></p>\n<p class=\"line-indent\"><span id=\"3\" class=\"statute-section\" data-anchor=\"3\">(3) \"Counseling\" means clinical professional counseling as defined in&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0370/chapter_0390/part_0010/section_0020/0370-0390-0010-0020.html\"><span class=\"citation\">37-39-102</span></a>&nbsp;and includes group counseling for the purposes of&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0310/title_0450/chapter_0050/part_0020/section_0310/0450-0050-0020-0310.html\"><span class=\"citation\">45-5-231</span></a>&nbsp;through&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0340/0450-0050-0020-0340.html\"><span class=\"citation\">45-5-234</span></a>.</span></p>\n<p class=\"line-indent\"><span id=\"4\" class=\"statute-section\" data-anchor=\"4\">(4) \"Investigative criminal justice report\" means the investigative report prepared by a law enforcement agency associated with an offender's arrest for an assault on a partner or family member, excluding any confidential information relating to the victim's location and confidential information not related to the offense.</span></p>\n<p class=\"line-indent\"><span id=\"5\" class=\"statute-section\" data-anchor=\"5\">(5) \"Offender\" means a person convicted of an assault on a partner or family member.</span></p>\n<p class=\"line-indent\"><span id=\"6\" class=\"statute-section\" data-anchor=\"6\">(6) \"Offender intervention program\" means the combination of counseling and other services that is organized in a judicial district to provide a preliminary assessment for counseling and other services that are required for an offender.</span></p>\n<p class=\"line-indent\"><span id=\"7\" class=\"statute-section\" data-anchor=\"7\">(7) \"Preliminary assessment for counseling\" means the counseling assessment completed by a counselor to determine an offender's need for counseling, attendance at psychoeducational groups, and referrals for other treatment. This assessment must be completed either before or within 4 weeks after counseling and psychoeducational groups are started.</span></p>\n<p class=\"line-indent\"><span id=\"8\" class=\"statute-section\" data-anchor=\"8\">(8) \"Psychoeducational group\" means a group discussion, with instructional content themes, that encourages sharing and feedback, increases self-awareness, and is aimed at facilitating change in group members' daily lives.</span></p>\n<p class=\"line-indent\"><span id=\"9\" class=\"statute-section\" data-anchor=\"9\">(9) \"Recreational intoxicant\" means a substance, drug, or other chemical that was taken for the purpose of causing a person to be in a different emotional or psychological state and was not taken for a medically recognized therapeutic purpose.</span></p>\n<p class=\"line-indent\"><span id=\"10\" class=\"statute-section\" data-anchor=\"10\">(10) \"Victim\" means a person against whom the offender committed an assault.</span></p>",
+  "anchors": [
     {
-      "counter": "(1)",
-      "path": "(1)",
       "anchor_id": "1",
-      "text": "\"Assault on a partner or family member\" has the meaning provided in 45-5-206 for partner or family member assault.",
-      "indent": 1
+      "text": "(1) \"Assault on a partner or family member\" has the meaning provided in 45-5-206 for partner or family member assault.",
+      "html": "(1) \"Assault on a partner or family member\" has the meaning provided in&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0060/0450-0050-0020-0060.html\"><span class=\"citation\">45-5-206</span></a>&nbsp;for partner or family member assault."
     },
     {
-      "counter": "(2)",
-      "path": "(2)",
       "anchor_id": "2",
-      "text": "\"Chemical dependency treatment\" means required counseling and treatment related to chemical dependency issues.",
-      "indent": 1
+      "text": "(2) \"Chemical dependency treatment\" means required counseling and treatment related to chemical dependency issues.",
+      "html": "(2) \"Chemical dependency treatment\" means required counseling and treatment related to chemical dependency issues."
     },
     {
-      "counter": "(3)",
-      "path": "(3)",
       "anchor_id": "3",
-      "text": "\"Counseling\" means clinical professional counseling as defined in 37-39-102 and includes group counseling for the purposes of 45-5-231 through 45-5-234.",
-      "indent": 1
+      "text": "(3) \"Counseling\" means clinical professional counseling as defined in 37-39-102 and includes group counseling for the purposes of 45-5-231 through 45-5-234.",
+      "html": "(3) \"Counseling\" means clinical professional counseling as defined in&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0370/chapter_0390/part_0010/section_0020/0370-0390-0010-0020.html\"><span class=\"citation\">37-39-102</span></a>&nbsp;and includes group counseling for the purposes of&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0310/title_0450/chapter_0050/part_0020/section_0310/0450-0050-0020-0310.html\"><span class=\"citation\">45-5-231</span></a>&nbsp;through&nbsp;<a href=\"https://mca.legmt.gov/bills/mca/title_0450/chapter_0050/part_0020/section_0340/0450-0050-0020-0340.html\"><span class=\"citation\">45-5-234</span></a>."
     },
     {
-      "counter": "(4)",
-      "path": "(4)",
       "anchor_id": "4",
-      "text": "\"Investigative criminal justice report\" means the investigative report prepared by a law enforcement agency associated with an offender's arrest for an assault on a partner or family member, excluding any confidential information relating to the victim's location and confidential information not related to the offense.",
-      "indent": 1
+      "text": "(4) \"Investigative criminal justice report\" means the investigative report prepared by a law enforcement agency associated with an offender's arrest for an assault on a partner or family member, excluding any confidential information relating to the victim's location and confidential information not related to the offense.",
+      "html": "(4) \"Investigative criminal justice report\" means the investigative report prepared by a law enforcement agency associated with an offender's arrest for an assault on a partner or family member, excluding any confidential information relating to the victim's location and confidential information not related to the offense."
     },
     {
-      "counter": "(5)",
-      "path": "(5)",
       "anchor_id": "5",
-      "text": "\"Offender\" means a person convicted of an assault on a partner or family member.",
-      "indent": 1
+      "text": "(5) \"Offender\" means a person convicted of an assault on a partner or family member.",
+      "html": "(5) \"Offender\" means a person convicted of an assault on a partner or family member."
     },
     {
-      "counter": "(6)",
-      "path": "(6)",
       "anchor_id": "6",
-      "text": "\"Offender intervention program\" means the combination of counseling and other services that is organized in a judicial district to provide a preliminary assessment for counseling and other services that are required for an offender.",
-      "indent": 1
+      "text": "(6) \"Offender intervention program\" means the combination of counseling and other services that is organized in a judicial district to provide a preliminary assessment for counseling and other services that are required for an offender.",
+      "html": "(6) \"Offender intervention program\" means the combination of counseling and other services that is organized in a judicial district to provide a preliminary assessment for counseling and other services that are required for an offender."
     },
     {
-      "counter": "(7)",
-      "path": "(7)",
       "anchor_id": "7",
-      "text": "\"Preliminary assessment for counseling\" means the counseling assessment completed by a counselor to determine an offender's need for counseling, attendance at psychoeducational groups, and referrals for other treatment. This assessment must be completed either before or within 4 weeks after counseling and psychoeducational groups are started.",
-      "indent": 1
+      "text": "(7) \"Preliminary assessment for counseling\" means the counseling assessment completed by a counselor to determine an offender's need for counseling, attendance at psychoeducational groups, and referrals for other treatment. This assessment must be completed either before or within 4 weeks after counseling and psychoeducational groups are started.",
+      "html": "(7) \"Preliminary assessment for counseling\" means the counseling assessment completed by a counselor to determine an offender's need for counseling, attendance at psychoeducational groups, and referrals for other treatment. This assessment must be completed either before or within 4 weeks after counseling and psychoeducational groups are started."
     },
     {
-      "counter": "(8)",
-      "path": "(8)",
       "anchor_id": "8",
-      "text": "\"Psychoeducational group\" means a group discussion, with instructional content themes, that encourages sharing and feedback, increases self-awareness, and is aimed at facilitating change in group members' daily lives.",
-      "indent": 1
+      "text": "(8) \"Psychoeducational group\" means a group discussion, with instructional content themes, that encourages sharing and feedback, increases self-awareness, and is aimed at facilitating change in group members' daily lives.",
+      "html": "(8) \"Psychoeducational group\" means a group discussion, with instructional content themes, that encourages sharing and feedback, increases self-awareness, and is aimed at facilitating change in group members' daily lives."
     },
     {
-      "counter": "(9)",
-      "path": "(9)",
       "anchor_id": "9",
-      "text": "\"Recreational intoxicant\" means a substance, drug, or other chemical that was taken for the purpose of causing a person to be in a different emotional or psychological state and was not taken for a medically recognized therapeutic purpose.",
-      "indent": 1
+      "text": "(9) \"Recreational intoxicant\" means a substance, drug, or other chemical that was taken for the purpose of causing a person to be in a different emotional or psychological state and was not taken for a medically recognized therapeutic purpose.",
+      "html": "(9) \"Recreational intoxicant\" means a substance, drug, or other chemical that was taken for the purpose of causing a person to be in a different emotional or psychological state and was not taken for a medically recognized therapeutic purpose."
     },
     {
-      "counter": "(10)",
-      "path": "(10)",
       "anchor_id": "10",
-      "text": "\"Victim\" means a person against whom the offender committed an assault.",
-      "indent": 1
-    }
-  ],
-  "tree": [
-    {
-      "counter": "(1)",
-      "anchor_id": "1",
-      "text": "\"Assault on a partner or family member\" has the meaning provided in 45-5-206 for partner or family member assault.",
-      "children": []
-    },
-    {
-      "counter": "(2)",
-      "anchor_id": "2",
-      "text": "\"Chemical dependency treatment\" means required counseling and treatment related to chemical dependency issues.",
-      "children": []
-    },
-    {
-      "counter": "(3)",
-      "anchor_id": "3",
-      "text": "\"Counseling\" means clinical professional counseling as defined in 37-39-102 and includes group counseling for the purposes of 45-5-231 through 45-5-234.",
-      "children": []
-    },
-    {
-      "counter": "(4)",
-      "anchor_id": "4",
-      "text": "\"Investigative criminal justice report\" means the investigative report prepared by a law enforcement agency associated with an offender's arrest for an assault on a partner or family member, excluding any confidential information relating to the victim's location and confidential information not related to the offense.",
-      "children": []
-    },
-    {
-      "counter": "(5)",
-      "anchor_id": "5",
-      "text": "\"Offender\" means a person convicted of an assault on a partner or family member.",
-      "children": []
-    },
-    {
-      "counter": "(6)",
-      "anchor_id": "6",
-      "text": "\"Offender intervention program\" means the combination of counseling and other services that is organized in a judicial district to provide a preliminary assessment for counseling and other services that are required for an offender.",
-      "children": []
-    },
-    {
-      "counter": "(7)",
-      "anchor_id": "7",
-      "text": "\"Preliminary assessment for counseling\" means the counseling assessment completed by a counselor to determine an offender's need for counseling, attendance at psychoeducational groups, and referrals for other treatment. This assessment must be completed either before or within 4 weeks after counseling and psychoeducational groups are started.",
-      "children": []
-    },
-    {
-      "counter": "(8)",
-      "anchor_id": "8",
-      "text": "\"Psychoeducational group\" means a group discussion, with instructional content themes, that encourages sharing and feedback, increases self-awareness, and is aimed at facilitating change in group members' daily lives.",
-      "children": []
-    },
-    {
-      "counter": "(9)",
-      "anchor_id": "9",
-      "text": "\"Recreational intoxicant\" means a substance, drug, or other chemical that was taken for the purpose of causing a person to be in a different emotional or psychological state and was not taken for a medically recognized therapeutic purpose.",
-      "children": []
-    },
-    {
-      "counter": "(10)",
-      "anchor_id": "10",
-      "text": "\"Victim\" means a person against whom the offender committed an assault.",
-      "children": []
+      "text": "(10) \"Victim\" means a person against whom the offender committed an assault.",
+      "html": "(10) \"Victim\" means a person against whom the offender committed an assault."
     }
   ]
 }

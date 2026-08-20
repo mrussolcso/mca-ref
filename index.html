@@ -135,7 +135,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 async function loadOffensesIndex() {
   try {
-    const res = await fetch(`data/offenses-index.json?t=${Date.now()}`);
+    const res = await fetch('data/offenses-index.json');
     if (res.ok) offensesIndex = await res.json();
   } catch (err) {
     console.error('Error loading offenses index:', err);
@@ -144,7 +144,7 @@ async function loadOffensesIndex() {
 
 async function loadLawsIndex() {
   try {
-    const res = await fetch(`data/laws-index.json?t=${Date.now()}`);
+    const res = await fetch('data/laws-index.json');
     if (res.ok) lawsIndex = await res.json();
   } catch (err) {
     console.error('Error loading laws index:', err);
@@ -261,7 +261,7 @@ async function selectOffense(offenseId) {
   center.innerHTML = 'Loading offense details...';
 
   try {
-    const res = await fetch(`data/offenses/OFFENSE_${offenseId}.json?t=${Date.now()}`);
+    const res = await fetch(`data/offenses/OFFENSE_${offenseId}.json`);
     if (!res.ok) {
       center.innerHTML = 'Failed to load offense record.';
       return;
@@ -335,7 +335,7 @@ async function selectLaw(lawId) {
 
 async function appendLawText(lawId, container, filterAnchors = [], secondaryAnchors = [], customSectionTitle = null, textType = 'primary') {
   try {
-    const res = await fetch(`data/laws/LAW_${lawId}.json?t=${Date.now()}`);
+    const res = await fetch(`data/laws/LAW_${lawId}.json`);
     if (!res.ok) {
       container.innerHTML = `<p>Statute ${lawId} text not found.</p>`;
       return;

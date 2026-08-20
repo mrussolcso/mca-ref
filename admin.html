@@ -385,8 +385,8 @@ async function verifyToken() {
 
     document.getElementById('sec2_card').style.display = 'block';
     
-    loadOffenseIndexCache();
-    loadLawsIndexCache();
+    await loadOffenseIndexCache();
+    await loadLawsIndexCache();
 
   } catch (err) {
     alert(`Authentication Failed: ${err.message}`);
@@ -1197,6 +1197,7 @@ async function saveLaw() {
   };
 
   await commitFile(`data/laws/LAW_${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
+  await rebuildLawsIndex(payload);
 }
 
 async function saveOffense() {
@@ -1240,6 +1241,55 @@ async function saveOffense() {
   };
 
   await commitFile(`data/offenses/OFFENSE_${offenseId}.json`, payload, `Update Offense ${offenseId}`);
+  await rebuildOffensesIndex(payload);
+}
+
+async function rebuildLawsIndex(updatedLaw) {
+  await loadLawsIndexCache();
+
+  const indexEntry = {
+    law_id: updatedLaw.law_id,
+    law_full_title: updatedLaw.law_full_title,
+    law_short_title: updatedLaw.law_short_title,
+    title: updatedLaw.title,
+    short_title: updatedLaw.short_title
+  };
+
+  const existingIdx = lawsIndexCache.findIndex(l => l.law_id === updatedLaw.law_id);
+  if (existingIdx >= 0) {
+    lawsIndexCache[existingIdx] = indexEntry;
+  } else {
+    lawsIndexCache.push(indexEntry);
+  }
+
+  lawsIndexCache.sort((a, b) => String(a.law_id).localeCompare(String(b.law_id), undefined, { numeric: true, sensitivity: 'base' }));
+
+  await commitFile('data/laws-index.json', lawsIndexCache, `Rebuild laws index for ${updatedLaw.law_id}`);
+}
+
+async function rebuildOffensesIndex(updatedOffense) {
+  await loadOffenseIndexCache();
+
+  const indexEntry = {
+    offense_ID: updatedOffense.offense_ID,
+    offense_title_full: updatedOffense.offense_title_full,
+    offense_title_short: updatedOffense.offense_title_short,
+    offense_display_full: updatedOffense.offense_display_full,
+    offense_display_short: updatedOffense.offense_display_short,
+    law_id: updatedOffense.law_id,
+    severity: updatedOffense.severity
+  };
+
+  const existingIdx = offenseIndexCache.findIndex(o => o.offense_ID === updatedOffense.offense_ID);
+  if (existingIdx >= 0) {
+    offenseIndexCache[existingIdx] = indexEntry;
+  } else {
+    offenseIndexCache.push(indexEntry);
+  }
+
+  offenseIndexCache.sort((a, b) => String(a.offense_ID).localeCompare(String(b.offense_ID), undefined, { numeric: true, sensitivity: 'base' }));
+
+  await commitFile('data/offenses-index.json', offenseIndexCache, `Rebuild offenses index for ${updatedOffense.offense_ID}`);
 }
 
 async function commitFile(path, data, msg, retryCount = 0) {

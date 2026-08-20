@@ -520,8 +520,8 @@ function searchLaws() {
     const idVal = m.law_id;
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
-    div.innerHTML = `<strong>MCA ${idVal}</strong> - ${displayTitle}`;
+    const displayTitle = m.law_short_title || m.law_full_title || '';
+    div.innerHTML = `<strong>MCA ${idVal}</strong>${displayTitle ? ' - ' + displayTitle : ''}`;
     div.onclick = () => selectLaw(idVal);
     list.appendChild(div);
   });
@@ -572,7 +572,8 @@ function populateOffenseDropdownForLaw(lawId) {
   matchingOffenses.forEach(off => {
     const opt = document.createElement('option');
     opt.value = off.offense_ID;
-    opt.textContent = `${off.offense_display_short || off.offense_title_short || off.offense_ID} (${off.offense_ID})`;
+    const titleDisplay = off.offense_display_short || off.offense_title_short || 'Unnamed Offense';
+    opt.textContent = `${off.offense_ID} - ${titleDisplay}`;
     dropdown.appendChild(opt);
   });
 

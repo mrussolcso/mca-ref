@@ -219,7 +219,6 @@ function renderLeftIndex(filteredList = null) {
 }
 
 async function selectOffense(offenseId) {
-  document.getElementById('centerPanelHeader').textContent = '📋 Offense Details';
   const center = document.getElementById('centerDisplayPanel');
   center.innerHTML = 'Loading offense details...';
 
@@ -231,8 +230,10 @@ async function selectOffense(offenseId) {
     }
     const offense = await res.json();
 
+    document.getElementById('centerPanelHeader').textContent = `📋 ${offense.name}`;
+
     let html = `
-      <h3 style="margin-top:0; color:var(--primary);">${offense.display_tag || offense.offense_id}</h3>
+      <h3 style="margin-top:0; color:var(--primary);">${offense.offense_id || offense.id}</h3>
       <div class="detail-row"><span class="detail-label">Offense Title</span>${offense.name}</div>
       <div class="detail-row"><span class="detail-label">Severity</span>${offense.severity}</div>
       <div class="detail-row"><span class="detail-label">Bond Type / Amount</span>${offense.bond_type === 'amount' ? '$' + offense.bond_amount : offense.bond_type}</div>
@@ -252,6 +253,16 @@ async function selectOffense(offenseId) {
       
       await appendLawText(offense.law_id, statuteContainer, offense.primary_anchors || [], offense.secondary_anchors || []);
       
+      if (offense.penalty_law_id) {
+        const penaltyContainer = document.createElement('div');
+        penaltyContainer.style.marginTop = '20px';
+        penaltyContainer.style.borderTop = '2px solid var(--bg)';
+        penaltyContainer.style.paddingTop = '10px';
+        center.appendChild(penaltyContainer);
+        
+        await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || []);
+      }
+
       currentActiveLawId = offense.law_id;
       renderRightAssociatedOffenses(offense.law_id, offense.offense_id);
     } else {
@@ -291,35 +302,33 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
 
     html += `<div style="margin-top:12px;">`;
 
-(law.paragraphs || []).forEach(p => {
-  const textContent = p.text ? p.text.trim() : '';
-  const indentClass = `para-indent-${p.indent || 1}`;
-  const anchorId = p.anchor_id;
+    (law.paragraphs || []).forEach(p => {
+      const textContent = p.text ? p.text.trim() : '';
+      const indentClass = `para-indent-${p.indent || 1}`;
+      const anchorId = p.anchor_id;
 
-  let highlightClass = '';
-  if (primaryAnchors.includes(anchorId)) {
-    highlightClass = 'highlight-primary';
-  } else if (secondaryAnchors.includes(anchorId)) {
-    highlightClass = 'highlight-secondary';
-  }
+      let highlightClass = '';
+      if (primaryAnchors.includes(anchorId)) {
+        highlightClass = 'highlight-primary';
+      } else if (secondaryAnchors.includes(anchorId)) {
+        highlightClass = 'highlight-secondary';
+      }
 
-  // If text is present, render counter + text normally
-  if (textContent) {
-    html += `
-      <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-        <span class="para-counter">${p.counter}</span>
-        <span>${textContent}</span>
-      </div>
-    `;
-  } else {
-    // Structural parent with no text: render counter line to preserve hierarchy
-    html += `
-      <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-        <span class="para-counter">${p.counter}</span>
-      </div>
-    `;
-  }
-});
+      if (textContent) {
+        html += `
+          <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
+            <span class="para-counter">${p.counter}</span>
+            <span>${textContent}</span>
+          </div>
+        `;
+      } else {
+        html += `
+          <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
+            <span class="para-counter">${p.counter}</span>
+          </div>
+        `;
+      }
+    });
 
     html += `</div>`;
     container.innerHTML = html;

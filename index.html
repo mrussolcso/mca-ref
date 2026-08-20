@@ -89,7 +89,7 @@
 
 <div class="container">
   <header>
-    <h1> Montana Legal Reference</h1>
+    <h1>⚖️ Montana Legal Reference</h1>
     <a href="admin.html" class="btn-admin">⚙️ Admin</a>
   </header>
 
@@ -102,19 +102,16 @@
   </div>
 
   <div class="three-column-layout">
-    <!-- Column 1: Index List (Laws or Offenses) -->
     <div class="panel">
       <h2 id="leftPanelHeader">🚨 Offense Index</h2>
       <div id="leftIndexList">Loading...</div>
     </div>
 
-    <!-- Column 2: Center Content Display (Law or Offense Detail) -->
     <div class="panel">
       <h2 id="centerPanelHeader">📋 Main Viewer</h2>
       <div id="centerDisplayPanel">Select an item from the index to view details.</div>
     </div>
 
-    <!-- Column 3: Associated Offenses List -->
     <div class="panel">
       <h2>🔗 Associated Offenses</h2>
       <div id="rightAssociatedList">Select a law or offense to see associated charges.</div>
@@ -126,7 +123,6 @@
 let offensesIndex = [];
 let lawsIndex = [];
 let currentSearchMode = 'offenses';
-let currentActiveLawId = null;
 
 window.addEventListener('DOMContentLoaded', async () => {
   await Promise.all([loadOffensesIndex(), loadLawsIndex()]);
@@ -267,7 +263,6 @@ async function selectOffense(offenseId) {
       return;
     }
     const offense = await res.json();
-
     const fullDisplay = offense.offense_display_full || offense.offense_title_full || offense.offense_ID;
     
     document.getElementById('centerPanelHeader').innerHTML = `📋 ${offense.offense_ID}<br>${fullDisplay}`;
@@ -295,7 +290,7 @@ async function selectOffense(offenseId) {
       center.appendChild(statuteContainer);
       
       const lawAnchors = [...(offense.primary_anchors || []), ...(offense.secondary_anchors || [])];
-      await appendLawText(offense.law_id, statuteContainer, lawAnchors, [], "Law Text", 'primary');
+      await appendLawText(offense.law_id, statuteContainer, lawAnchors, [], "Statutory Offense Text", 'primary');
       
       if (offense.penalty_law_id) {
         const penaltyContainer = document.createElement('div');
@@ -314,7 +309,6 @@ async function selectOffense(offenseId) {
         await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || [], [], penaltyHeader, 'penalty');
       }
 
-      currentActiveLawId = offense.law_id;
       renderRightAssociatedOffenses(offense.law_id, offense.offense_ID);
     } else {
       renderRightAssociatedOffenses(null);
@@ -327,8 +321,6 @@ async function selectOffense(offenseId) {
 async function selectLaw(lawId) {
   const center = document.getElementById('centerDisplayPanel');
   center.innerHTML = 'Loading full law text...';
-
-  currentActiveLawId = lawId;
   await appendLawText(lawId, center);
   renderRightAssociatedOffenses(lawId);
 }
@@ -356,15 +348,9 @@ async function appendLawText(lawId, container, filterAnchors = [], secondaryAnch
     if (law.official_url) {
       html += ` | <a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a>`;
     }
-    html += `</p>`;
+    html += `</p><div style="margin-top:12px;">`;
 
-    html += `<div style="margin-top:12px;">`;
-
-    const paragraphsToDisplay = filterAnchors.length > 0 
-      ? (law.paragraphs || []).filter(p => filterAnchors.includes(p.anchor_id))
-      : (law.paragraphs || []);
-
-    paragraphsToDisplay.forEach(p => {
+    (law.paragraphs || []).forEach(p => {
       const textContent = p.text ? p.text.trim() : '';
       const indentClass = `para-indent-${p.indent || 1}`;
       const anchorId = p.anchor_id;
@@ -376,30 +362,24 @@ async function appendLawText(lawId, container, filterAnchors = [], secondaryAnch
         highlightClass = 'highlight-secondary';
       }
 
-      if (textContent) {
-        html += `
-          <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-            <span class="para-counter">${p.counter}</span>
-            <span>${textContent}</span>
-          </div>
-        `;
-      } else {
-        html += `
-          <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
-            <span class="para-counter">${p.counter}</span>
-          </div>
-        `;
-      }
+      html += `
+        <div id="anchor-${anchorId}" class="para-row ${indentClass} ${highlightClass}">
+          <span class="para-counter">${p.counter}</span>
+          <span>${textContent}</span>
+        </div>
+      `;
     });
 
     html += `</div>`;
     container.innerHTML = html;
 
     if (filterAnchors.length > 0) {
-      const firstTarget = container.querySelector(`#anchor-${filterAnchors[0]}`);
-      if (firstTarget) {
-        firstTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setTimeout(() => {
+        const firstTarget = container.querySelector(`#anchor-${filterAnchors[0]}`);
+        if (firstTarget) {
+          firstTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
     }
   } catch (err) {
     container.innerHTML = `<p>Error loading statutory text.</p>`;

@@ -61,10 +61,28 @@
   
   .highlight-primary { background: var(--highlight-primary) !important; border-left: 4px solid #d69e2e; }
   .highlight-secondary { background: var(--highlight-secondary) !important; border-left: 4px solid #38a169; }
+  .highlight-penalty { background: #fed7d7 !important; border-left: 4px solid #e53e3e; }
 
   .detail-row { margin-bottom: 12px; font-size: 0.9rem; }
+  .detail-row-inline { display: flex; gap: 24px; margin-bottom: 12px; font-size: 0.9rem; flex-wrap: wrap; }
   .detail-label { font-weight: bold; color: var(--primary); display: block; font-size: 0.8rem; margin-bottom: 2px; }
   .section-header-title { font-weight: bold; color: var(--primary); font-size: 1rem; margin-bottom: 4px; }
+
+  .severity-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .severity-misdemeanor { background: #fefcbf; color: #744210; border: 1px solid #f6e05e; }
+  .severity-felony { background: #fed7d7; color: #742a2a; border: 1px solid #feb2b2; }
+  .severity-default { background: #edf2f7; color: #4a5568; border: 1px solid #cbd5e0; }
+
+  .law-link { color: var(--primary-light); text-decoration: none; font-weight: 600; cursor: pointer; }
+  .law-link:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -173,6 +191,15 @@ function handleSearch() {
   }
 }
 
+function getSeverityTagHtml(severity) {
+  if (!severity) return '';
+  const sevLower = severity.toLowerCase();
+  let bgClass = 'severity-default';
+  if (sevLower.includes('misdemeanor')) bgClass = 'severity-misdemeanor';
+  else if (sevLower.includes('felony')) bgClass = 'severity-felony';
+  return `<span class="severity-tag ${bgClass}">${severity}</span>`;
+}
+
 function renderLeftIndex(filteredList = null) {
   const container = document.getElementById('leftIndexList');
   container.innerHTML = '';
@@ -194,8 +221,10 @@ function renderLeftIndex(filteredList = null) {
 
       const offenseId = item.offense_ID || '';
       const shortDisplay = item.offense_display_short || item.offense_title_short || 'Unnamed Offense';
+      const tagHtml = getSeverityTagHtml(item.severity);
 
       div.innerHTML = `
+        ${tagHtml ? '<div>' + tagHtml + '</div>' : ''}
         <div class="card-title">${offenseId}</div>
         <div class="card-subtitle">${shortDisplay}</div>
       `;
@@ -239,13 +268,17 @@ async function selectOffense(offenseId) {
 
     const fullDisplay = offense.offense_display_full || offense.offense_title_full || offense.offense_ID;
     
-    // Header now displays Offense ID on top, and full display name on the next line (same font size)
     document.getElementById('centerPanelHeader').innerHTML = `📋 ${offense.offense_ID}<br>${fullDisplay}`;
 
+    const severityTag = getSeverityTagHtml(offense.severity);
+    const bondDisplay = offense.bond_type === 'amount' ? '$' + offense.bond_amount : (offense.bond_type || 'N/A');
+
     let html = `
-      <div class="detail-row"><span class="detail-label">Severity</span>${offense.severity}</div>
-      <div class="detail-row"><span class="detail-label">Bond Type / Amount</span>${offense.bond_type === 'amount' ? '$' + offense.bond_amount : offense.bond_type}</div>
-      <div class="detail-row"><span class="detail-label">Mandatory Appearance</span>${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
+      <div class="detail-row-inline">
+        <div><span class="detail-label">Severity</span>${severityTag || offense.severity}</div>
+        <div><span class="detail-label">Suggested Bond</span>${bondDisplay}</div>
+        <div><span class="detail-label">Must Appear</span>${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
+      </div>
       <div class="detail-row"><span class="detail-label">Description</span>${offense.description || 'N/A'}</div>
       <div class="detail-row"><span class="detail-label">Conditions</span>${offense.conditions || 'None'}</div>
     `;
@@ -259,9 +292,8 @@ async function selectOffense(offenseId) {
       statuteContainer.style.paddingTop = '10px';
       center.appendChild(statuteContainer);
       
-      // Filter anchors to only pass linked primary/secondary sections
       const lawAnchors = [...(offense.primary_anchors || []), ...(offense.secondary_anchors || [])];
-      await appendLawText(offense.law_id, statuteContainer, lawAnchors, [], "Law Text");
+      await appendLawText(offense.law_id, statuteContainer, lawAnchors, [], "Law Text", 'primary');
       
       if (offense.penalty_law_id) {
         const penaltyContainer = document.createElement('div');
@@ -274,10 +306,10 @@ async function selectOffense(offenseId) {
         if (offense.penalty_law_id !== offense.law_id) {
           const penaltyLawMatch = lawsIndex.find(l => l.law_id === offense.penalty_law_id);
           const penaltyTitle = penaltyLawMatch ? (penaltyLawMatch.law_full_title || penaltyLawMatch.law_short_title || '') : '';
-          penaltyHeader += `<br><span class="section-header-title">${offense.penalty_law_id}${penaltyTitle ? ' - ' + penaltyTitle : ''}</span>`;
+          penaltyHeader += `<br><span class="section-header-title"><a href="#" class="law-link" onclick="event.preventDefault(); selectLaw('${offense.penalty_law_id}');">${offense.penalty_law_id}${penaltyTitle ? ' - ' + penaltyTitle : ''}</a></span>`;
         }
 
-        await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || [], [], penaltyHeader);
+        await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || [], [], penaltyHeader, 'penalty');
       }
 
       currentActiveLawId = offense.law_id;
@@ -299,7 +331,7 @@ async function selectLaw(lawId) {
   renderRightAssociatedOffenses(lawId);
 }
 
-async function appendLawText(lawId, container, filterAnchors = [], secondaryAnchors = [], customSectionTitle = null) {
+async function appendLawText(lawId, container, filterAnchors = [], secondaryAnchors = [], customSectionTitle = null, textType = 'primary') {
   try {
     const res = await fetch(`data/laws/LAW_${lawId}.json`);
     if (!res.ok) {
@@ -317,9 +349,11 @@ async function appendLawText(lawId, container, filterAnchors = [], secondaryAnch
       html += `<div class="detail-label" style="font-size: 0.9rem; margin-bottom: 8px;">${customSectionTitle}</div>`;
     }
 
+    html += `<p style="margin-top:0;"><a href="#" class="law-link" style="font-size:0.85rem;" onclick="event.preventDefault(); selectLaw('${law.law_id}');">📜 MCA ${law.law_id} Entry</a>`;
     if (law.official_url) {
-      html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a></p>`;
+      html += ` | <a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a>`;
     }
+    html += `</p>`;
 
     html += `<div style="margin-top:12px;">`;
 
@@ -334,7 +368,7 @@ async function appendLawText(lawId, container, filterAnchors = [], secondaryAnch
 
       let highlightClass = '';
       if (filterAnchors.includes(anchorId)) {
-        highlightClass = 'highlight-primary';
+        highlightClass = textType === 'penalty' ? 'highlight-penalty' : 'highlight-primary';
       } else if (secondaryAnchors.includes(anchorId)) {
         highlightClass = 'highlight-secondary';
       }
@@ -394,8 +428,10 @@ function renderRightAssociatedOffenses(lawId, excludeOffenseId = null) {
 
     const offenseId = item.offense_ID || '';
     const shortDisplay = item.offense_display_short || item.offense_title_short || 'Unnamed Offense';
+    const tagHtml = getSeverityTagHtml(item.severity);
 
     div.innerHTML = `
+      ${tagHtml ? '<div>' + tagHtml + '</div>' : ''}
       <div class="card-title">${offenseId}</div>
       <div class="card-subtitle">${shortDisplay}</div>
     `;

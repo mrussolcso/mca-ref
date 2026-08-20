@@ -158,8 +158,8 @@
     <h3 style="margin-top:0;">4. Law Details</h3>
     <div id="entryStatusNotice" class="status-notice"></div>
     <div class="form-grid">
-      <div class="span-2"><label>Title</label><input type="text" id="law_title" placeholder="e.g. Partner or Family Member Assault" required></div>
-      <div><label>Short Title</label><input type="text" id="law_short_title" placeholder="e.g. PFMA"></div>
+      <div class="span-2"><label>Full Title</label><input type="text" id="law_full_title" placeholder="e.g. Assault Upon Sports Official" required></div>
+      <div><label>Short Title</label><input type="text" id="law_short_title" placeholder="e.g. Assault - Sports Official"></div>
       <div class="full"><label>Official Publication URL</label><input type="url" id="official_url" placeholder="https://leg.mt.gov/statutes/..."></div>
       <div class="full"><label>Revision History</label><input type="text" id="law_history" placeholder="e.g. Enacted 1995, last amended 2023"></div>
     </div>
@@ -170,23 +170,37 @@
     <h3 style="margin-top:0;">4. Offense Details</h3>
     <div id="offenseStatusNotice" class="status-notice"></div>
     <div class="form-grid">
-      <div class="span-2">
-        <label>Offense Short Title</label>
-        <input type="text" id="offense_short_title" placeholder="e.g. 1st Offense" oninput="updateOffenseNameConcat()">
-      </div>
       <div>
         <label>Offense Section</label>
-        <input type="text" id="offense_section" placeholder="e.g. (1)(a)" oninput="updateOffenseNameConcat()">
+        <input type="text" id="offense_section" placeholder="e.g. (1)(a)" oninput="updateOffenseComputedFields()">
       </div>
-
-      <div class="full">
-        <label>Offense Title</label>
-        <input type="text" id="offense_title" placeholder="Longer MCA description quoted directly from the bond book...">
+      <div>
+        <label>Offense ID (Computed)</label>
+        <input type="text" id="offense_ID" placeholder="e.g. 45-5-211(1)(a)" readonly style="background: #edf2f7;">
       </div>
-
       <div>
         <label>Occurrence</label>
         <input type="number" id="offense_occurrence" min="1" placeholder="1 (for 1st), 2 (for 2nd)...">
+      </div>
+
+      <div class="span-2">
+        <label>Full Title (offense_title_full)</label>
+        <input type="text" id="offense_title_full" placeholder="e.g. Purposely or Knowingly Causes Bodily Injury" oninput="updateOffenseComputedFields()">
+      </div>
+
+      <div>
+        <label>Short Title (offense_title_short)</label>
+        <input type="text" id="offense_title_short" placeholder="e.g. Purposely/Knowingly Causes Bodily Injury" oninput="updateOffenseComputedFields()">
+      </div>
+
+      <div class="full">
+        <label>Full Display Name (Computed)</label>
+        <input type="text" id="offense_display_full" readonly style="background: #edf2f7;">
+      </div>
+
+      <div class="full">
+        <label>Short Display Name (Computed)</label>
+        <input type="text" id="offense_display_short" readonly style="background: #edf2f7;">
       </div>
 
       <div class="span-2">
@@ -311,6 +325,7 @@ let offenseIndexCache = [];
 let lawsIndexCache = [];
 let currentSelectedLawData = null;
 let selectedLawId = '';
+let selectedLawFullTitle = '';
 let selectedLawShortTitle = '';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -445,19 +460,19 @@ function searchLawsUnified(query) {
   }
 
   const matches = lawsIndexCache.filter(l => 
-    String(l.id || l.law_id || '').toLowerCase().includes(trimmed.toLowerCase()) || 
-    String(l.title || '').toLowerCase().includes(trimmed.toLowerCase()) ||
-    String(l.short_title || '').toLowerCase().includes(trimmed.toLowerCase())
+    String(l.law_id || '').toLowerCase().includes(trimmed.toLowerCase()) || 
+    String(l.law_full_title || '').toLowerCase().includes(trimmed.toLowerCase()) ||
+    String(l.law_short_title || '').toLowerCase().includes(trimmed.toLowerCase())
   );
 
-  const exactMatch = lawsIndexCache.find(l => String(l.id || l.law_id || '').toLowerCase() === trimmed.toLowerCase());
+  const exactMatch = lawsIndexCache.find(l => String(l.law_id || '').toLowerCase() === trimmed.toLowerCase());
 
   if (matches.length > 0) {
     matches.slice(0, 8).forEach(m => {
-      const idVal = m.law_id || m.id;
+      const idVal = m.law_id;
       const div = document.createElement('div');
       div.className = 'autocomplete-item';
-      const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
+      const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
       div.innerHTML = `<strong>${idVal}</strong> - ${displayTitle}`;
       div.onclick = () => {
         document.getElementById('unifiedLawSearch').value = idVal;
@@ -491,9 +506,9 @@ function searchLaws() {
   }
 
   const matches = lawsIndexCache.filter(l => 
-    String(l.id || l.law_id || '').toLowerCase().includes(query) || 
-    String(l.title || '').toLowerCase().includes(query) ||
-    String(l.short_title || '').toLowerCase().includes(query)
+    String(l.law_id || '').toLowerCase().includes(query) || 
+    String(l.law_full_title || '').toLowerCase().includes(query) ||
+    String(l.law_short_title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
@@ -502,10 +517,10 @@ function searchLaws() {
   }
 
   matches.slice(0, 8).forEach(m => {
-    const idVal = m.law_id || m.id;
+    const idVal = m.law_id;
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
+    const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
     div.innerHTML = `<strong>MCA ${idVal}</strong> - ${displayTitle}`;
     div.onclick = () => selectLaw(idVal);
     list.appendChild(div);
@@ -519,10 +534,11 @@ async function selectLaw(lawId) {
   document.getElementById('lawIdSearch').value = lawId;
   document.getElementById('lawSearchResults').style.display = 'none';
 
-  const foundLaw = lawsIndexCache.find(l => (l.law_id || l.id) === lawId);
-  selectedLawShortTitle = foundLaw ? (foundLaw.short_title || foundLaw.title || '') : '';
+  const foundLaw = lawsIndexCache.find(l => l.law_id === lawId);
+  selectedLawFullTitle = foundLaw ? (foundLaw.law_full_title || '') : '';
+  selectedLawShortTitle = foundLaw ? (foundLaw.law_short_title || foundLaw.law_full_title || '') : '';
 
-  const path = `data/laws/${lawId}.json`;
+  const path = `data/laws/LAW_${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
   try {
     const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
@@ -531,8 +547,11 @@ async function selectLaw(lawId) {
     if (res.ok) {
       const data = await res.json();
       currentSelectedLawData = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
-      if (currentSelectedLawData.short_title) {
-        selectedLawShortTitle = currentSelectedLawData.short_title;
+      if (currentSelectedLawData.law_full_title) {
+        selectedLawFullTitle = currentSelectedLawData.law_full_title;
+      }
+      if (currentSelectedLawData.law_short_title) {
+        selectedLawShortTitle = currentSelectedLawData.law_short_title;
       }
     }
   } catch (err) {
@@ -552,8 +571,8 @@ function populateOffenseDropdownForLaw(lawId) {
 
   matchingOffenses.forEach(off => {
     const opt = document.createElement('option');
-    opt.value = off.id || off.offense_id;
-    opt.textContent = `${off.name || off.offense_title || off.id} (${off.id})`;
+    opt.value = off.offense_ID;
+    opt.textContent = `${off.offense_display_short || off.offense_title_short || off.offense_ID} (${off.offense_ID})`;
     dropdown.appendChild(opt);
   });
 
@@ -575,8 +594,7 @@ function handleOffenseDropdownChange(val) {
   }
 
   if (val === '__NEW__') {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    currentComputedOffenseId = `${selectedLawId}-NEW-${randomSuffix}`;
+    currentComputedOffenseId = '';
   } else {
     currentComputedOffenseId = val;
   }
@@ -584,25 +602,20 @@ function handleOffenseDropdownChange(val) {
   checkOffenseEntry();
 }
 
-function updateOffenseNameConcat() {
-  const offenseShortTitle = document.getElementById('offense_short_title').value.trim();
+function updateOffenseComputedFields() {
   const offenseSection = document.getElementById('offense_section').value.trim();
-  
-  let name = '';
-  if (selectedLawShortTitle && offenseShortTitle) {
-    name = `${selectedLawShortTitle} - ${offenseShortTitle}`;
-  } else if (selectedLawShortTitle) {
-    name = selectedLawShortTitle;
-  } else {
-    name = offenseShortTitle;
-  }
+  const offenseTitleFull = document.getElementById('offense_title_full').value.trim();
+  const offenseTitleShort = document.getElementById('offense_title_short').value.trim();
 
-  if (name && selectedLawId) {
-    name += ` (${selectedLawId}${offenseSection})`;
-  }
+  const offenseId = selectedLawId ? `${selectedLawId}${offenseSection}` : offenseSection;
+  document.getElementById('offense_ID').value = offenseId;
+  currentComputedOffenseId = offenseId;
 
-  // Store constructed name on dataset for form retrieval
-  document.getElementById('sec4_offense_card').dataset.generatedName = name;
+  const displayFull = (selectedLawFullTitle && offenseTitleFull) ? `${selectedLawFullTitle} - ${offenseTitleFull}` : (selectedLawFullTitle || offenseTitleFull);
+  const displayShort = (selectedLawShortTitle && offenseTitleShort) ? `${selectedLawShortTitle} - ${offenseTitleShort}` : (selectedLawShortTitle || offenseTitleShort);
+
+  document.getElementById('offense_display_full').value = displayFull;
+  document.getElementById('offense_display_short').value = displayShort;
 }
 
 function searchPenaltyLaws() {
@@ -616,9 +629,9 @@ function searchPenaltyLaws() {
   }
 
   const matches = lawsIndexCache.filter(l => 
-    String(l.id || l.law_id || '').toLowerCase().includes(query) || 
-    String(l.title || '').toLowerCase().includes(query) ||
-    String(l.short_title || '').toLowerCase().includes(query)
+    String(l.law_id || '').toLowerCase().includes(query) || 
+    String(l.law_full_title || '').toLowerCase().includes(query) ||
+    String(l.law_short_title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
@@ -627,10 +640,10 @@ function searchPenaltyLaws() {
   }
 
   matches.slice(0, 8).forEach(m => {
-    const idVal = m.law_id || m.id;
+    const idVal = m.law_id;
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    const displayTitle = m.short_title ? `${m.title} (${m.short_title})` : (m.title || '');
+    const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
     div.innerHTML = `<strong>MCA ${idVal}</strong> - ${displayTitle}`;
     div.onclick = () => {
       document.getElementById('penaltyLawSearch').value = `${idVal} - ${displayTitle}`;
@@ -741,7 +754,7 @@ async function checkEntry() {
     return;
   }
 
-  const path = `data/laws/${currentComputedLawId}.json`;
+  const path = `data/laws/LAW_${currentComputedLawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
@@ -762,8 +775,8 @@ async function checkEntry() {
       notice.className = "status-notice status-edit";
       notice.textContent = `📝 Existing Record Found for ID "${currentComputedLawId}". Loaded details for editing.`;
 
-      document.getElementById('law_title').value = content.title || '';
-      document.getElementById('law_short_title').value = content.short_title || '';
+      document.getElementById('law_full_title').value = content.law_full_title || content.title || '';
+      document.getElementById('law_short_title').value = content.law_short_title || content.short_title || '';
       document.getElementById('official_url').value = content.official_url || '';
       document.getElementById('law_history').value = content.history || '';
       
@@ -775,7 +788,7 @@ async function checkEntry() {
       notice.className = "status-notice status-new";
       notice.textContent = `✨ No existing record found for ID "${currentComputedLawId}". Creating a new law entry.`;
 
-      document.getElementById('law_title').value = '';
+      document.getElementById('law_full_title').value = '';
       document.getElementById('law_short_title').value = '';
       document.getElementById('official_url').value = '';
       document.getElementById('law_history').value = '';
@@ -794,25 +807,24 @@ async function checkEntry() {
 
 async function checkOffenseEntry() {
   closeAutocompleteList();
-  if (!currentComputedOffenseId) {
-    alert('Please provide an Offense ID / Charge Code.');
-    return;
-  }
 
-  const path = `data/offenses/${currentComputedOffenseId}.json`;
-  const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
+  const path = currentComputedOffenseId ? `data/offenses/OFFENSE_${currentComputedOffenseId}.json` : null;
+  const url = path ? `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}` : null;
 
   try {
-    const res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
-      headers: {
-        'Authorization': `token ${validatedToken}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
+    let res = null;
+    if (url) {
+      res = await fetch(`${url}?ref=${REPO_CONFIG.branch}&t=${Date.now()}`, {
+        headers: {
+          'Authorization': `token ${validatedToken}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+    }
 
     const notice = document.getElementById('offenseStatusNotice');
 
-    if (res.ok) {
+    if (res && res.ok) {
       const data = await res.json();
       const rawText = decodeURIComponent(escape(atob(data.content.replace(/\s/g, ''))));
       const content = JSON.parse(rawText);
@@ -820,9 +832,9 @@ async function checkOffenseEntry() {
       notice.className = "status-notice status-edit";
       notice.textContent = `📝 Existing Offense Record Found for ID "${currentComputedOffenseId}". Loaded details for editing.`;
 
-      document.getElementById('offense_short_title').value = content.short_title || '';
       document.getElementById('offense_section').value = content.offense_section || '';
-      document.getElementById('offense_title').value = content.offense_title || '';
+      document.getElementById('offense_title_full').value = content.offense_title_full || content.offense_title || '';
+      document.getElementById('offense_title_short').value = content.offense_title_short || content.short_title || '';
       document.getElementById('offense_occurrence').value = content.occurrence || '';
       document.getElementById('offense_severity').value = content.severity || 'Misdemeanor';
       document.getElementById('offense_description').value = content.description || '';
@@ -837,8 +849,8 @@ async function checkOffenseEntry() {
       const penaltyId = content.penalty_law_id || selectedLawId || '';
       document.getElementById('offense_penalty_law_id').value = penaltyId;
       
-      const foundPenaltyLaw = lawsIndexCache.find(l => (l.law_id || l.id) === penaltyId);
-      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.short_title ? `${foundPenaltyLaw.title} (${foundPenaltyLaw.short_title})` : foundPenaltyLaw.title) : '';
+      const foundPenaltyLaw = lawsIndexCache.find(l => l.law_id === penaltyId);
+      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title ? `${foundPenaltyLaw.law_full_title} (${foundPenaltyLaw.law_short_title})` : foundPenaltyLaw.law_full_title) : '';
       document.getElementById('penaltyLawSearch').value = penaltyId ? `${penaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
 
       document.getElementById('offense_primary_anchors').value = (content.primary_anchors || content.target_anchors || []).join(', ');
@@ -849,14 +861,14 @@ async function checkOffenseEntry() {
         fetchAnchorsForLaw(penaltyId, 'penalty');
       }
 
-      updateOffenseNameConcat();
+      updateOffenseComputedFields();
     } else {
       notice.className = "status-notice status-new";
-      notice.textContent = `✨ No existing offense record found for ID "${currentComputedOffenseId}". Creating a new offense entry.`;
+      notice.textContent = `✨ Creating a new offense entry.`;
 
-      document.getElementById('offense_short_title').value = '';
       document.getElementById('offense_section').value = '';
-      document.getElementById('offense_title').value = '';
+      document.getElementById('offense_title_full').value = '';
+      document.getElementById('offense_title_short').value = '';
       document.getElementById('offense_occurrence').value = '';
       document.getElementById('offense_severity').value = 'Misdemeanor';
       document.getElementById('offense_description').value = '';
@@ -869,8 +881,8 @@ async function checkOffenseEntry() {
       const defaultPenaltyId = selectedLawId || '';
       document.getElementById('offense_penalty_law_id').value = defaultPenaltyId;
       
-      const foundPenaltyLaw = lawsIndexCache.find(l => (l.law_id || l.id) === defaultPenaltyId);
-      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.short_title ? `${foundPenaltyLaw.title} (${foundPenaltyLaw.short_title})` : foundPenaltyLaw.title) : '';
+      const foundPenaltyLaw = lawsIndexCache.find(l => l.law_id === defaultPenaltyId);
+      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title ? `${foundPenaltyLaw.law_full_title} (${foundPenaltyLaw.law_short_title})` : foundPenaltyLaw.law_full_title) : '';
       document.getElementById('penaltyLawSearch').value = defaultPenaltyId ? `${defaultPenaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
 
       document.getElementById('offense_primary_anchors').value = '';
@@ -881,7 +893,7 @@ async function checkOffenseEntry() {
         fetchAnchorsForLaw(defaultPenaltyId, 'penalty');
       }
 
-      updateOffenseNameConcat();
+      updateOffenseComputedFields();
     }
 
     document.getElementById('sec4_offense_card').style.display = 'block';
@@ -895,7 +907,7 @@ async function checkOffenseEntry() {
 async function fetchAnchorsForLaw(lawId, targetType = 'primary') {
   if (!lawId) return;
 
-  const path = `data/laws/${lawId}.json`;
+  const path = `data/laws/LAW_${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
 
   try {
@@ -1163,8 +1175,8 @@ async function saveLaw() {
 
   const payload = {
     law_id: currentComputedLawId,
-    title: document.getElementById('law_title').value.trim(),
-    short_title: document.getElementById('law_short_title').value.trim(),
+    law_full_title: document.getElementById('law_full_title').value.trim(),
+    law_short_title: document.getElementById('law_short_title').value.trim(),
     source_type: sourceTypeElem ? sourceTypeElem.value : 'MCA Statute',
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
@@ -1173,11 +1185,12 @@ async function saveLaw() {
     tree: processedTree
   };
 
-  await commitFile(`data/laws/${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
+  await commitFile(`data/laws/LAW_${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);
 }
 
 async function saveOffense() {
-  if (!currentComputedOffenseId) {
+  const offenseId = document.getElementById('offense_ID').value.trim();
+  if (!offenseId) {
     alert('Offense ID is missing.');
     return;
   }
@@ -1192,14 +1205,14 @@ async function saveOffense() {
   const penaltyAnchors = penaltyAnchorsRaw.split(',').map(s => s.trim()).filter(Boolean);
 
   const bondType = document.getElementById('offense_bond_type').value;
-  const generatedName = document.getElementById('sec4_offense_card').dataset.generatedName || '';
 
   const payload = {
-    offense_id: currentComputedOffenseId,
-    short_title: document.getElementById('offense_short_title').value.trim(),
     offense_section: document.getElementById('offense_section').value.trim(),
-    name: generatedName,
-    offense_title: document.getElementById('offense_title').value.trim(),
+    offense_ID: offenseId,
+    offense_title_full: document.getElementById('offense_title_full').value.trim(),
+    offense_title_short: document.getElementById('offense_title_short').value.trim(),
+    offense_display_full: document.getElementById('offense_display_full').value.trim(),
+    offense_display_short: document.getElementById('offense_display_short').value.trim(),
     occurrence: parseInt(document.getElementById('offense_occurrence').value, 10) || null,
     severity: document.getElementById('offense_severity').value,
     description: document.getElementById('offense_description').value.trim(),
@@ -1215,7 +1228,7 @@ async function saveOffense() {
     last_updated: new Date().toISOString()
   };
 
-  await commitFile(`data/offenses/${currentComputedOffenseId}.json`, payload, `Update Offense ${currentComputedOffenseId}`);
+  await commitFile(`data/offenses/OFFENSE_${offenseId}.json`, payload, `Update Offense ${offenseId}`);
 }
 
 async function commitFile(path, data, msg, retryCount = 0) {

@@ -155,8 +155,10 @@ function handleSearch() {
   if (currentSearchMode === 'offenses') {
     const filtered = offensesIndex.filter(o => 
       (o.id && o.id.toLowerCase().includes(query)) ||
+      (o.offense_id && o.offense_id.toLowerCase().includes(query)) ||
+      (o.short_title && o.short_title.toLowerCase().includes(query)) ||
       (o.name && o.name.toLowerCase().includes(query)) ||
-      (o.display_tag && o.display_tag.toLowerCase().includes(query)) ||
+      (o.offense_title && o.offense_title.toLowerCase().includes(query)) ||
       (o.law_id && o.law_id.toLowerCase().includes(query))
     );
     renderLeftIndex(filtered);
@@ -186,11 +188,18 @@ function renderLeftIndex(filteredList = null) {
       div.onclick = () => {
         document.querySelectorAll('#leftIndexList .card-item').forEach(c => c.classList.remove('active'));
         div.classList.add('active');
-        selectOffense(item.id);
+        selectOffense(item.id || item.offense_id);
       };
+
+      const fullOffenseId = item.id || item.offense_id || '';
+      let shortTitle = item.short_title || '';
+      if (!shortTitle && item.name) {
+        shortTitle = item.name.replace(/\s*\([^)]*\)\s*$/, '');
+      }
+
       div.innerHTML = `
-        <div class="card-title">${item.display_tag || item.id}</div>
-        <div class="card-subtitle">${item.name || 'Unnamed Offense'}</div>
+        <div class="card-title">${fullOffenseId}</div>
+        <div class="card-subtitle">${shortTitle || 'Unnamed Offense'}</div>
       `;
       container.appendChild(div);
     });
@@ -230,11 +239,12 @@ async function selectOffense(offenseId) {
     }
     const offense = await res.json();
 
-    document.getElementById('centerPanelHeader').textContent = `📋 ${offense.name}`;
+    const displayTitle = offense.offense_title || offense.name;
+    document.getElementById('centerPanelHeader').textContent = `📋 ${displayTitle}`;
 
     let html = `
-      <h3 style="margin-top:0; color:var(--primary);">${offense.offense_id || offense.id}</h3>
-      <div class="detail-row"><span class="detail-label">Offense Title</span>${offense.name}</div>
+      <h3 style="margin-top:0; color:var(--primary);">${displayTitle}</h3>
+      <div class="detail-row"><span class="detail-label">Offense Title</span>${displayTitle}</div>
       <div class="detail-row"><span class="detail-label">Severity</span>${offense.severity}</div>
       <div class="detail-row"><span class="detail-label">Bond Type / Amount</span>${offense.bond_type === 'amount' ? '$' + offense.bond_amount : offense.bond_type}</div>
       <div class="detail-row"><span class="detail-label">Mandatory Appearance</span>${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
@@ -264,7 +274,7 @@ async function selectOffense(offenseId) {
       }
 
       currentActiveLawId = offense.law_id;
-      renderRightAssociatedOffenses(offense.law_id, offense.offense_id);
+      renderRightAssociatedOffenses(offense.law_id, offense.offense_id || offense.id);
     } else {
       renderRightAssociatedOffenses(null);
     }
@@ -353,7 +363,7 @@ function renderRightAssociatedOffenses(lawId, excludeOffenseId = null) {
     return;
   }
 
-  const associated = offensesIndex.filter(o => o.law_id === lawId && o.id !== excludeOffenseId);
+  const associated = offensesIndex.filter(o => o.law_id === lawId && (o.id || o.offense_id) !== excludeOffenseId);
 
   if (associated.length === 0) {
     container.textContent = `No other offenses associated with MCA ${lawId}.`;
@@ -364,11 +374,18 @@ function renderRightAssociatedOffenses(lawId, excludeOffenseId = null) {
     const div = document.createElement('div');
     div.className = 'card-item';
     div.onclick = () => {
-      selectOffense(item.id);
+      selectOffense(item.id || item.offense_id);
     };
+
+    const fullOffenseId = item.id || item.offense_id || '';
+    let shortTitle = item.short_title || '';
+    if (!shortTitle && item.name) {
+      shortTitle = item.name.replace(/\s*\([^)]*\)\s*$/, '');
+    }
+
     div.innerHTML = `
-      <div class="card-title">${item.display_tag || item.id}</div>
-      <div class="card-subtitle">${item.name || 'Unnamed Offense'}</div>
+      <div class="card-title">${fullOffenseId}</div>
+      <div class="card-subtitle">${shortTitle || 'Unnamed Offense'}</div>
     `;
     container.appendChild(div);
   });

@@ -64,6 +64,7 @@
 
   .detail-row { margin-bottom: 12px; font-size: 0.9rem; }
   .detail-label { font-weight: bold; color: var(--primary); display: block; font-size: 0.8rem; margin-bottom: 2px; }
+  .section-header-title { font-weight: bold; color: var(--primary); font-size: 1rem; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -237,11 +238,11 @@ async function selectOffense(offenseId) {
     const offense = await res.json();
 
     const fullDisplay = offense.offense_display_full || offense.offense_title_full || offense.offense_ID;
-    document.getElementById('centerPanelHeader').textContent = `📋 ${fullDisplay}`;
+    
+    // Header now displays Offense ID on top, and full display name on the next line (same font size)
+    document.getElementById('centerPanelHeader').innerHTML = `📋 ${offense.offense_ID}<br>${fullDisplay}`;
 
     let html = `
-      <h3 style="margin-top:0; color:var(--primary);">${offense.offense_ID}</h3>
-      <div class="detail-row"><span class="detail-label">Offense Title</span>${offense.offense_title_full || ''}</div>
       <div class="detail-row"><span class="detail-label">Severity</span>${offense.severity}</div>
       <div class="detail-row"><span class="detail-label">Bond Type / Amount</span>${offense.bond_type === 'amount' ? '$' + offense.bond_amount : offense.bond_type}</div>
       <div class="detail-row"><span class="detail-label">Mandatory Appearance</span>${offense.mandatory_appearance ? 'Yes' : 'No'}</div>
@@ -258,7 +259,9 @@ async function selectOffense(offenseId) {
       statuteContainer.style.paddingTop = '10px';
       center.appendChild(statuteContainer);
       
-      await appendLawText(offense.law_id, statuteContainer, offense.primary_anchors || [], offense.secondary_anchors || []);
+      // Filter anchors to only pass linked primary/secondary sections
+      const lawAnchors = [...(offense.primary_anchors || []), ...(offense.secondary_anchors || [])];
+      await appendLawText(offense.law_id, statuteContainer, lawAnchors, [], "Law Text");
       
       if (offense.penalty_law_id) {
         const penaltyContainer = document.createElement('div');
@@ -267,7 +270,14 @@ async function selectOffense(offenseId) {
         penaltyContainer.style.paddingTop = '10px';
         center.appendChild(penaltyContainer);
         
-        await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || []);
+        let penaltyHeader = "Penalty Section";
+        if (offense.penalty_law_id !== offense.law_id) {
+          const penaltyLawMatch = lawsIndex.find(l => l.law_id === offense.penalty_law_id);
+          const penaltyTitle = penaltyLawMatch ? (penaltyLawMatch.law_full_title || penaltyLawMatch.law_short_title || '') : '';
+          penaltyHeader += `<br><span class="section-header-title">${offense.penalty_law_id}${penaltyTitle ? ' - ' + penaltyTitle : ''}</span>`;
+        }
+
+        await appendLawText(offense.penalty_law_id, penaltyContainer, offense.penalty_anchors || [], [], penaltyHeader);
       }
 
       currentActiveLawId = offense.law_id;
@@ -289,7 +299,7 @@ async function selectLaw(lawId) {
   renderRightAssociatedOffenses(lawId);
 }
 
-async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnchors = []) {
+async function appendLawText(lawId, container, filterAnchors = [], secondaryAnchors = [], customSectionTitle = null) {
   try {
     const res = await fetch(`data/laws/LAW_${lawId}.json`);
     if (!res.ok) {
@@ -303,19 +313,27 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
     }
 
     let html = '';
+    if (customSectionTitle) {
+      html += `<div class="detail-label" style="font-size: 0.9rem; margin-bottom: 8px;">${customSectionTitle}</div>`;
+    }
+
     if (law.official_url) {
       html += `<p style="margin-top:0;"><a href="${law.official_url}" target="_blank" style="font-size:0.85rem; color:var(--primary-light);">🔗 Official Publication</a></p>`;
     }
 
     html += `<div style="margin-top:12px;">`;
 
-    (law.paragraphs || []).forEach(p => {
+    const paragraphsToDisplay = filterAnchors.length > 0 
+      ? (law.paragraphs || []).filter(p => filterAnchors.includes(p.anchor_id))
+      : (law.paragraphs || []);
+
+    paragraphsToDisplay.forEach(p => {
       const textContent = p.text ? p.text.trim() : '';
       const indentClass = `para-indent-${p.indent || 1}`;
       const anchorId = p.anchor_id;
 
       let highlightClass = '';
-      if (primaryAnchors.includes(anchorId)) {
+      if (filterAnchors.includes(anchorId)) {
         highlightClass = 'highlight-primary';
       } else if (secondaryAnchors.includes(anchorId)) {
         highlightClass = 'highlight-secondary';
@@ -340,8 +358,8 @@ async function appendLawText(lawId, container, primaryAnchors = [], secondaryAnc
     html += `</div>`;
     container.innerHTML = html;
 
-    if (primaryAnchors.length > 0) {
-      const firstTarget = container.querySelector(`#anchor-${primaryAnchors[0]}`);
+    if (filterAnchors.length > 0) {
+      const firstTarget = container.querySelector(`#anchor-${filterAnchors[0]}`);
       if (firstTarget) {
         firstTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }

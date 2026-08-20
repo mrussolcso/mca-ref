@@ -54,11 +54,13 @@ jobs:
               offensesIndex = files.map(file => {
                 const content = JSON.parse(fs.readFileSync(path.join(offensesDir, file), "utf8"));
                 return {
-                  id: content.offense_id || file.replace(".json", ""),
-                  name: content.name || "",
-                  occurrence: content.occurrence || null,
-                  severity: content.severity || "",
-                  law_id: content.law_id || ""
+                  offense_ID: content.offense_ID || file.replace(/^OFFENSE_/, "").replace(".json", ""),
+                  law_id: content.law_id || "",
+                  offense_title_short: content.offense_title_short || "",
+                  offense_title_full: content.offense_title_full || "",
+                  offense_display_short: content.offense_display_short || "",
+                  offense_display_full: content.offense_display_full || "",
+                  severity: content.severity || ""
                 };
               });
             }

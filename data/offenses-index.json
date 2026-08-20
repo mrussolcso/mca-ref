@@ -7,5 +7,14 @@
     "offense_display_short": "Assault - Sports Official - Purposely/Knowingly Causes Bodily Injury",
     "offense_display_full": "Assault Upon Sports Official - Purposely or Knowingly Causes Bodily Injury",
     "severity": "Misdemeanor"
+  },
+  {
+    "offense_ID": "45-5-211(1)(b)",
+    "law_id": "45-5-211",
+    "offense_title_short": "Negligently Causes Bodily Injury with Weapon",
+    "offense_title_full": "Negligently Causes Bodily Injury to the Sports Official with a Weapon",
+    "offense_display_short": "Assault - Sports Official - Negligently Causes Bodily Injury with Weapon",
+    "offense_display_full": "Assault Upon Sports Official - Negligently Causes Bodily Injury to the Sports Official with a Weapon",
+    "severity": "Misdemeanor"
   }
 ]

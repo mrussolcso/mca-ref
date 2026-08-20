@@ -20,7 +20,9 @@
   ],
   "secondary_anchors": [],
   "penalty_anchors": [
+    "3",
+    "3-a",
     "3-a-i"
   ],
-  "last_updated": "2026-08-20T19:42:57.668Z"
+  "last_updated": "2026-08-20T19:44:57.616Z"
 }

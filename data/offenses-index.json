@@ -1,5 +1,14 @@
 [
   {
+    "offense_ID": "45-5-206(1)(a)",
+    "law_id": "45-5-206",
+    "offense_title_short": "Purposely/Knowingly Causes Bodily Injury",
+    "offense_title_full": "Purposely or Knowingly Causes Bodily Injury to a Partner or Family Member",
+    "offense_display_short": "PFMA - Purposely/Knowingly Causes Bodily Injury",
+    "offense_display_full": "Partner Or Family Member Assault -- Penalty - Purposely or Knowingly Causes Bodily Injury to a Partner or Family Member",
+    "severity": "Misdemeanor"
+  },
+  {
     "offense_ID": "45-5-211(1)(a)",
     "law_id": "45-5-211",
     "offense_title_short": "Purposely/Knowingly Causes Bodily Injury",

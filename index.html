@@ -185,7 +185,9 @@ function handleSearch() {
     const filtered = lawsIndex.filter(l => 
       (l.law_id && l.law_id.toLowerCase().includes(query)) ||
       (l.law_full_title && l.law_full_title.toLowerCase().includes(query)) ||
-      (l.law_short_title && l.law_short_title.toLowerCase().includes(query))
+      (l.law_short_title && l.law_short_title.toLowerCase().includes(query)) ||
+      (l.title && l.title.toLowerCase().includes(query)) ||
+      (l.short_title && l.short_title.toLowerCase().includes(query))
     );
     renderLeftIndex(filtered);
   }
@@ -244,7 +246,7 @@ function renderLeftIndex(filteredList = null) {
         div.classList.add('active');
         selectLaw(item.law_id);
       };
-      const titleDisplay = item.law_short_title || item.law_full_title || 'Untitled Law';
+      const titleDisplay = item.law_short_title || item.short_title || item.law_full_title || item.title || 'Untitled Law';
       div.innerHTML = `
         <div class="card-title">MCA ${item.law_id}</div>
         <div class="card-subtitle">${titleDisplay}</div>
@@ -305,7 +307,7 @@ async function selectOffense(offenseId) {
         let penaltyHeader = "Penalty Section";
         if (offense.penalty_law_id !== offense.law_id) {
           const penaltyLawMatch = lawsIndex.find(l => l.law_id === offense.penalty_law_id);
-          const penaltyTitle = penaltyLawMatch ? (penaltyLawMatch.law_full_title || penaltyLawMatch.law_short_title || '') : '';
+          const penaltyTitle = penaltyLawMatch ? (penaltyLawMatch.law_full_title || penaltyLawMatch.title || penaltyLawMatch.law_short_title || penaltyLawMatch.short_title || '') : '';
           penaltyHeader += `<br><span class="section-header-title"><a href="#" class="law-link" onclick="event.preventDefault(); selectLaw('${offense.penalty_law_id}');">${offense.penalty_law_id}${penaltyTitle ? ' - ' + penaltyTitle : ''}</a></span>`;
         }
 
@@ -341,7 +343,8 @@ async function appendLawText(lawId, container, filterAnchors = [], secondaryAnch
     const law = await res.json();
 
     if (currentSearchMode === 'laws') {
-      document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${law.law_full_title}`;
+      const displayTitle = law.law_full_title || law.title || '';
+      document.getElementById('centerPanelHeader').textContent = `📜 MCA ${law.law_id}: ${displayTitle}`;
     }
 
     let html = '';

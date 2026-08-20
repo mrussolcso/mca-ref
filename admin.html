@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administrator Tools</title>
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js"></script>
 <style>
   :root { 
     --primary: #1a365d; 
@@ -34,10 +36,7 @@
   .btn-auth { background: #2b6cb0; width: 100%; margin-top: 10px; }
   .btn-logout { background: #718096; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px; border: none; color: white; cursor: pointer; float: right; }
   .btn-check { background: #3182ce; color: white; margin-top: 10px; }
-  .btn-sm { padding: 5px 10px; font-size: 0.78rem; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-  .btn-action { background: #3182ce; color: white; }
-  .btn-del { background: var(--danger); color: white; }
-  
+
   .mode-selector { display: flex; gap: 10px; }
   .mode-btn { flex: 1; padding: 12px; border: 1px solid var(--border); background: #edf2f7; font-weight: 700; cursor: pointer; border-radius: 6px; color: #4a5568; }
   .mode-btn.active { background: var(--primary); color: white; }
@@ -47,25 +46,14 @@
   .status-edit { background: #feebc8; color: #742a2a; border: 1px solid #fbd38d; }
   .auth-badge { display: flex; align-items: center; justify-content: space-between; background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; padding: 10px 14px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; }
 
-  /* Interactive Parser Styling */
-  .parser-box { background: #f0f4f8; border: 1px dashed var(--primary-light); padding: 16px; border-radius: 8px; margin-bottom: 20px; }
-  .paragraph-container { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-  .para-card { background: white; border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; transition: margin-left 0.2s; }
-  
-  /* Indentation Levels */
-  .indent-1 { margin-left: 0px; border-left: 4px solid var(--primary); }
-  .indent-2 { margin-left: 24px; border-left: 4px solid #3182ce; }
-  .indent-3 { margin-left: 48px; border-left: 4px solid #319795; }
-  .indent-4 { margin-left: 72px; border-left: 4px solid #d69e2e; }
-
-  .para-meta { display: flex; flex-direction: column; gap: 6px; width: 140px; flex-shrink: 0; }
-  .anchor-badge { font-size: 0.72rem; background: #e2e8f0; color: #4a5568; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: bold; }
-  
   .autocomplete-container { position: relative; width: 100%; }
   .autocomplete-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 99; background: white; border: 1px solid var(--border); border-top: none; border-radius: 0 0 6px 6px; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: none; }
   .autocomplete-item { padding: 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid #edf2f7; }
   .autocomplete-item:hover { background-color: #ebf8ff; }
   .autocomplete-item strong { color: var(--primary); }
+
+  /* Editor Inline Section Highlight */
+  .statute-section { background-color: #eefcff; border-left: 3px solid #3182ce; padding: 2px 6px; margin: 2px 0; display: inline-block; }
 </style>
 </head>
 <body>
@@ -299,22 +287,16 @@
     </div>
   </div>
 
-  <!-- Section 5: Rich Text Law Parser & Tagging Editor -->
+  <!-- Section 5: Rich Text Law Editor -->
   <div class="card" id="sec5_card" style="display: none;">
     <h3 style="margin-top:0;">5. Statutory Text Editor & Section Tagger</h3>
+    <p style="font-size:0.85rem; color:#4a5568; margin-top:-6px;">Paste, write, or edit law text freely below. Highlight subsections to tag them with unique Anchor IDs or insert cross-reference links.</p>
     
-    <div class="parser-box">
-      <label>📋 Paste Complete Raw Statute Text Here</label>
-      <textarea id="rawStatutePaste" rows="6" placeholder="(1) A person commits the offense of assault if the person:&#10;(a) purposely or knowingly causes bodily injury to another;&#10;(b) negligently causes bodily injury to another with a weapon;"></textarea>
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <button type="button" class="btn btn-action" onclick="parseRawStatuteText()">⚡ Auto-Parse & Build Sections</button>
-        <button type="button" class="btn btn-sm btn-action" onclick="addEmptyParagraphCard()">➕ Add Blank Row</button>
-      </div>
+    <div style="margin-bottom: 15px;">
+      <textarea id="statuteRichEditor" style="min-height: 350px;"></textarea>
     </div>
 
-    <div id="parsedParagraphsContainer" class="paragraph-container"></div>
-
-    <button type="button" class="btn" style="margin-top:20px; width:100%; font-size:1.05rem;" onclick="saveLaw()">🚀 Save Law Record to GitHub</button>
+    <button type="button" class="btn" style="width:100%; font-size:1.05rem;" onclick="saveLaw()">🚀 Save Law Record to GitHub</button>
   </div>
 
 </div>
@@ -330,7 +312,6 @@ let validatedToken = '';
 let activeAction = null;
 let currentComputedLawId = '';
 let currentComputedOffenseId = '';
-let parsedParagraphs = [];
 let offenseIndexCache = [];
 
 let lawsIndexCache = [];
@@ -338,6 +319,57 @@ let currentSelectedLawData = null;
 let selectedLawId = '';
 let selectedLawFullTitle = '';
 let selectedLawShortTitle = '';
+
+// Initialize TinyMCE WYSIWYG Editor
+function initTinyMCE() {
+  if (tinymce.get('statuteRichEditor')) return;
+
+  tinymce.init({
+    selector: '#statuteRichEditor',
+    height: 380,
+    menubar: false,
+    plugins: 'lists link code visualblocks wordcount',
+    toolbar: 'undo redo | blocks | bold italic underline | numlist bullist | tagAnchor statuteLink | code',
+    content_style: `
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; line-height: 1.6; }
+      .statute-section { background-color: #eefcff; border-left: 3px solid #3182ce; padding: 2px 6px; margin: 2px 0; display: block; }
+    `,
+    setup: function (editor) {
+      // Custom Toolbar Button 1: Tag Section Anchor
+      editor.ui.registry.addButton('tagAnchor', {
+        text: '🏷️ Tag Section Anchor',
+        tooltip: 'Wrap selected text as a designated anchor subsection (e.g. 1-a)',
+        onAction: function () {
+          const selectedText = editor.selection.getContent();
+          if (!selectedText) {
+            alert('Please highlight the subsection text first.');
+            return;
+          }
+          const anchorId = prompt('Enter Anchor ID for this section (e.g. "1", "1-a", "2-b-i"):', '');
+          if (anchorId) {
+            const cleanId = anchorId.trim().toLowerCase().replace(/\s+/g, '-');
+            editor.insertContent(`<span class="statute-section" id="${cleanId}" data-anchor="${cleanId}">${selectedText}</span>`);
+          }
+        }
+      });
+
+      // Custom Toolbar Button 2: Cross-Reference Statute Link
+      editor.ui.registry.addButton('statuteLink', {
+        text: '🔗 Add Statute Link',
+        tooltip: 'Insert cross-reference link to another MCA statute',
+        onAction: function () {
+          const selectedText = editor.selection.getContent();
+          const targetId = prompt('Enter Target MCA Statute ID (e.g. "45-5-206"):', '');
+          if (targetId) {
+            const cleanTarget = targetId.trim();
+            const linkText = selectedText || `MCA ${cleanTarget}`;
+            editor.insertContent(`<a href="#/law/${cleanTarget}" data-statute-link="${cleanTarget}">${linkText}</a>`);
+          }
+        }
+      });
+    }
+  });
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   const savedToken = sessionStorage.getItem('gh_pat');
@@ -398,6 +430,7 @@ async function verifyToken() {
     
     loadOffenseIndexCache();
     loadLawsIndexCache();
+    initTinyMCE();
 
   } catch (err) {
     alert(`Authentication Failed: ${err.message}`);
@@ -796,7 +829,9 @@ async function checkEntry() {
       document.getElementById('official_url').value = content.official_url || '';
       document.getElementById('law_history').value = content.history || '';
       
-      parsedParagraphs = content.paragraphs || [];
+      if (tinymce.get('statuteRichEditor')) {
+        tinymce.get('statuteRichEditor').setContent(content.body_html || content.raw_text || '');
+      }
     } else {
       notice.className = "status-notice status-new";
       notice.textContent = `✨ No existing record found for ID "${currentComputedLawId}". Creating a new law entry.`;
@@ -805,10 +840,11 @@ async function checkEntry() {
       document.getElementById('law_short_title').value = '';
       document.getElementById('official_url').value = '';
       document.getElementById('law_history').value = '';
-      parsedParagraphs = [];
+      if (tinymce.get('statuteRichEditor')) {
+        tinymce.get('statuteRichEditor').setContent('');
+      }
     }
 
-    renderParagraphCards();
     document.getElementById('sec4_card').style.display = 'block';
     document.getElementById('sec5_card').style.display = 'block';
 
@@ -941,6 +977,22 @@ async function fetchAnchorsForLaw(lawId, targetType = 'primary') {
     const data = await res.json();
     const content = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
     
+    // Extract Anchors directly from HTML content or paragraphs
+    let anchorList = [];
+    if (content.paragraphs && content.paragraphs.length > 0) {
+      anchorList = content.paragraphs.map(p => ({ anchor_id: p.anchor_id, label: p.path || p.counter || p.anchor_id, text: p.text || '' }));
+    } else if (content.body_html) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content.body_html;
+      const elements = tempDiv.querySelectorAll('[data-anchor], [id]');
+      elements.forEach(el => {
+        const aId = el.getAttribute('data-anchor') || el.id;
+        if (aId) {
+          anchorList.push({ anchor_id: aId, label: aId, text: el.textContent.substring(0, 40) });
+        }
+      });
+    }
+
     if (targetType === 'primary') {
       const primarySelect = document.getElementById('primary_anchor_select');
       const secondarySelect = document.getElementById('secondary_anchor_select');
@@ -948,51 +1000,49 @@ async function fetchAnchorsForLaw(lawId, targetType = 'primary') {
       primarySelect.innerHTML = '<option value="">-- Select anchor to append --</option>';
       secondarySelect.innerHTML = '<option value="">-- Select anchor to append --</option>';
 
-      if (content.paragraphs && content.paragraphs.length > 0) {
-        content.paragraphs.forEach(p => {
-          const optPrimary = document.createElement('option');
-          optPrimary.value = p.anchor_id;
-          optPrimary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
-          primarySelect.appendChild(optPrimary);
+      anchorList.forEach(p => {
+        const optPrimary = document.createElement('option');
+        optPrimary.value = p.anchor_id;
+        optPrimary.textContent = `${p.label} - ${p.text.substring(0, 40)}...`;
+        primarySelect.appendChild(optPrimary);
 
-          const optSecondary = document.createElement('option');
-          optSecondary.value = p.anchor_id;
-          optSecondary.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
-          secondarySelect.appendChild(optSecondary);
-        });
+        const optSecondary = document.createElement('option');
+        optSecondary.value = p.anchor_id;
+        optSecondary.textContent = `${p.label} - ${p.text.substring(0, 40)}...`;
+        secondarySelect.appendChild(optSecondary);
+      });
 
-        primarySelect.onchange = function() {
-          if (!this.value) return;
-          const currentTargets = document.getElementById('offense_primary_anchors');
-          const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
-          if (!existing.includes(this.value)) {
-            existing.push(this.value);
-            currentTargets.value = existing.join(', ');
-          }
-        };
+      primarySelect.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_primary_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
+        }
+      };
 
-        secondarySelect.onchange = function() {
-          if (!this.value) return;
-          const currentTargets = document.getElementById('offense_secondary_anchors');
-          const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
-          if (!existing.includes(this.value)) {
-            existing.push(this.value);
-            currentTargets.value = existing.join(', ');
-          }
-        };
-      }
+      secondarySelect.onchange = function() {
+        if (!this.value) return;
+        const currentTargets = document.getElementById('offense_secondary_anchors');
+        const existing = currentTargets.value.split(',').map(s => s.trim()).filter(Boolean);
+        if (!existing.includes(this.value)) {
+          existing.push(this.value);
+          currentTargets.value = existing.join(', ');
+        }
+      };
     } else if (targetType === 'penalty') {
       const penaltySelect = document.getElementById('penalty_anchor_select');
       const penaltyContainer = document.getElementById('penalty_anchors_container');
       
       penaltySelect.innerHTML = '<option value="">-- Select penalty anchor to append --</option>';
 
-      if (content.paragraphs && content.paragraphs.length > 0) {
+      if (anchorList.length > 0) {
         penaltyContainer.style.display = 'block';
-        content.paragraphs.forEach(p => {
+        anchorList.forEach(p => {
           const optPenalty = document.createElement('option');
           optPenalty.value = p.anchor_id;
-          optPenalty.textContent = `${p.path || p.counter} (${p.anchor_id}) - ${p.text.substring(0, 40)}...`;
+          optPenalty.textContent = `${p.label} - ${p.text.substring(0, 40)}...`;
           penaltySelect.appendChild(optPenalty);
         });
 
@@ -1015,200 +1065,37 @@ async function fetchAnchorsForLaw(lawId, targetType = 'primary') {
   }
 }
 
-/* --- STATUTE AUTO-PARSER & INTERACTIVE TAGGING --- */
+// Extract Anchor Blocks from Rich Text HTML into standard JSON format
+function extractAnchorsFromHTML(htmlContent) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
 
-function parseRawStatuteText() {
-  const text = document.getElementById('rawStatutePaste').value.trim();
-  if (!text) {
-    alert('Please paste statute text to parse.');
-    return;
-  }
+  const anchors = [];
+  const taggedElements = tempDiv.querySelectorAll('.statute-section, [data-anchor]');
 
-  const rawLines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  parsedParagraphs = [];
-
-  const counterRegex = /^(\(\d+\)|\([a-z]\)|\([ivx]+\)|\([A-Z]\))/i;
-
-  rawLines.forEach(line => {
-    const match = line.match(counterRegex);
-    let counter = '';
-    let bodyText = line;
-
-    if (match) {
-      counter = match[1];
-      bodyText = line.substring(counter.length).trim();
-    }
-
-    let indent = 1;
-    if (/^\([a-z]\)/.test(counter)) indent = 2;
-    else if (/^\([ivx]+\)/i.test(counter)) indent = 3;
-    else if (/^\([A-Z]\)/.test(counter)) indent = 4;
-
-    parsedParagraphs.push({
-      counter: counter,
-      text: bodyText,
-      indent: indent
-    });
-  });
-
-  recalculateAnchors();
-  renderParagraphCards();
-}
-
-function slugifyCounter(counter) {
-  return (counter || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-}
-
-function recalculateAnchors() {
-  const pathStack = [];
-
-  parsedParagraphs.forEach(p => {
-    const slug = slugifyCounter(p.counter);
-    const depth = p.indent || 1;
-
-    pathStack.length = depth - 1;
-    pathStack[depth - 1] = { counter: p.counter, slug: slug };
-
-    const pathStr = pathStack.map(s => s.counter).join('');
-    const anchorStr = pathStack.map(s => s.slug).filter(Boolean).join('-');
-
-    p.path = pathStr;
-    p.anchor_id = anchorStr || slug;
-  });
-}
-
-function renderParagraphCards() {
-  syncParagraphsFromDOM();
-  recalculateAnchors();
-
-  const container = document.getElementById('parsedParagraphsContainer');
-  container.innerHTML = '';
-
-  if (parsedParagraphs.length === 0) {
-    container.innerHTML = '<p style="color:#718096; font-size:0.9rem;">No statute sections parsed yet. Paste text above to begin.</p>';
-    return;
-  }
-
-  parsedParagraphs.forEach((p, index) => {
-    const card = document.createElement('div');
-    card.className = `para-card indent-${p.indent || 1}`;
-
-    card.innerHTML = `
-      <div class="para-meta">
-        <input type="text" value="${p.counter || ''}" placeholder="(1)" oninput="updateParaProp(${index}, 'counter', this.value)" style="font-weight:bold;">
-        <span class="anchor-badge">ID: ${p.anchor_id || '--'}</span>
-        <div style="display:flex; gap:4px; margin-top:2px;">
-          <button type="button" class="btn-sm btn-action" title="Outdent" onclick="changeIndent(${index}, -1)">←</button>
-          <button type="button" class="btn-sm btn-action" title="Indent" onclick="changeIndent(${index}, 1)">→</button>
-          <button type="button" class="btn-sm btn-del" title="Delete" onclick="deleteParagraphCard(${index})">🗑️</button>
-        </div>
-      </div>
-      <div style="flex-grow: 1;">
-        <textarea rows="2" oninput="updateParaProp(${index}, 'text', this.value)">${p.text || ''}</textarea>
-      </div>
-    `;
-
-    container.appendChild(card);
-  });
-}
-
-function syncParagraphsFromDOM() {
-  const cards = document.querySelectorAll('.para-card');
-  cards.forEach((card, idx) => {
-    if (parsedParagraphs[idx]) {
-      const counterInput = card.querySelector('.para-meta input');
-      const textInput = card.querySelector('textarea');
-      if (counterInput) parsedParagraphs[idx].counter = counterInput.value.trim();
-      if (textInput) parsedParagraphs[idx].text = textInput.value.trim();
-    }
-  });
-}
-
-function updateParaProp(index, key, val) {
-  if (parsedParagraphs[index]) {
-    parsedParagraphs[index][key] = val;
-    if (key === 'counter') {
-      recalculateAnchors();
-      const card = document.querySelectorAll('.para-card')[index];
-      if (card) {
-        const badge = card.querySelector('.anchor-badge');
-        if (badge) badge.textContent = `ID: ${parsedParagraphs[index].anchor_id || '--'}`;
-      }
-    }
-  }
-}
-
-function changeIndent(index, delta) {
-  syncParagraphsFromDOM();
-  if (parsedParagraphs[index]) {
-    let newIndent = (parsedParagraphs[index].indent || 1) + delta;
-    if (newIndent < 1) newIndent = 1;
-    if (newIndent > 4) newIndent = 4;
-    parsedParagraphs[index].indent = newIndent;
-    renderParagraphCards();
-  }
-}
-
-function deleteParagraphCard(index) {
-  syncParagraphsFromDOM();
-  parsedParagraphs.splice(index, 1);
-  renderParagraphCards();
-}
-
-function addEmptyParagraphCard() {
-  syncParagraphsFromDOM();
-  parsedParagraphs.push({
-    counter: '',
-    text: '',
-    indent: 1
-  });
-  renderParagraphCards();
-}
-
-function buildTreeFromFlatParagraphs(paragraphs) {
-  const root = [];
-  const stack = [];
-
-  paragraphs.forEach(p => {
-    const node = {
-      counter: p.counter,
-      anchor_id: p.anchor_id,
-      text: p.text,
-      children: []
-    };
-
-    const depth = p.indent || 1;
-
-    if (depth === 1) {
-      root.push(node);
-      stack[0] = node;
-      stack.length = 1;
-    } else {
-      const parent = stack[depth - 2] || stack[stack.length - 1];
-      if (parent) {
-        parent.children.push(node);
-      } else {
-        root.push(node);
-      }
-      stack[depth - 1] = node;
-      stack.length = depth;
+  taggedElements.forEach(el => {
+    const anchorId = el.getAttribute('data-anchor') || el.id;
+    if (anchorId) {
+      anchors.push({
+        anchor_id: anchorId,
+        text: el.textContent.trim(),
+        html: el.innerHTML
+      });
     }
   });
 
-  return root;
+  return anchors;
 }
 
 async function saveLaw() {
-  syncParagraphsFromDOM();
-  recalculateAnchors();
-  
   if (!currentComputedLawId) {
     alert('Law ID is missing.');
     return;
   }
 
   const sourceTypeElem = document.getElementById('source_type');
-  const treeStructure = buildTreeFromFlatParagraphs(parsedParagraphs);
+  const bodyHtml = tinymce.get('statuteRichEditor').getContent();
+  const extractedAnchors = extractAnchorsFromHTML(bodyHtml);
 
   const payload = {
     law_id: currentComputedLawId,
@@ -1220,8 +1107,8 @@ async function saveLaw() {
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),
     history: document.getElementById('law_history').value.trim(),
-    paragraphs: parsedParagraphs,
-    tree: treeStructure
+    body_html: bodyHtml,
+    anchors: extractedAnchors
   };
 
   await commitFile(`data/laws/LAW_${currentComputedLawId}.json`, payload, `Update Law ${currentComputedLawId}`);

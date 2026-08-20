@@ -1,9 +1,11 @@
 [
   {
-    "id": "OFFENSE_45-5-211(1)(a)",
-    "name": "",
-    "occurrence": null,
-    "severity": "Misdemeanor",
-    "law_id": "45-5-211"
+    "offense_ID": "45-5-211(1)(a)",
+    "law_id": "45-5-211",
+    "offense_title_short": "Purposely/Knowingly Causes Bodily Injury",
+    "offense_title_full": "Purposely or Knowingly Causes Bodily Injury",
+    "offense_display_short": "Assault - Sports Official - Purposely/Knowingly Causes Bodily Injury",
+    "offense_display_full": "Assault Upon Sports Official - Purposely or Knowingly Causes Bodily Injury",
+    "severity": "Misdemeanor"
   }
 ]

@@ -39,8 +39,10 @@ jobs:
                 return {
                   id: content.law_id || file.replace(".json", ""),
                   law_id: content.law_id || file.replace(".json", ""),
-                  title: content.title || "",
-                  short_title: content.short_title || ""
+                  law_full_title: content.law_full_title || content.title || "",
+                  law_short_title: content.law_short_title || content.short_title || "",
+                  title: content.law_full_title || content.title || "",
+                  short_title: content.law_short_title || content.short_title || ""
                 };
               });
             }

@@ -1,22 +1,25 @@
 [
   {
+    "id": "45-5-102",
+    "law_id": "45-5-102",
+    "title": "Deliberate Homicide",
+    "short_title": "Deliberate Homicide"
+  },
+  {
+    "id": "45-5-206",
     "law_id": "45-5-206",
-    "law_full_title": "Partner Or Family Member Assault -- Penalty",
-    "law_short_title": "PFMA",
     "title": "Partner Or Family Member Assault -- Penalty",
     "short_title": "PFMA"
   },
   {
+    "id": "45-5-211",
     "law_id": "45-5-211",
-    "law_full_title": "Assault Upon Sports Official",
-    "law_short_title": "Assault - Sports Official",
-    "title": "Assault Upon Sports Official",
-    "short_title": "Assault - Sports Official"
+    "title": "Assault Upon Sports Official TEST",
+    "short_title": "Assault - Sports Official TEST"
   },
   {
+    "id": "45-5-231",
     "law_id": "45-5-231",
-    "law_full_title": "Assault and Related Offenses -- Definitions",
-    "law_short_title": "Assault Offenses - Definitions",
     "title": "Assault and Related Offenses -- Definitions",
     "short_title": "Assault Offenses - Definitions"
   }

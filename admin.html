@@ -461,8 +461,8 @@ function searchLawsUnified(query) {
 
   const matches = lawsIndexCache.filter(l => 
     String(l.law_id || '').toLowerCase().includes(trimmed.toLowerCase()) || 
-    String(l.law_full_title || '').toLowerCase().includes(trimmed.toLowerCase()) ||
-    String(l.law_short_title || '').toLowerCase().includes(trimmed.toLowerCase())
+    String(l.law_full_title || l.title || '').toLowerCase().includes(trimmed.toLowerCase()) ||
+    String(l.law_short_title || l.short_title || '').toLowerCase().includes(trimmed.toLowerCase())
   );
 
   const exactMatch = lawsIndexCache.find(l => String(l.law_id || '').toLowerCase() === trimmed.toLowerCase());
@@ -470,10 +470,12 @@ function searchLawsUnified(query) {
   if (matches.length > 0) {
     matches.slice(0, 8).forEach(m => {
       const idVal = m.law_id;
+      const fullTitle = m.law_full_title || m.title || '';
+      const shortTitle = m.law_short_title || m.short_title || '';
       const div = document.createElement('div');
       div.className = 'autocomplete-item';
-      const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
-      div.innerHTML = `<strong>${idVal}</strong> - ${displayTitle}`;
+      const displayTitle = shortTitle ? `${fullTitle} (${shortTitle})` : fullTitle;
+      div.innerHTML = `<strong>${idVal}</strong>${displayTitle ? ' - ' + displayTitle : ''}`;
       div.onclick = () => {
         document.getElementById('unifiedLawSearch').value = idVal;
         currentComputedLawId = idVal;
@@ -507,8 +509,8 @@ function searchLaws() {
 
   const matches = lawsIndexCache.filter(l => 
     String(l.law_id || '').toLowerCase().includes(query) || 
-    String(l.law_full_title || '').toLowerCase().includes(query) ||
-    String(l.law_short_title || '').toLowerCase().includes(query)
+    String(l.law_full_title || l.title || '').toLowerCase().includes(query) ||
+    String(l.law_short_title || l.short_title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
@@ -520,7 +522,7 @@ function searchLaws() {
     const idVal = m.law_id;
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    const displayTitle = m.law_short_title || m.law_full_title || '';
+    const displayTitle = m.law_short_title || m.short_title || m.law_full_title || m.title || '';
     div.innerHTML = `<strong>MCA ${idVal}</strong>${displayTitle ? ' - ' + displayTitle : ''}`;
     div.onclick = () => selectLaw(idVal);
     list.appendChild(div);
@@ -535,8 +537,8 @@ async function selectLaw(lawId) {
   document.getElementById('lawSearchResults').style.display = 'none';
 
   const foundLaw = lawsIndexCache.find(l => l.law_id === lawId);
-  selectedLawFullTitle = foundLaw ? (foundLaw.law_full_title || '') : '';
-  selectedLawShortTitle = foundLaw ? (foundLaw.law_short_title || foundLaw.law_full_title || '') : '';
+  selectedLawFullTitle = foundLaw ? (foundLaw.law_full_title || foundLaw.title || '') : '';
+  selectedLawShortTitle = foundLaw ? (foundLaw.law_short_title || foundLaw.short_title || foundLaw.law_full_title || foundLaw.title || '') : '';
 
   const path = `data/laws/LAW_${lawId}.json`;
   const url = `https://api.github.com/repos/${REPO_CONFIG.owner}/${REPO_CONFIG.repo}/contents/${path}`;
@@ -547,11 +549,11 @@ async function selectLaw(lawId) {
     if (res.ok) {
       const data = await res.json();
       currentSelectedLawData = JSON.parse(decodeURIComponent(escape(atob(data.content.replace(/\s/g, '')))));
-      if (currentSelectedLawData.law_full_title) {
-        selectedLawFullTitle = currentSelectedLawData.law_full_title;
+      if (currentSelectedLawData.law_full_title || currentSelectedLawData.title) {
+        selectedLawFullTitle = currentSelectedLawData.law_full_title || currentSelectedLawData.title;
       }
-      if (currentSelectedLawData.law_short_title) {
-        selectedLawShortTitle = currentSelectedLawData.law_short_title;
+      if (currentSelectedLawData.law_short_title || currentSelectedLawData.short_title) {
+        selectedLawShortTitle = currentSelectedLawData.law_short_title || currentSelectedLawData.short_title;
       }
     }
   } catch (err) {
@@ -631,8 +633,8 @@ function searchPenaltyLaws() {
 
   const matches = lawsIndexCache.filter(l => 
     String(l.law_id || '').toLowerCase().includes(query) || 
-    String(l.law_full_title || '').toLowerCase().includes(query) ||
-    String(l.law_short_title || '').toLowerCase().includes(query)
+    String(l.law_full_title || l.title || '').toLowerCase().includes(query) ||
+    String(l.law_short_title || l.short_title || '').toLowerCase().includes(query)
   );
 
   if (matches.length === 0) {
@@ -642,12 +644,14 @@ function searchPenaltyLaws() {
 
   matches.slice(0, 8).forEach(m => {
     const idVal = m.law_id;
+    const fullTitle = m.law_full_title || m.title || '';
+    const shortTitle = m.law_short_title || m.short_title || '';
     const div = document.createElement('div');
     div.className = 'autocomplete-item';
-    const displayTitle = m.law_short_title ? `${m.law_full_title} (${m.law_short_title})` : (m.law_full_title || '');
-    div.innerHTML = `<strong>MCA ${idVal}</strong> - ${displayTitle}`;
+    const displayTitle = shortTitle ? `${fullTitle} (${shortTitle})` : fullTitle;
+    div.innerHTML = `<strong>MCA ${idVal}</strong>${displayTitle ? ' - ' + displayTitle : ''}`;
     div.onclick = () => {
-      document.getElementById('penaltyLawSearch').value = `${idVal} - ${displayTitle}`;
+      document.getElementById('penaltyLawSearch').value = `${idVal}${displayTitle ? ' - ' + displayTitle : ''}`;
       document.getElementById('offense_penalty_law_id').value = idVal;
       list.style.display = 'none';
       fetchAnchorsForLaw(idVal, 'penalty');
@@ -851,7 +855,9 @@ async function checkOffenseEntry() {
       document.getElementById('offense_penalty_law_id').value = penaltyId;
       
       const foundPenaltyLaw = lawsIndexCache.find(l => l.law_id === penaltyId);
-      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title ? `${foundPenaltyLaw.law_full_title} (${foundPenaltyLaw.law_short_title})` : foundPenaltyLaw.law_full_title) : '';
+      const penaltyFull = foundPenaltyLaw ? (foundPenaltyLaw.law_full_title || foundPenaltyLaw.title || '') : '';
+      const penaltyShort = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title || foundPenaltyLaw.short_title || '') : '';
+      const penaltyDisplayTitle = penaltyShort ? `${penaltyFull} (${penaltyShort})` : penaltyFull;
       document.getElementById('penaltyLawSearch').value = penaltyId ? `${penaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
 
       document.getElementById('offense_primary_anchors').value = (content.primary_anchors || content.target_anchors || []).join(', ');
@@ -883,7 +889,9 @@ async function checkOffenseEntry() {
       document.getElementById('offense_penalty_law_id').value = defaultPenaltyId;
       
       const foundPenaltyLaw = lawsIndexCache.find(l => l.law_id === defaultPenaltyId);
-      const penaltyDisplayTitle = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title ? `${foundPenaltyLaw.law_full_title} (${foundPenaltyLaw.law_short_title})` : foundPenaltyLaw.law_full_title) : '';
+      const penaltyFull = foundPenaltyLaw ? (foundPenaltyLaw.law_full_title || foundPenaltyLaw.title || '') : '';
+      const penaltyShort = foundPenaltyLaw ? (foundPenaltyLaw.law_short_title || foundPenaltyLaw.short_title || '') : '';
+      const penaltyDisplayTitle = penaltyShort ? `${penaltyFull} (${penaltyShort})` : penaltyFull;
       document.getElementById('penaltyLawSearch').value = defaultPenaltyId ? `${defaultPenaltyId}${penaltyDisplayTitle ? ' - ' + penaltyDisplayTitle : ''}` : '';
 
       document.getElementById('offense_primary_anchors').value = '';
@@ -1178,6 +1186,8 @@ async function saveLaw() {
     law_id: currentComputedLawId,
     law_full_title: document.getElementById('law_full_title').value.trim(),
     law_short_title: document.getElementById('law_short_title').value.trim(),
+    title: document.getElementById('law_full_title').value.trim(),
+    short_title: document.getElementById('law_short_title').value.trim(),
     source_type: sourceTypeElem ? sourceTypeElem.value : 'MCA Statute',
     official_url: document.getElementById('official_url').value.trim(),
     last_updated: new Date().toISOString(),

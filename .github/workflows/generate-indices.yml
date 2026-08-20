@@ -1,42 +1,75 @@
-name: Generate Indices
+name: Auto-Generate Law and Offense Indices
 
 on:
   push:
+    paths:
+      - 'data/laws/*.json'
+      - 'data/offenses/*.json'
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build-index:
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install Dependencies
+      - name: Rebuild Index Files
         run: |
-          if [ -f package.json ]; then npm ci; fi
+          node -e '
+            const fs = require("fs");
+            const path = require("path");
 
-      - name: Build Index
-        run: |
-          node scripts/build-index.js
+            // Build laws-index.json
+            const lawsDir = "data/laws";
+            let lawsIndex = [];
+            if (fs.existsSync(lawsDir)) {
+              const files = fs.readdirSync(lawsDir).filter(f => f.endsWith(".json"));
+              lawsIndex = files.map(file => {
+                const content = JSON.parse(fs.readFileSync(path.join(lawsDir, file), "utf8"));
+                return {
+                  id: content.law_id || file.replace(".json", ""),
+                  law_id: content.law_id || file.replace(".json", ""),
+                  title: content.title || "",
+                  short_title: content.short_title || ""
+                };
+              });
+            }
+            fs.writeFileSync("data/laws-index.json", JSON.stringify(lawsIndex, null, 2));
+
+            // Build offenses-index.json
+            const offensesDir = "data/offenses";
+            let offensesIndex = [];
+            if (fs.existsSync(offensesDir)) {
+              const files = fs.readdirSync(offensesDir).filter(f => f.endsWith(".json"));
+              offensesIndex = files.map(file => {
+                const content = JSON.parse(fs.readFileSync(path.join(offensesDir, file), "utf8"));
+                return {
+                  offense_ID: content.offense_ID || file.replace(/^OFFENSE_/, "").replace(".json", ""),
+                  law_id: content.law_id || "",
+                  offense_title_short: content.offense_title_short || "",
+                  offense_title_full: content.offense_title_full || "",
+                  offense_display_short: content.offense_display_short || "",
+                  offense_display_full: content.offense_display_full || "",
+                  severity: content.severity || ""
+                };
+              });
+            }
+            fs.writeFileSync("data/offenses-index.json", JSON.stringify(offensesIndex, null, 2));
+          '
 
       - name: Commit and Push Index Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "auto: regenerate index files"
-          branch: main
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/laws-index.json data/offenses-index.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "auto: regenerate index files" && git push)

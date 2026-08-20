@@ -1,12 +1,13 @@
 {
-  "offense_id": "45-5-211(1)(a)",
   "offense_section": "(1)(a)",
-  "short_title": "Purposely/Knowingly Causes Bodily Injury",
-  "name": "Assault - Sports Official - Purposely/Knowingly Causes Bodily Injury",
-  "offense_title": "Assault Upon Sports Official - Purposely or Knowingly Causes Bodily Injury",
+  "offense_ID": "45-5-211(1)(a)",
+  "offense_title_full": "Purposely or Knowingly Causes Bodily Injury",
+  "offense_title_short": "Purposely/Knowingly Causes Bodily Injury",
+  "offense_display_full": "Assault Upon Sports Official - Purposely or Knowingly Causes Bodily Injury",
+  "offense_display_short": "Assault - Sports Official - Purposely/Knowingly Causes Bodily Injury",
   "occurrence": null,
   "severity": "Misdemeanor",
-  "description": "A person commits the offense of assault upon a sports official if, while a sports official is acting as an official at an athletic contest in any sport at any level of amateur or professional competition, the person purposely or knowingly causes bodily injury to the sports official.",
+  "description": "",
   "bond_type": "amount",
   "bond_amount": 585,
   "mandatory_appearance": false,
@@ -17,11 +18,9 @@
     "1",
     "1-a"
   ],
-  "secondary_anchors": [
-    "2"
-  ],
+  "secondary_anchors": [],
   "penalty_anchors": [
     "2"
   ],
-  "last_updated": "2026-08-20T15:45:05.228Z"
+  "last_updated": "2026-08-20T16:58:52.733Z"
 }
